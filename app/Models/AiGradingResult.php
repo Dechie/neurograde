@@ -3,8 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Submission;
-use Teacher;
 class AiGradingResult extends Model
 {
     //
@@ -18,3 +16,4 @@ class AiGradingResult extends Model
         return $this->belongsTo(Teacher::class);
     }
 }
+

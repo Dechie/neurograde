@@ -3,9 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use User;
-use Teacher;
-use ClassRoom;
 
 class Admin extends Model
 {
@@ -14,7 +11,7 @@ class Admin extends Model
         'user_id',
     ];
 
-    public function user() 
+    public function user()
     {
         return $this->belongsTo(User::class);
     }
@@ -26,6 +23,7 @@ class Admin extends Model
 
     public function createdClasses()
     {
-        return $ths->hasMany(ClassRoom::class, 'created_by');
+        return $this->hasMany(ClassRoom::class, 'created_by');
     }
 }
+

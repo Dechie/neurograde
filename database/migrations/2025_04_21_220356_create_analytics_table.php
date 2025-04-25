@@ -16,7 +16,6 @@ return new class extends Migration
             $table->foreignId("student_id")->contstrained("students");
             $table->foreignId("test_id")->contstrained("tests");
             $table->json("metrics");
-            $table->json("comments");
             $table->timestamps();
         });
     }
@@ -29,3 +28,4 @@ return new class extends Migration
         Schema::dropIfExists('analytics');
     }
 };
+
