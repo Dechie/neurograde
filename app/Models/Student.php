@@ -29,3 +29,4 @@ class Student extends Model
         return $this->belongsToMany(Test::class, "test_student", "student_id", "test_id");
     }
 }
+

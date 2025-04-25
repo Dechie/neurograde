@@ -3,9 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Teacher;
-use Admin;
-use Student;
 
 class ClassRoom extends Model
 {
@@ -24,3 +21,4 @@ class ClassRoom extends Model
         return $this->belongsToMany(Student::class, "class_students", "class_id", "student_id");
     }
 }
+
