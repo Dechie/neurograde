@@ -98,11 +98,11 @@ export default function Register() {
                             required
                             autoFocus
                             tabIndex={1}
-                            autoComplete="firstname"
+                            autoComplete="id number"
                             value={data.idnumber}
                             onChange={(e) => setData('idnumber', e.target.value)}
                             disabled={processing}
-                            placeholder="First name"
+                            placeholder="ID Number"
                         />
                         <InputError message={errors.firstname} className="mt-2" />
                     </div>
