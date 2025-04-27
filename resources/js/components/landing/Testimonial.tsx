@@ -14,7 +14,7 @@ const Testimonials = () => {
     },
     {
       id: 2,
-      name: "Hiwot Alemayehu" ,
+      name: "Hiwot Alemayehu",
       location: "Adama, Ethiopia",
       image: "/2.jpg",
       quote:
@@ -72,13 +72,13 @@ const Testimonials = () => {
     <section className="container mx-auto px-4 md:px-6 py-16">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         <div className="space-y-6">
-          <h2 className="text-3xl md:text-4xl font-bold text-[#1e2a78] leading-tight">
+          <h2 className="text-3xl md:text-4xl font-bold text-[#primary] leading-tight">
             See What Students Say
             <br />
             About Smarter Learning
           </h2>
-          <div className="p-6 border-l-4 border-[#4361ee] bg-blue-50 rounded-r-lg">
-            <p className="text-gray-600 italic mb-6">
+          <div className="p-6 border-l-4 border-secondary bg-muted rounded-r-lg">
+            <p className="text-muted-foreground italic mb-6">
               "{currentTestimonial.quote}"
             </p>
             <div className="flex items-center gap-3">
@@ -92,10 +92,10 @@ const Testimonials = () => {
                 />
               </div>
               <div>
-                <h4 className="font-bold text-[#1e2a78]">
+                <h4 className="font-bold text-primary">
                   {currentTestimonial.name}
                 </h4>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   {currentTestimonial.location}
                 </p>
               </div>
@@ -105,14 +105,14 @@ const Testimonials = () => {
             <Button
               size="icon"
               variant="outline"
-              className="rounded-full border-[#1e2a78] text-[#1e2a78] hover:bg-[#1e2a78] hover:text-white"
+              className="rounded-full border-primary text-primary hover:bg-primary hover:text-primary-foreground"
               onClick={handlePrevious}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <Button
               size="icon"
-              className="rounded-full !bg-[#1e2a78] hover:!bg-[#4361ee] text-white"
+              className="rounded-full !bg-primary hover:!bg-secondary text-primary-foreground"
               onClick={handleNext}
             >
               <ChevronRight className="h-4 w-4" />
@@ -120,8 +120,8 @@ const Testimonials = () => {
           </div>
         </div>
         <div className="relative">
-          <div className="w-64 h-64 bg-[#323a92] rounded-full mx-auto relative">
-            <div className="w-16 h-16 bg-white rounded-full absolute top-4 right-0 overflow-hidden">
+          <div className="w-64 h-64 bg-primary rounded-full mx-auto relative">
+            <div className="w-16 h-16 bg-card rounded-full absolute top-4 right-0 overflow-hidden">
               <img
                 src={testimonials[getCircularIndex(currentIndex + 1)].image || "/placeholder.svg"}
                 alt="Student"
@@ -130,7 +130,7 @@ const Testimonials = () => {
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="w-16 h-16 bg-white rounded-full absolute top-1/4 -right-8 overflow-hidden">
+            <div className="w-16 h-16 bg-card rounded-full absolute top-1/4 -right-8 overflow-hidden">
               <img
                 src={testimonials[getCircularIndex(currentIndex + 2)].image || "/placeholder.svg"}
                 alt="Student"
@@ -139,7 +139,7 @@ const Testimonials = () => {
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="w-16 h-16 bg-white rounded-full absolute bottom-4 right-4 overflow-hidden">
+            <div className="w-16 h-16 bg-card rounded-full absolute bottom-4 right-4 overflow-hidden">
               <img
                 src={testimonials[getCircularIndex(currentIndex + 3)].image || "/placeholder.svg"}
                 alt="Student"
@@ -148,7 +148,7 @@ const Testimonials = () => {
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="w-16 h-16 bg-white rounded-full absolute bottom-0 left-1/4 overflow-hidden">
+            <div className="w-16 h-16 bg-card rounded-full absolute bottom-0 left-1/4 overflow-hidden">
               <img
                 src={testimonials[getCircularIndex(currentIndex + 4)].image || "/placeholder.svg"}
                 alt="Student"
@@ -157,7 +157,7 @@ const Testimonials = () => {
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="w-16 h-16 bg-white rounded-full absolute top-1/3 -left-8 overflow-hidden">
+            <div className="w-16 h-16 bg-card rounded-full absolute top-1/3 -left-8 overflow-hidden">
               <img
                 src={testimonials[getCircularIndex(currentIndex - 1)].image || "/placeholder.svg"}
                 alt="Student"
@@ -166,7 +166,7 @@ const Testimonials = () => {
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="w-24 h-24 bg-white rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 overflow-hidden shadow-lg border-2 border-white">
+            <div className="w-24 h-24 bg-card rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 overflow-hidden shadow-lg border-2 border-card">
               <img
                 src={currentTestimonial.image || "/placeholder.svg"}
                 alt={currentTestimonial.name}

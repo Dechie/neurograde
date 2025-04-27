@@ -1,35 +1,35 @@
 import { Button } from "@/components/ui/button";
-import {Link} from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 
 const Header = () => {
   return (
-    <header className="py-4 px-4 md:px-6 flex items-center justify-between fixed top-0 left-0 w-full bg-white shadow-md z-50">
+    <header className="py-4 px-4 md:px-6 flex items-center justify-between fixed top-0 left-0 w-full  shadow-md z-0">
       <div className="flex items-center space-x-8">
-        <Link href="/" className="text-2xl font-bold !text-[#323a92]">
+        <Link href="/" className="text-2xl font-bold text-[#primary]">
           SmartGrade
         </Link>
         <nav className="hidden md:flex space-x-6">
           <Link
             href="/"
-            className="text-md font-medium !text-gray-600 hover:!text-[#5463FF]"
+            className="text-md font-medium !text-foreground hover:!text-secondary"
           >
             Home
           </Link>
           <a
             href="#courses"
-            className="text-md font-medium !text-gray-600 hover:!text-[#5463FF]"
+            className="text-md font-medium !text-foreground hover:!text-secondary"
           >
             Features
           </a>
           <a
-           href="#learning-journey"
-            className="text-md font-medium !text-gray-600 hover:!text-[#5463FF]"
+            href="#learning-journey"
+            className="text-md font-medium !text-foreground hover:!text-secondary"
           >
             How it works
           </a>
           <a
             href="#contact"
-            className="text-md font-medium !text-gray-600 hover:!text-[#5463FF]"
+            className="text-md font-medium !text-foreground hover:!text-secondary"
           >
             Contact Us
           </a>
@@ -38,12 +38,12 @@ const Header = () => {
       <div className="flex items-center space-x-4">
         <Link
           href="/signin"
-          className="text-md font-medium !text-gray-600 hover:!text-[#5463FF]"
+          className="text-md font-medium !text-foreground hover:!text-secondary"
         >
           Sign in
         </Link>
         <Link href="/signup">
-          <Button className="!bg-[#323a92] hover:!bg-[#5463FF] text-white">
+          <Button className="!bg-primary hover:!bg-secondary text-primary-foreground">
             Sign up
           </Button>
         </Link>
