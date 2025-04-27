@@ -37,12 +37,12 @@ const Header = () => {
       </div>
       <div className="flex items-center space-x-4">
         <Link
-          href="/signin"
+          href={route("login")}
           className="text-md font-medium !text-foreground hover:!text-secondary"
         >
           Sign in
         </Link>
-        <Link href="/signup">
+        <Link href={route("register")}>
           <Button className="!bg-primary hover:!bg-secondary text-primary-foreground">
             Sign up
           </Button>
