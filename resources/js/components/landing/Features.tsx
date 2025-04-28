@@ -2,7 +2,7 @@ import { Upload, BrainCircuit, Edit3, BarChart2, LockKeyhole, MessageSquareText 
 
 export default function FeaturesSection() {
   return (
-    <section className="w-full py-8" id="features">
+    <section className="w-full py-8 bg-white" id="features">
       <div className="container px-4 mx-auto max-w-6xl">
         <div className="mb-12">
           <h2 className="text-secondary font-medium uppercase tracking-wide mb-2">FEATURES</h2>
