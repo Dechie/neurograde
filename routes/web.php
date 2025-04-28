@@ -9,9 +9,20 @@ Route::get('/', function () {
 
 })->name('home');
 
+Route::get('admin-login', function(){
+    return Inertia::render('auth/admin_login');
+});
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
+        //return Inertia::render('dashboard');
+        if (auth()->user()->hasRole('admin')){
+            return Inertia::render('auth/admin_login');
+        } elseif (auth()->user()->hasRole("teacher")){
+            return Inertia::render('auth/teacher_register');
+        } elseif (auth()->user()->hasRole('student')){
+            return Inertia::render('auth/login');
+        }
     })->name('dashboard');
 });
 
