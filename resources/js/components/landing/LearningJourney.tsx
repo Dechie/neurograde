@@ -1,6 +1,6 @@
 const LearningJourney = () => {
   return (
-    <section id="learning-journey" className="px-4 md:px-6 py-6 md:py-20">
+    <section id="learning-journey" className="bg-white px-4 md:px-6 py-6 md:py-20">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         <div className="space-y-8">
           <h2 className="text-secondary font-medium uppercase tracking-wide mb-2">HOW IT WORKS</h2>

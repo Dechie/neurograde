@@ -3,7 +3,7 @@ import { Link } from '@inertiajs/react';
 
 const Header = () => {
   return (
-    <header className="py-4 px-4 md:px-6 flex items-center justify-between fixed top-0 left-0 w-full  shadow-md z-0">
+    <header className="py-4 px-4 md:px-6 bg-white flex items-center justify-between fixed top-0 left-0 w-full  shadow-md z-50">
       <div className="flex items-center space-x-8">
         <Link href="/" className="text-2xl font-bold text-[#primary]">
           SmartGrade
