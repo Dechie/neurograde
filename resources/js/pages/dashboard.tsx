@@ -2,6 +2,7 @@ import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
+import { useEffect } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -11,6 +12,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Dashboard() {
+    useEffect(() => {
+        console.log("dashboard page loaded");
+    },[])
+        console.log("dashboard page loaded");
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />

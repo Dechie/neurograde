@@ -13,15 +13,15 @@ Route::get('admin-login', function(){
     return Inertia::render('auth/admin_login');
 });
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', function () {
         //return Inertia::render('dashboard');
         if (auth()->user()->hasRole('admin')){
             return Inertia::render('auth/admin_login');
         } elseif (auth()->user()->hasRole("teacher")){
-            return Inertia::render('auth/teacher_register');
+            return Inertia::render('dashboard');
         } elseif (auth()->user()->hasRole('student')){
-            return Inertia::render('auth/login');
+            return Inertia::render('dashboard');
         }
     })->name('dashboard');
 });

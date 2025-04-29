@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId("user_id")->contstrained("users");
             $table->string("id_number");
             $table->string("academic_year");
-            $table->foreignId("department_id")->contstrained("departmentss");
+            $table->foreignId("department_id")->contstrained("departments");
             $table->timestamps();
         });
     }

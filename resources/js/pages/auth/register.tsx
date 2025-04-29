@@ -3,20 +3,46 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Link } from '@inertiajs/react';
+import { PageProps } from '@/types';
+import { Link, useForm, usePage } from '@inertiajs/react';
 import { EyeIcon, EyeOffIcon } from 'lucide-react';
 import { useState } from 'react';
 
+interface Department {
+    id: number;
+    name: string;
+}
+
+interface Props extends PageProps {
+    departments?: Department[]; 
+}
 export default function SignupForm() {
-    const [showPassword, setShowPassword] = useState(false);
+    const [showPassword, setShowPassword]= useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
+    const { departments } = usePage<Props>().props;
+    const [submitting, setIsSubmitting] = useState(false);
+    const { data, progress, processing, post, setData, errors} = useForm({
+        'first_name': '',
+        'last_name': '',
+        'email': '',
+        'password': '',
+        'password_confirmation': '',
+        'id_number': '',
+        'academic_year': '',
+        'department': '',
+    }); 
 
     const studentImage = `/student.jpg?t=${Date.now()}`;
-
+   
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const formData = new FormData(e.currentTarget);
-        console.log(Object.fromEntries(formData.entries()));
+        console.log('Form Submitted', data);
+
+        setIsSubmitting(true);
+        post(route('register.store'), {
+            onFinish: () => setIsSubmitting(false),
+        });
     };
 
     return (
@@ -52,20 +78,29 @@ export default function SignupForm() {
                             <CardContent className="flex-1 space-y-6 sm:space-y-8 px-6 sm:px-8 py-6 sm:py-8">
                                 <div className="space-y-3 sm:space-y-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="username">Username</Label>
-                                        <Input id="username" name="username" type="text" required />
+                                        <Label htmlFor="first_name">First Name</Label>
+                                        <Input id="first_name" name="first_name" value={data.first_name } onChange={(e)=> setData("first_name", e.target.value)} type="text" required />
+                                        {errors.first_name && <div> {errors.first_name} </div>}
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="last name">Last Name</Label>
+                                        <Input id="last_name" name="last_name" value={data.last_name } onChange={e => setData('last_name', e.target.value)} type="text" required />
+                                        {errors.last_name && <div>{errors.last_name}</div>}
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="email">Email</Label>
-                                        <Input id="email" name="email" type="email" required />
+                                        <Input id="email" name="email" value={data.email} onChange={e => setData("email", e.target.value)} type="text" required />
+                                        {errors.email && <div>{errors.email}</div>}
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="space-y-3">
                                         <Label htmlFor="password">Password</Label>
                                         <div className="relative">
                                             <Input
                                                 id="password"
                                                 name="password"
                                                 type={showPassword ? 'text' : 'password'}
+                                                value={data.password}
+                                                onChange={e => setData("password", e.target.value)}
                                                 required
                                                 className="pr-10"
                                             />
@@ -76,29 +111,60 @@ export default function SignupForm() {
                                             >
                                                 {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                                             </button>
+                                            {errors.password && <div>{errors.password}</div>}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <div className="relative">
+                                            <Label htmlFor="password_confirmation">Confirm Password</Label>
+                                            <Input
+                                                id="password_confirmation"
+                                                name="password_confirmation"
+                                                value={data.password_confirmation}
+                                                onChange={e => setData("password_confirmation",e.target.value)}
+                                                type={showConfirmPassword ? 'text' : 'password'}
+                                                required
+                                            />
+                                            <button
+                                                    type="button"
+                                                    className="text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2"
+                                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            >
+                                                {showConfirmPassword ? <EyeOffIcon/> : <EyeIcon/>} 
+                                            </button>
+                                            {errors.password_confirmation && <div>{errors.password_confirmation}</div>}
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="confirmPassword">Confirm Password</Label>
-                                        <Input
-                                            id="confirmPassword"
-                                            name="confirmPassword"
-                                            type={showPassword ? 'text' : 'password'}
-                                            required
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
                                         <Label htmlFor="id_number">ID Number</Label>
-                                        <Input id="id_number" name="id_number" type="text" required />
+                                        <Input id="id_number" name="id_number" value={data.id_number} onChange={e => setData("id_number",e.target.value)} type="text" required />
+                                        {errors.id_number && <div>{errors.id_number}</div>} 
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="academic_year">Academic Year</Label>
-                                        <Input id="academic_year" name="academic_year" type="text" required />
+                                        <Input id="academic_year" name="academic_year" value={data.academic_year} onChange={e => setData("academic_year", e.target.value)} type="text" required />
+                                        {errors.academic_year && <div>{errors.academic_year}</div>}
                                     </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="department_id">Department ID</Label>
-                                        <Input id="department_id" name="department_id" type="text" required />
+                                    <div className='space-y-w'>
+                                        <Label htmlFor='department_id'>Department</Label>
+                                        <select
+                                            id='department_id'
+                                            name='department_id'
+                                            value={data.department}
+                                            required
+                                            onChange={(e) =>  setData("department", e.target.value)}
+                                            className='w-full bordr rounded px-3 py-2 bg-white text-sm'
+                                        >
+                                            <option value="">Select Department</option>
+                                            {departments?.map((dept) => (
+                                                <option key={dept.id} value={dept.id}>
+                                                {dept.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {errors.department && <div>{errors.department}</div>}
                                     </div>
+      
                                 </div>
                                 <div className="flex items-center space-x-2 pt-4">
                                     <Checkbox id="terms" required />
@@ -117,6 +183,7 @@ export default function SignupForm() {
                             <CardFooter className="flex flex-col space-y-4 px-6 sm:px-8 pb-6 sm:pb-8">
                                 <Button
                                     type="submit"
+                                    disabled={processing}
                                     className="h-11 w-full !bg-primary hover:!bg-secondary !text-primary-foreground font-medium"
                                 >
                                     Create Account

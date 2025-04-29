@@ -5,6 +5,8 @@ export interface Auth {
     user: User;
 }
 
+
+
 export interface BreadcrumbItem {
     title: string;
     href: string;
@@ -31,13 +33,58 @@ export interface SharedData {
     [key: string]: unknown;
 }
 
+// export interface User {
+//     id: number;
+//     name: string;
+//     email: string;
+//     avatar?: string;
+//     email_verified_at: string | null;
+//     created_at: string;
+//     updated_at: string;
+//     [key: string]: unknown; // This allows for additional properties...
+// }
+// export interface PageProps {
+//     auth?: {
+//         user?: {
+//             id: number;
+//             name: string;
+//             email: string;
+//         };
+//     };
+//     [key: string]: any;
+// }
+// types/index.d.ts
+
 export interface User {
     id: number;
-    name: string;
+    // You can remove 'name' here if you definitively decide against the backend accessor
+    // name?: string; // Or keep it if you might add the accessor later
+
+    first_name: string; // Ensure this is defined
+    last_name: string;  // Ensure this is defined
+
     email: string;
-    avatar?: string;
     email_verified_at: string | null;
     created_at: string;
     updated_at: string;
-    [key: string]: unknown; // This allows for additional properties...
+    // Add other properties you expect on the User object, like avatar, roles, student relation
+    avatar?: string; // Example if user has an avatar field
+    roles?: { name: string }[]; // Example if roles are loaded
+    student?: any; // Example if student relation is loaded
+}
+
+// Ensure PageProps structure matches what your backend is passing
+export interface PageProps {
+    auth: {
+        user: User | null; // 'user' can be null if the user is not authenticated
+    };
+    // Add other props like 'departments' if your pages receive them
+    departments?: { id: number; name: string }[];
+    [key: string]: any; // Catch-all for other potential props
+}
+
+// Add other relevant types as needed
+export interface BreadcrumbItem {
+    title: string;
+    href: string;
 }

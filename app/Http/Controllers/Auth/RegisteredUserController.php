@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Models\Department;
+use App\Models\Student;
 
 class RegisteredUserController extends Controller
 {
@@ -20,7 +22,10 @@ class RegisteredUserController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('auth/register');
+        $departments = Department::all(['id', 'name']);
+        return Inertia::render('auth/register',[
+            'departments' => $departments
+        ]);
     }
 
     /**
@@ -30,20 +35,38 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
+        // dd();
+        $data = $request->validate([
             'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
+            'id_number' => 'required|string|max:255',
+            'department' => 'required|integer|exists:departments,id',
+            'academic_year' => 'required|string|max:255',
+            ]);
+
+        $passwordHashed = Hash::make($data["password"]);
 
         $user = User::create([
-            'first_name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'first_name' => $data['first_name'],
+            'last_name' => $data['last_name'],
+            'email' => $data['email'],
+            'password' => $passwordHashed, 
         ]);
 
-        event(new Registered($user));
+        $user->assignRole('student');
 
+        $student = new Student([
+            'user_id' => $user->id,
+            'id_number' => $data['id_number'],
+            'academic_year' => $data['academic_year'],
+            'department_id' => $data['department']
+        ]);
+
+        $user->student()->save($student);
+        //event(new Registered($user));
+        // var_dump($user);
         Auth::login($user);
 
         return to_route('dashboard');
