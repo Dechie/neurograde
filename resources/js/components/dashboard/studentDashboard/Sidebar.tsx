@@ -1,148 +1,122 @@
-import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Link, usePage } from '@inertiajs/react';
+import { Link, usePage } from "@inertiajs/react";
 import {
-    BarChart2,
-    ChevronLeft,
-    ChevronRight,
-    FileText,
-    HelpCircle,
-    Home,
-    Menu,
-    Settings,
-    User,
-    X,
-    ClipboardList,
-    ListChecks,
-    LineChart,
-    LifeBuoy
-  } from 'lucide-react';
-  import { useEffect, useState } from 'react';
-import { useMediaQuery } from 'react-responsive';
+  FileText, Home, ClipboardList, ListChecks,
+  LifeBuoy, Settings, Menu, X, ChevronLeft, ChevronRight,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  TooltipProvider, Tooltip, TooltipTrigger, TooltipContent
+} from "@/components/ui/tooltip";
+import { useSidebar } from "@/hooks/use-sidebar";
 
-export function AppSidebar() {
-    const { url } = usePage();
-    const [isCollapsed, setIsCollapsed] = useState(false);
-    const [isMobileOpen, setIsMobileOpen] = useState(false);
-    const isMobile = useMediaQuery({ maxWidth: 768 });
+const STUDENT_MENU = [
+  { path: '/', label: 'Home', icon: Home },
+  { path: '/tests', label: 'Tests', icon: ClipboardList },
+  { path: '/results', label: 'Results', icon: ListChecks },
+];
 
-    const isActive = (path: string) => url === path;
+const TEACHER_MENU = [
+  { path: '/', label: 'Dashboard', icon: Home },
+  { path: '/create-test', label: 'Create Test', icon: FileText },
+  { path: '/submissions', label: 'Submissions', icon: ClipboardList },
+];
 
-    useEffect(() => {
-        const sidebarWidth = isCollapsed ? '64px' : '256px';
+const COMMON_FOOTER = [
+  { path: '/help', label: 'Help & Center', icon: LifeBuoy },
+  { path: '/settings', label: 'Settings', icon: Settings },
+];
 
-        if (isMobile) {
-            document.documentElement.style.setProperty('--sidebar-width', '0px');
-            document.documentElement.setAttribute('data-sidebar-mobile', 'true');
-            document.documentElement.setAttribute('data-sidebar-mobile-open', isMobileOpen.toString());
-        } else {
-            document.documentElement.style.setProperty('--sidebar-width', sidebarWidth);
-            document.documentElement.setAttribute('data-sidebar-mobile', 'false');
-            document.documentElement.setAttribute('data-sidebar-collapsed', isCollapsed.toString());
-        }
-    }, [isCollapsed, isMobile, isMobileOpen]);
+export function Sidebar() {
+  const { url, props } = usePage();
+  const role = props.role as 'student' | 'teacher';
+  const {
+    isCollapsed, isMobile, isMobileOpen,
+    toggleCollapse, toggleMobile, closeMobile
+  } = useSidebar();
 
-    useEffect(() => {
-        document.body.style.overflow = isMobileOpen ? 'hidden' : 'auto';
-        return () => {
-            document.body.style.overflow = 'auto';
-        };
-    }, [isMobileOpen]);
+  const isActive = (path: string) => url === path;
+  const menuItems = role === 'teacher' ? TEACHER_MENU : STUDENT_MENU;
 
-    const toggleMobileMenu = () => {
-        setIsMobileOpen(!isMobileOpen);
-    };
+  return (
+    <>
+      {isMobile && (
+        <div className={`fixed z-50 md:hidden ${isMobileOpen ? 'top-2 left-52' : 'top-2 left-2'}`}>
+          <Button variant="outline" size="icon" onClick={toggleMobile}>
+            {isMobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
+        </div>
+      )}
 
-    const toggleCollapse = () => {
-        setIsCollapsed(!isCollapsed);
-    };
+      <aside
+        className={`transition-all duration-300 ease-in-out border-r bg-white flex flex-col
+        ${isMobile ? 'fixed top-0 left-0 z-40 h-full w-full' : 'sticky top-0'}
+        ${isMobile
+          ? isMobileOpen
+            ? 'translate-x-0'
+            : '-translate-x-full'
+          : isCollapsed
+            ? 'w-16'
+            : 'w-64'}`}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b">
+          <div className="flex items-center gap-2">
+            <div className="bg-primary text-primary-foreground flex h-8 w-8 items-center justify-center rounded">
+              <FileText className="h-4 w-4" />
+            </div>
+            {(!isCollapsed || isMobile) && <span className="text-lg font-semibold">SmartGrade</span>}
+          </div>
+          {!isMobile && (
+            <Button variant="ghost" size="icon" onClick={toggleCollapse}>
+              {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            </Button>
+          )}
+        </div>
 
-    const menuItems = [
-        { path: '/', icon: Home, label: 'Home' },
-        { path: '/tests', icon: ClipboardList, label: 'Tests' },
-        { path: '/results', icon: ListChecks, label: 'Results' },
-      ];
-      
-      const footerItems = [
-        { path: '/help', icon: LifeBuoy, label: 'Help & Center' },
-        { path: '/settings', icon: Settings, label: 'Settings' },
-      ];
-      
+        {/* Navigation */}
+        <TooltipProvider>
+        <nav className="flex-1 p-2 space-y-1">
+         {menuItems.map((item) => (
+              <Tooltip key={item.path} delayDuration={300}>
+                <TooltipTrigger asChild>
+                  <Link
+                    href={item.path}
+                    onClick={() => isMobile && closeMobile()}
+                    className={`flex items-center gap-3 px-3 py-2 rounded
+                    ${isActive(item.path) ? 'bg-primary text-muted' : 'hover:bg-primary hover:text-muted'}
+                    ${isCollapsed && !isMobile ? 'justify-center' : 'w-full'}`}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    {(!isCollapsed || isMobile) && <span className="text-sm">{item.label}</span>}
+                  </Link>
+                </TooltipTrigger>
+                {isCollapsed && !isMobile && <TooltipContent side="right">{item.label}</TooltipContent>}
+              </Tooltip>
+            ))}
+          </nav>
 
-    return (
-        <>
-            {/* Mobile Menu Button */}
-            {isMobile && (
-                <div className={`fixed z-50 md:hidden ${isMobileOpen ? 'top-2 left-50' : 'top-2 left-0'}`}>
-                    <Button variant="outline" size="icon" onClick={toggleMobileMenu} className="bg-background border-border h-10 w-10 shadow-md">
-                        {isMobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-                    </Button>
-                </div>
-            )}
-
-            {/* Sidebar */}
-            <aside
-                className={`border-border h-screen border-r bg-white transition-all duration-300 ease-in-out ${isMobile ? 'fixed top-0 left-0 z-40' : 'sticky top-0 left-0'} ${isMobile ? (isMobileOpen ? 'w-64 translate-x-0' : 'w-64 -translate-x-full') : isCollapsed ? 'w-16' : 'w-64'} flex flex-col`}
-            >
-                {/* Header */}
-                <div className="border-border flex items-center justify-between border-b p-4">
-                    <div className="flex items-center gap-2">
-                        <div className="bg-primary text-primary-foreground flex h-8 w-8 items-center justify-center rounded">
-                            <FileText className="h-4 w-4" />
-                        </div>
-                        {(!isCollapsed || isMobile) && <span className="text-lg font-semibold">SmartGrade</span>}
-                    </div>
-                    {!isMobile && (
-                        <Button variant="ghost" size="icon" onClick={toggleCollapse} className="h-8 w-8">
-                            {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-                        </Button>
-                    )}
-                </div>
-
-                {/* Menu Items */}
-                <TooltipProvider>
-                    <div className="flex-1 overflow-y-auto p-2">
-                        <div className="space-y-1">
-                            {menuItems.map((item) => (
-                                <Tooltip key={item.path} delayDuration={300}>
-                                    <TooltipTrigger asChild>
-                                        <Link
-                                            href={item.path}
-                                            onClick={() => isMobile && setIsMobileOpen(false)}
-                                            className={`flex w-full items-center gap-3 rounded px-3 py-2 ${isActive(item.path) ? 'bg-primary text-muted' : 'hover:bg-primary hover:text-muted'} ${isCollapsed && !isMobile ? 'justify-center' : ''} `}
-                                        >
-                                            <item.icon className="h-5 w-5 flex-shrink-0" />
-                                            {(!isCollapsed || isMobile) && <span className="text-sm">{item.label}</span>}
-                                        </Link>
-                                    </TooltipTrigger>
-                                    {isCollapsed && !isMobile && <TooltipContent side="right">{item.label}</TooltipContent>}
-                                </Tooltip>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Footer Items */}
-                    <div className="mt-auto w-full p-2">
-                        <div className="space-y-1">
-                            {footerItems.map((item) => (
-                                <Tooltip key={item.path} delayDuration={300}>
-                                    <TooltipTrigger asChild>
-                                        <Link
-                                            href={item.path}
-                                            onClick={() => isMobile && setIsMobileOpen(false)}
-                                            className={`flex items-center gap-3 rounded px-3 py-2 ${isActive(item.path) ? 'bg-primary text-muted' : 'hover:bg-primary hover:text-muted'} ${isCollapsed && !isMobile ? 'justify-center' : 'w-full'}`}
-                                        >
-                                            <item.icon className="h-5 w-5 flex-shrink-0" />
-                                            {(!isCollapsed || isMobile) && <span className="text-sm">{item.label}</span>}
-                                        </Link>
-                                    </TooltipTrigger>
-                                    {isCollapsed && !isMobile && <TooltipContent side="right">{item.label}</TooltipContent>}
-                                </Tooltip>
-                            ))}
-                        </div>
-                    </div>
-                </TooltipProvider>
-            </aside>
-        </>
-    );
+          {/* Footer items */}
+          <div className="p-2 mt-auto space-y-1">
+            {COMMON_FOOTER.map((item) => (
+              <Tooltip key={item.path} delayDuration={300}>
+                <TooltipTrigger asChild>
+                  <Link
+                    href={item.path}
+                    onClick={() => isMobile && closeMobile()}
+                    className={`flex items-center gap-3 px-3 py-2 rounded
+                    ${isActive(item.path) ? 'bg-primary text-muted' : 'hover:bg-primary hover:text-muted'}
+                    ${isCollapsed && !isMobile ? 'justify-center' : 'w-full'}`}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    {(!isCollapsed || isMobile) && <span className="text-sm">{item.label}</span>}
+                  </Link>
+                </TooltipTrigger>
+                {isCollapsed && !isMobile && <TooltipContent side="right">{item.label}</TooltipContent>}
+              </Tooltip>
+            ))}
+          </div>
+        </TooltipProvider>
+      </aside>
+    </>
+  );
 }

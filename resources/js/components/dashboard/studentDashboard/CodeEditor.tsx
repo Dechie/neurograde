@@ -1,7 +1,9 @@
 import { useState } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { python } from "@codemirror/lang-python";
-import { vscodeDark, vscodeLight } from "@uiw/codemirror-theme-vscode";
+import { vscodeLight } from "@uiw/codemirror-theme-vscode";
+import { Button } from "@/components/ui/button";
+import { Upload } from "lucide-react";
 
 export function CodeEditor() {
   const [code, setCode] = useState(`# Type your Python code ->
@@ -18,7 +20,7 @@ def is_palindrome(s):
   };
 
   return (
-    <div className="h-[400px] rounded-xl overflow-hidden border border-muted bg-white shadow">
+    <div className="rounded-xl overflow-hidden border border-muted bg-white shadow">
       <CodeMirror
         value={code}
         height="400px"
@@ -27,8 +29,13 @@ def is_palindrome(s):
         onChange={onChange}
         className="text-sm"
       />
+      <div className="p-2 flex justify-between border-t">
+        <Button variant="outline" className="gap-2">
+          <Upload className="h-4 w-4" />
+          Upload code as file
+        </Button>
+        <Button>Submit Code</Button>
+      </div>
     </div>
   );
 }
-
-
