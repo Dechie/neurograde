@@ -4,7 +4,7 @@ import { RecentResult } from "@/components/dashboard/studentDashboard/RecentResu
 import { UpcomingTest } from "@/components/dashboard/studentDashboard/UpcomingTest"
 import { WelcomeBanner } from "@/components/dashboard/studentDashboard/WelcomeBanner"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { AppLayout } from "@/layouts/dashboard/studentDashboard/studentDashboardLayout"
+import { AppLayout } from "@/layouts/dashboard/dashboardLayout"
 
 
 export default function Home() {
