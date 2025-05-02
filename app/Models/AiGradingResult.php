@@ -8,7 +8,7 @@ class AiGradingResult extends Model
     //
     public function submission()
     {
-        return $this->belongsTo(Submission::class);
+        return $this->belongsTo(Submission::class, 'submissions_id');
     }
 
     public function teacher()

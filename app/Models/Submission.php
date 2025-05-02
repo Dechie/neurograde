@@ -3,9 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 
 class Submission extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         "test_id",
         "submission_id",
@@ -18,12 +22,16 @@ class Submission extends Model
 
     function grades()
     {
-        return $this->hasMany(Submission::class);
+        return $this->hasMany(AiGradingResult::class, 'submissions_id');
     }
 
     function feedbacks()
     {
         return $this->hasMany(Feedback::class);
+    }
+    function test()
+    {
+        return $this->belongsTo(Test::class);
     }
 }
 

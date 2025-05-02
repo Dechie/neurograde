@@ -1,8 +1,6 @@
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Upload } from "lucide-react"
-import { AppLayout } from "@/layouts/dashboard/dashboardLayout"
 import { CodeEditor } from "@/components/dashboard/studentDashboard/CodeEditor"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { AppLayout } from "@/layouts/dashboard/studentDashboard/studentDashboardLayout"
 
 export default function TestDetail({ id }: { id: string }) {
   return (

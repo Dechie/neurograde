@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignId("class_id")->contstrained("classes");
             $table->string("title");
             $table->text("problem_statement");
+            $table->enum("status", ['Upcoming', 'Done']);
             $table->date("due_date");
             $table->json("metrics");
             $table->timestamps();

@@ -4,14 +4,43 @@ import { RecentResult } from "@/components/dashboard/studentDashboard/RecentResu
 import { UpcomingTest } from "@/components/dashboard/studentDashboard/UpcomingTest"
 import { WelcomeBanner } from "@/components/dashboard/studentDashboard/WelcomeBanner"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { AppLayout } from "@/layouts/dashboard/dashboardLayout"
+import { StudentDashboardLayout } from "@/layouts/dashboard/studentDashboard/studentDashboardLayout"
 
+interface HomeProps {
+  user: {
+    id: number;
+    name: string;
+    email: string;
+    student: {
+      id_number: string;
+      academic_year: string;
+      department: string;
+    }
+  };
+  upcomingTests: Array<{
+    id: number;
+    title: string;
+    date: string;
+    // other test properties
+  }>;
+  recentResults: Array<{
+    id: number;
+    test: {
+      title: string;
+    };
+    score: number;
+    // other result properties
+  }>;
+}
 
-export default function Home() {
+export default function Home({ user, upcomingTests, recentResults }: HomeProps) {
+  console.log('Home props:', { user, upcomingTests, recentResults });
   return (
-    <AppLayout title="Overview">
+    <StudentDashboardLayout title="Overview">
       <div className="space-y-6">
-        <WelcomeBanner />
+        <div className="border border-red-500 bg-yellow-200">
+          <WelcomeBanner userName={user.name} />
+        </div>
 
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
@@ -19,7 +48,10 @@ export default function Home() {
               <CardTitle>Quick Stats</CardTitle>
             </CardHeader>
             <CardContent>
-              <QuickStats />
+              <QuickStats 
+                student={user.student} 
+                resultCount={recentResults.length} 
+              />
             </CardContent>
           </Card>
 
@@ -28,7 +60,7 @@ export default function Home() {
               <CardTitle>Upcoming Test</CardTitle>
             </CardHeader>
             <CardContent>
-              <UpcomingTest />
+              <UpcomingTest tests={upcomingTests} />
             </CardContent>
           </Card>
         </div>
@@ -48,11 +80,11 @@ export default function Home() {
               <CardTitle>Recent Result</CardTitle>
             </CardHeader>
             <CardContent>
-              <RecentResult />
+              <RecentResult results={recentResults} />
             </CardContent>
           </Card>
         </div>
       </div>
-    </AppLayout>
+    </StudentDashboardLayout>
   )
 }

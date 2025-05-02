@@ -1,43 +1,39 @@
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
+// In components/dashboard/studentDashboard/UpcomingTest.tsx
+import React from "react";
+import { Button } from "@/components/ui/button";
 
-export function UpcomingTest() {
-  const upcomingTests = [
-    {
-      id: 1,
-      title: "Data Structures Quiz",
-      date: "May 15, 2025",
-      time: "10:00 AM",
-      duration: "1 hour",
-    },
-    {
-      id: 2,
-      title: "Algorithms Midterm",
-      date: "May 20, 2025",
-      time: "2:00 PM",
-      duration: "2 hours",
-    },
-  ]
+// Define the props interface
+interface UpcomingTestProps {
+  tests?: Array<{
+    id: number;
+    title: string;
+    date: string;
+    // Add other properties as needed
+  }>;
+}
 
+export function UpcomingTest({ tests = [] }: UpcomingTestProps) {
+  if (tests.length === 0) {
+    return (
+      <div className="rounded-lg border p-6 text-center">
+        <p className="text-muted-foreground">No upcoming tests</p>
+      </div>
+    );
+  }
+  
   return (
     <div className="space-y-4">
-      {upcomingTests.map((test) => (
-        <Card key={test.id} className="overflow-hidden">
-          <CardContent className="p-4">
-            <div className="flex flex-col space-y-2">
-              <div className="flex items-center justify-between">
-                <h3 className="font-medium">{test.title}</h3>
-                <Badge variant="outline" className="bg-blue-light text-blue">
-                  {test.duration}
-                </Badge>
-              </div>
-              <div className="text-sm text-muted-foreground">
-                {test.date} at {test.time}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {tests.map(test => (
+        <div key={test.id} className="flex items-center justify-between rounded-lg border p-4">
+          <div>
+            <h3 className="font-medium">{test.title}</h3>
+            <p className="text-sm text-muted-foreground">{test.date}</p>
+          </div>
+          <Button variant="outline" size="sm">View Details</Button>
+        </div>
       ))}
     </div>
-  )
+  );
 }

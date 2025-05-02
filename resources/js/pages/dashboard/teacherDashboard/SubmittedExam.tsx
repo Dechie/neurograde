@@ -1,5 +1,5 @@
 import { SubmittedExams } from "@/components/dashboard/teacherDashboard/SubmittedExams";
-import { AppLayout } from "@/layouts/dashboard/dashboardLayout";
+import { AppLayout } from "@/layouts/dashboard/studentDashboard/studentDashboardLayout";
 
 export default function TeacherSubmittedExamsPage() {
   return (
