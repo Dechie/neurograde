@@ -14,10 +14,11 @@ return new class extends Migration
         Schema::create('classes', function (Blueprint $table) {
             $table->id();
             $table->string("name");
-            $table->foreignId("department_id")->contstrained("departments");
-            $table->foreignId("teacher_id")->contstrained("teachers");
-            $table->foreignId("admin_id")->contstrained("admins");
+          //$table->foreignId("department_id")->contstrained("departments");
+            $table->foreignId("teacher_id")->constrained("teachers");
+            $table->foreignId("admin_id")->constrained("admins");
             $table->integer("max_students");
+            $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
         });
     }
@@ -30,3 +31,4 @@ return new class extends Migration
         Schema::dropIfExists('classes');
     }
 };
+
