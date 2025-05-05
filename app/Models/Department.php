@@ -11,9 +11,23 @@ class Department extends Model
         "name",
     ];
 
-    public function tests() {
+    public function tests()
+    {
         return $this->belongsToMany(Test::class, 'test_departments', 'department_id', 'test_id');
     }
 
-   
+    public function students()
+    {
+        return $this->hasMany(Student::class);
+    }
+
+    public function teachers()
+    {
+        return $this->hasMany(Teacher::class);
+    }
+    public function classes()
+    {
+        return $this->hasMany(ClassRoom::class);
+    }
 }
+

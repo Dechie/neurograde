@@ -9,7 +9,6 @@ use App\Models\Admin;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
-
 class DatabaseSeeder extends Seeder
 {
     /**
@@ -21,6 +20,7 @@ class DatabaseSeeder extends Seeder
         $this->call(RolesAndPermissionsSeeder::class);
         $this->call(DepartmentSeeder::class);
         $this->call(TestAndSubmissionSeeder::class);
+        $this->call(AdminSeeder::class);
 
         User::factory()->create([
             'first_name' => 'Test',
@@ -61,3 +61,4 @@ class DatabaseSeeder extends Seeder
         
     }
 }
+

@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('students', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("user_id")->contstrained("users");
+            $table->foreignId("user_id")->constrained("users");
             $table->string("id_number");
             $table->string("academic_year");
-            $table->foreignId("department_id")->contstrained("departments");
+            $table->foreignId("department_id")->constrained("departments");
             $table->timestamps();
         });
     }
@@ -29,3 +29,4 @@ return new class extends Migration
         Schema::dropIfExists('students');
     }
 };
+
