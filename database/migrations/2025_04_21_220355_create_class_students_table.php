@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('class_students', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("class_id")->contstrained("classes");
-            $table->foreignId("student_id")->contstrained("students");
-            $table->boolean("assigned");
+            $table->foreignId("class_id")->constrained("classes");
+            $table->foreignId("student_id")->constrained("students");
+            $table->boolean("assigned")->default(true);
             $table->timestamps();
         });
     }
@@ -28,3 +28,4 @@ return new class extends Migration
         Schema::dropIfExists('class_students');
     }
 };
+

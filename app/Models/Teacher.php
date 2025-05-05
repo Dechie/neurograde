@@ -9,6 +9,7 @@ class Teacher extends Model
    protected $fillable = [
       'user_id',
       'created_by',
+      'department_id'
    ];
 
    public function user()
@@ -19,6 +20,11 @@ class Teacher extends Model
    public function admin()
    {
       return $this->belongsTo(Admin::class, 'created_by');
+   }
+
+   public function department()
+   {
+      return $this->belongsTo(Department::class);
    }
 
    public function classes()

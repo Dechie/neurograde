@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('teachers', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("user_id")->contstrained("users");
-            $table->foreignId("created_by")->contstrained("admins");
-            $table->foreignId("department_id")->contstrained("departments");
+            $table->foreignId("user_id")->constrained("users");
+            $table->foreignId("created_by")->constrained("admins");
+            $table->foreignId("department_id")->constrained("departments");
             $table->timestamps();
         });
     }
@@ -28,3 +28,4 @@ return new class extends Migration
         Schema::dropIfExists('teachers');
     }
 };
+

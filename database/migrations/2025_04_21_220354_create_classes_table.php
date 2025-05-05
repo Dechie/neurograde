@@ -6,27 +6,25 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('classes', function (Blueprint $table) {
             $table->id();
             $table->string("name");
-            $table->foreignId("department_id")->contstrained("departments");
-            $table->foreignId("teacher_id")->contstrained("teachers");
-            $table->foreignId("admin_id")->contstrained("admins");
+            $table->foreignId("department_id")->constrained("departments");
+            $table->foreignId("teacher_id")->constrained("teachers");
+            $table->foreignId("admin_id")->constrained("admins");
             $table->integer("max_students");
+            $table->foreignId('created_by')->constrained('users');
+            $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('classes');
     }
 };
+
+

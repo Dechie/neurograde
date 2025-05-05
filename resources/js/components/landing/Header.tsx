@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Link } from '@inertiajs/react';
+import React from "react";
 
 const Header = () => {
   return (
@@ -53,3 +54,4 @@ const Header = () => {
 };
 
 export default Header;
+
