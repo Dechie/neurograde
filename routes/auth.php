@@ -6,20 +6,20 @@ use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
-use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\StudentAuthController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
-    Route::get('register', [RegisteredUserController::class, 'create'])
-        ->name('register');
+    Route::get('student-register', [StudentAuthController::class, 'create'])
+        ->name('student-register');
 
-    Route::post('register', [RegisteredUserController::class, 'store'])->name('register.store');
+    Route::post('student-register', [StudentAuthController::class, 'store'])->name('student-register.store');
 
-    Route::get('login', [AuthenticatedSessionController::class, 'create'])
+    Route::get('login', [StudentAuthController::class, 'create'])
         ->name('login');
 
-    Route::post('login', [AuthenticatedSessionController::class, 'store']);
+    Route::post('login', [StudentAuthController::class, 'store'])->name('studnet-login.store');
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');

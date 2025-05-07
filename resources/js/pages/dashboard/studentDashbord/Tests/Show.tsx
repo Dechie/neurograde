@@ -17,13 +17,11 @@ export default function TestDetail({ test }: TestDetailProps) {
           </CardHeader>
           <CardContent className="prose max-w-none">
             <p className="text-black">
-              A phrase is a palindrome if, after converting all uppercase letters into lowercase letters and removing
-              all non-alphanumeric characters, it reads the same forward and backward. Alphanumeric characters include
-              letters and numbers.
+             {test.problemStatement} 
             </p>
           </CardContent>
           <CardFooter className="border-t mt-auto p-1">
-            <p className="text-sm text-muted-foreground">Due Date: {test.due_date || test.dueDate}</p> {/* Use test.due_date */}
+            <p className="text-sm text-muted-foreground">Due Date: {test.dueDate || test.dueDate}</p> {/* Use test.due_date */}
           </CardFooter>
         </Card>
 

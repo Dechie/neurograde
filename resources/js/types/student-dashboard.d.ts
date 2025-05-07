@@ -1,8 +1,8 @@
 export interface Test {
   id: number;
   title: string;
-  due_date?: string;
   dueDate?: string; // For backward compatibility
+  problemStatement: String;
   status: string;
   submitted?: string;
 }

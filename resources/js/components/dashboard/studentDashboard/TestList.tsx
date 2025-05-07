@@ -54,7 +54,7 @@ export function TestList({ tests = [] }: TestListProps) {
                                         {test.title}
                                     </Link>
                                 </TableCell>
-                                <TableCell>{test.due_date || test.dueDate}</TableCell>
+                                <TableCell>{test.dueDate}</TableCell>
                                 <TableCell>
                                     <Badge
                                         variant="outline"
@@ -67,7 +67,7 @@ export function TestList({ tests = [] }: TestListProps) {
                                     </Badge>
                                 </TableCell>
                                 <TableCell>
-                                    <Link href={`/tests/${test.id}`} className="text-blue-500">
+                                    <Link href={`/student/tests/${test.id}`} className="text-blue-500">
                                         View Test
                                     </Link>
                                 </TableCell>

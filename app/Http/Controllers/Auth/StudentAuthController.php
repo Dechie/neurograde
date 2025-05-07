@@ -15,7 +15,7 @@ use Inertia\Response;
 use App\Models\Department;
 use App\Models\Student;
 
-class RegisteredUserController extends Controller
+class StudentAuthController extends Controller
 {
     /**
      * Show the registration page.
@@ -70,5 +70,22 @@ class RegisteredUserController extends Controller
         Auth::login($user);
 
         return to_route('dashboard');
+    }
+
+    public function loginCreate(Request $request): Response
+    {
+        return Inertia::render('auth/login', [
+            'canResetPassword' => Route::has('password.request'),
+            'status' => $request->session()->get('status'),
+        ]);
+    }
+
+    public function loginStore(Request $request): Response
+    { 
+        $request->authenticate();
+
+        $request->session()->regenerate();
+
+        return redirect()->intended(route('dashboard', absolute: false));
     }
 }

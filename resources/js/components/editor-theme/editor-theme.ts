@@ -1,7 +1,6 @@
+import { HighlightStyle } from "@codemirror/language";
 import { EditorView } from "@codemirror/view";
-import { HighlightStyle} from "@codemirror/language";
-import {tags as t} from '@lezer/highlight';
-import {cpp} from '@codemirror/lang-cpp';
+import { tags as t } from '@lezer/highlight';
 
 // This theme maps to your :root CSS variables
 document.body.dataset.theme = document.body.dataset.theme || "light";
@@ -43,6 +42,6 @@ export const myHighlightStyle = HighlightStyle.define([
   { tag: [t.number, t.bool], color: "var(--color-pink)" },
   { tag: [t.comment], color: "var(--color-muted-foreground)", fontStyle: "italic" },
   { tag: t.function(t.variableName), color: "var(--color-blue)" },
-  { tag: t.typeName, color: "var(--color-pink-light)" },
+  { tag: t.typeName, color: "var(--color-pink)" },
   { tag: t.variableName, color: "var(--color-foreground)" },
 ]);
