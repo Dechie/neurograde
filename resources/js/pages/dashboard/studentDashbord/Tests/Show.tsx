@@ -1,6 +1,6 @@
 import { CodeEditor } from "@/components/dashboard/studentDashboard/CodeEditor";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { AppLayout } from "@/layouts/dashboard/studentDashboard/studentDashboardLayout";
+import { AppLayout } from "@/layouts/dashboard/studentDashboard/StudentDashboardLayout";
 import { Test } from "@/types/student-dashboard"; // Import the Test type
 
 interface TestDetailProps {
