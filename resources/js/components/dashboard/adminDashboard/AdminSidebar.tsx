@@ -11,9 +11,9 @@ import { useSidebar } from "@/hooks/use-sidebar";
 import {route} from "ziggy-js"; 
 
 const MENU_ITEMS = [
-  { path: route('dashboard'), label: 'Home', icon: Home },
-  { path: route('student.tests'), label: 'Tests', icon: ClipboardList },
-  { path: route('student.results'), label: 'Results', icon: ListChecks },
+  { path: route('dashboard'), label: 'CreateClass', icon: Home },
+  { path: route('student.tests'), label: 'RegisterTeacher', icon: ClipboardList },
+  { path: route('student.results'), label: 'StudentList', icon: ListChecks },
 ];
 
 const FOOTER_ITEMS = [

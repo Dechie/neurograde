@@ -7,7 +7,7 @@ use App\Models\AiGradingResult;
 
 Route::get('/', function () {
     // return Inertia::render('welcome');
-    return Inertia::render('landing');
+    return Inertia::render('dashboard/adminDashboard/RegisterTeacher');
 
 })->name('home');
 

@@ -6,13 +6,11 @@ import { Link } from '@inertiajs/react';
 import { Filter } from 'lucide-react';
 import { useState } from 'react';
 
-// Modify TestList to pass the full Test object to the TestDetail page
 export function TestList({ tests = [] }: TestListProps) {
     const [page, setPage] = useState(1);
     const itemsPerPage = 10;
     const totalPages = Math.ceil(tests.length / itemsPerPage);
 
-    // If no tests are provided, show a message
     if (tests.length === 0) {
         return (
             <div className="rounded-lg border p-6 text-center">
@@ -21,7 +19,6 @@ export function TestList({ tests = [] }: TestListProps) {
         );
     }
 
-    // Calculate the tests to display for the current page
     const startIndex = (page - 1) * itemsPerPage;
     const displayedTests = tests.slice(startIndex, startIndex + itemsPerPage);
 
@@ -85,9 +82,7 @@ export function TestList({ tests = [] }: TestListProps) {
                             className="border-input bg-background h-8 rounded-md border px-2 py-1 text-sm"
                             value={itemsPerPage}
                             onChange={(e) => {
-                                // You would need to implement this logic
-                                // setItemsPerPage(Number(e.target.value))
-                                // setPage(1)
+                                
                             }}
                         >
                             <option>10</option>

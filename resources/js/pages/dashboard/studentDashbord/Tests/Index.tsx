@@ -1,6 +1,6 @@
 import { TestList } from "@/components/dashboard/studentDashboard/TestList";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {AppLayout} from "@/layouts/dashboard/studentDashboard/studentDashboardLayout";
+import {AppLayout} from "@/layouts/dashboard/studentDashboard/StudentDashboardLayout";
 
 interface TestsProps {
   tests: Array<{

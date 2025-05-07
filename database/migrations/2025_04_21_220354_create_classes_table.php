@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId("admin_id")->constrained("admins");
             $table->integer("max_students");
             $table->foreignId('created_by')->constrained('users');
-            $table->foreignId('created_by')->constrained('users');
+            // $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
         });
     }
