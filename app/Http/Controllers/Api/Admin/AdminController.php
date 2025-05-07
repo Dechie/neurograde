@@ -43,8 +43,8 @@ class AdminController extends Controller
         $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => ['required'],
+            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'department_id' => 'required|exists:departments,id',
         ]);
 
@@ -62,6 +62,8 @@ class AdminController extends Controller
             'department_id' => $request->department_id,
         ]);
 
+        $user->teacher()->save($teacher);
+        
         return response()->json([
             'message' => 'Teacher created successfully',
             'teacher' => $teacher->load(['user', 'department']),
