@@ -1,6 +1,17 @@
 import { LucideIcon } from 'lucide-react';
 import type { Config } from 'ziggy-js';
 
+export type LoginForm = {
+    email?: string;
+    name?: string;
+    password: string;
+    remember: boolean;
+};
+
+export interface LoginProps {
+    status?: string;
+    canResetPassword: boolean;
+}
 export interface Auth {
     user: User;
 }
@@ -52,7 +63,18 @@ export interface SharedData {
 //     [key: string]: any;
 // }
 // types/index.d.ts
-
+export interface TestsProps {
+    tests: Array<{
+        id: number;
+        title: string;
+        dueDate: string;
+        status: string;
+    }>;
+}
+interface Department {
+  id: number;
+  name: string;
+}
 export interface User {
     id: number;
     // You can remove 'name' here if you definitively decide against the backend accessor

@@ -1,12 +1,13 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { TestsProps } from '@/types';
 import { TestListProps } from '@/types/student-dashboard';
 import { Link } from '@inertiajs/react';
 import { Filter } from 'lucide-react';
 import { useState } from 'react';
 
-export function TestList({ tests = [] }: TestListProps) {
+export function TestList({ tests = [] }: TestsProps) {
     const [page, setPage] = useState(1);
     const itemsPerPage = 10;
     const totalPages = Math.ceil(tests.length / itemsPerPage);

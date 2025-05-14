@@ -1,7 +1,7 @@
 import { ResultsOverview } from "@/components/dashboard/studentDashboard/RecentOverview"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { AppLayout } from "@/layouts/dashboard/studentDashboard/StudentDashboardLayout"
-// import { AppLayout } from "@/layouts/dashboard/studentDashboard/studentDashboardLayout"
+//import { AppLayout } from "@/layouts/dashboard/studentDashboard/StudentDashboardLayout"
+import { AppLayout } from "@/layouts/dashboard/studentDashboard/studentDashboardLayout"
 
 export default function Results() {
   return (

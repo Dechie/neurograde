@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Admin;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\Hash;
 
 use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\RedirectResponse;
 
 use Inertia\Response;
 
@@ -163,4 +166,5 @@ class AdminController extends Controller
         return response()->json($unassignedStudents);
     }
 }
+
 

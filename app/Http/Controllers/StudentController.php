@@ -41,11 +41,7 @@ class StudentController extends Controller
                 'status' => $result->submission->status,
             ];
         })->toArray();
-        // $results = AiGradingResult::where('student_id', $user->student->id)
-        //     ->with('test')
-        //     ->orderBy('created_at', 'desc')
-        //     ->paginate(10);
-            
+
         return Inertia::render('dashboard/studentDashbord/Results', [
             'results' => $formattedResults
         ]);    
@@ -54,19 +50,7 @@ class StudentController extends Controller
     public function getTests() 
     {
         $user = auth()->user()->load('student.department');
-        // $tests = Test::whereHas('departments', function($query) use ($user) {
-        //     $query->where('department_id', $user->student->department_id);
-        // })
-        // ->get()
-        // ->map(function($test) {
-        //     return [
-        //         'id' => $test->id,
-        //         'title' => $test->title,
-        //         'due_date' => $test->due_date->format('M d, Y'),
-        //         'status' => $test->status,
-        //         // Add other properties as needed
-        //     ];
-        // });
+        
 
         $tests = Test::all();
             
@@ -78,13 +62,7 @@ class StudentController extends Controller
     public function showTest($id) {
         $user = auth()->user()->load('student');
         $test = Test::findOrFail($id);
-        
-        // Check if the test belongs to the student's department
-        // $hasAccess = $test->departments()->where('department_id', $user->student->department_id)->exists();
-        
-        // if (!$hasAccess) {
-        //     abort(403, 'You do not have access to this test');
-        // }
+
         
         return Inertia::render('dashboard/studentDashbord/Tests/Show', [
             'id' => $id,
@@ -92,21 +70,11 @@ class StudentController extends Controller
                 'id' => $test->id,
                 'title' => $test->title,
                 'problemStatement' => $test->problem_statement,
-                //'dueDate' => $test->due_date->format('m d, y'),
                 'dueDate' => $test->due_date,
                 'status' => $test->status,
-                // add other properties as needed
             ]
         ]);
     }
 
-    public function submitFile()
-    {
-
-    }
-
-    public function submitText()
-    {
-
-    }
+   
 }

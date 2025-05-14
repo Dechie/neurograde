@@ -35,7 +35,6 @@ class StudentAuthController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        // dd();
         $data = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -65,8 +64,6 @@ class StudentAuthController extends Controller
         ]);
 
         $user->student()->save($student);
-        //event(new Registered($user));
-        // var_dump($user);
         Auth::login($user);
 
         return to_route('dashboard');
