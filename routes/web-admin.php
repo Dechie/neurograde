@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 // Admin dashboard routes protected by 'auth' and 'role:admin' middleware
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
-
+ 
     // --- Inertia Page Routes (GET requests render components) ---
 
     // Route for the Admin Dashboard landing page (e.g., Student List)
@@ -48,14 +48,4 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // Route::delete('/teachers/{teacher}', [AdminController::class, 'destroyTeacher'])->name('admin.teachers.destroy');
 });
 
-// Note: The admin login routes defined in auth.php are separate and remain as is.
-// Route::prefix('admin')->group(function() {
-//     Route::get('login', [AdminController::class, 'showLogin'])->name('admin-login'); // Renders the login page
-//     Route::post('store', [AdminController::class, 'login'])->name('admin-store'); // Handles login authentication
-// });
-
-// Note: The admin logout route should be under 'auth' middleware, not 'auth:sanctum'
-// It's often defined in the main auth.php or web.php under the general 'auth' group.
-// Example (if not already in auth.php):
-// Route::post('/admin/logout', [AdminController::class, 'logout'])->name('admin.logout')->middleware('auth');
 

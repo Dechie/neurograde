@@ -6,7 +6,6 @@ import {
     BookOpen,
     ChevronLeft,
     ChevronRight,
-    ClipboardList,
     FileText,
     LayoutList, // Added relevant icons
     LifeBuoy,
@@ -26,7 +25,6 @@ const MENU_ITEMS = [
     { path: route('admin.students.index'), label: 'Student List', icon: Users },
     { path: route('admin.teachers.index'), label: 'Teacher List', icon: LayoutList }, // Using LayoutList for a list view
     { path: route('admin.teachers.create'), label: 'Register Teacher', icon: UserPlus }, // Using UserPlus for adding a user
-    { path: route('admin.classes.index'), label: 'Class List', icon: ClipboardList }, // Using ClipboardList for class list
     { path: route('admin.classes.create'), label: 'Create Class', icon: BookOpen }, // Using BookOpen for creating something educational
     // Include Unassigned Students if it's a distinct page in the sidebar
     { path: route('admin.students.unassigned'), label: 'Unassigned Students', icon: UserX }, // Using UserX for unassigned users

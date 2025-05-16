@@ -1,4 +1,3 @@
-import { CreateClassForm } from "@/components/dashboard/adminDashboard/CreateClass";
 import TeacherList from "@/components/dashboard/adminDashboard/TeacherList";
 import {TeacherSignupForm }from "@/components/dashboard/adminDashboard/TeacherRegister";
 import { AppLayout } from "@/layouts/dashboard/adminDashboard/AdminDashboardLayout";

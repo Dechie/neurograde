@@ -1,167 +1,202 @@
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link } from "@inertiajs/react";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
-import { useState } from "react";
-import { PageProps } from "@/types";
-import { usePage } from "@inertiajs/react";
-import { Checkbox } from "@/components/ui/checkbox";
-
-// Define form schema
-const formSchema = z.object({
-  first_name: z.string().min(2, "First name must be at least 2 characters"),
-  last_name: z.string().min(2, "Last name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email address"),
-  department_id: z.number().min(1, "Please select a department"),
-});
-
-interface Department {
-  id: number;
-  name: string;
-}
+import InputError from '@/components/input-error'; // Assuming you have a generic InputError component
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label'; // Assuming you have a Label component
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Department, PageProps } from '@/types'; // Assuming Department and PageProps types are correct
+import { useForm, usePage } from '@inertiajs/react'; // Use useForm from Inertia
+import { EyeIcon, EyeOffIcon, LoaderCircle } from 'lucide-react'; // Import icons for password toggle
+import { useState } from 'react';
+import { route } from 'ziggy-js'; // Import route helper
 
 interface Props extends PageProps {
-  departments?: Department[];
+    departments: Department[];
 }
 
-export  function TeacherSignupForm() {
-  const { departments } = usePage<Props>().props;
-  const [imageLoaded, setImageLoaded] = useState(false);
-  
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      first_name: "",
-      last_name: "",
-      email: "",
-      department_id: 0,
-    },
-  });
+export function TeacherSignupForm() {
+    const { departments } = usePage<Props>().props;
+    const [imageLoaded, setImageLoaded] = useState(false);
+    const [showPassword, setShowPassword] = useState(false); // State for password visibility
+    const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false); // State for password confirmation visibility
 
-  const teacherImage = `/teacher.jpg?t=${Date.now()}`;
+    const { data, setData, post, processing, errors, reset } = useForm({
+        first_name: '',
+        last_name: '',
+        email: '',
+        password: '',
+        password_confirmation: '',
+        department_id: 0,
+    });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    // post(route('teacher.register'), values);
-  }
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        console.log('Form Submitted', data);
 
-  return (
-      <div className="flex min-h-screen w-full items-center justify-center p-2 sm:p-4">
-        <Card className="w-full max-w-[90%] sm:max-w-3xl md:max-w-4xl flex flex-col md:flex-row items-center justify-center overflow-hidden shadow-xl">
-          <div className="flex w-full md:w-1/2">
-            <img
-              src={teacherImage}
-              className={`h-60 w-full rounded-lg object-contain transition-opacity md:h-full ${
-                imageLoaded ? 'opacity-100' : 'opacity-0'
-              }`}
-              onLoad={() => setImageLoaded(true)}
-              onError={(e) => {
-                e.currentTarget.src = 'https://via.placeholder.com/1350x900?text=Teacher+Image+Not+Found';
-                setImageLoaded(true);
-              }}
-              alt="Teacher illustration"
-            />
-          </div>
-          <div className="w-full md:w-1/2 flex flex-col">
-            <CardHeader className="space-y-2 px-6 sm:px-8 pt-6 sm:pt-8 text-center">
-              <CardTitle className="text-primary text-2xl sm:text-3xl font-bold">Create a Teacher Account</CardTitle>
-              <CardDescription className="text-muted-foreground text-sm sm:text-base">
-                Enter teacher details to register as a teacher
-              </CardDescription>
-            </CardHeader>
-            
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)}>
-                <CardContent className="flex-1 space-y-6 sm:space-y-8 px-6 sm:px-8 py-6 sm:py-8">
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="first_name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>First Name</FormLabel>
-                            <FormControl>
-                              <Input placeholder="First Name" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="last_name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Last Name</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Last Name" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+        post(route('admin.teachers.store'), {
+            onSuccess: () => {
+                reset();
+                console.log('Teacher created successfully!');
+            },
+            onError: (errors) => {
+                console.error('Form submission errors:', errors);
+            },
+            onFinish: () => {},
+        });
+    };
 
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input placeholder="teacher@gmail.com" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+    const teacherImage = `/teacher.jpg?t=${Date.now()}`;
+
+    return (
+        <div className="flex min-h-screen w-full items-center justify-center p-2 sm:p-4">
+            <Card className="flex w-full max-w-[90%] flex-col items-center justify-center overflow-hidden shadow-xl sm:max-w-3xl md:max-w-4xl md:flex-row">
+                <div className="flex w-full md:w-1/2">
+                    <img
+                        src={teacherImage}
+                        className={`h-60 w-full rounded-lg object-contain transition-opacity md:h-full ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                        onLoad={() => setImageLoaded(true)}
+                        onError={(e) => {
+                            e.currentTarget.src = 'https://via.placeholder.com/1350x900?text=Teacher+Image+Not+Found';
+                            setImageLoaded(true);
+                        }}
+                        alt="Teacher illustration"
                     />
+                </div>
+                <div className="flex w-full flex-col md:w-1/2">
+                    <CardHeader className="space-y-2 px-6 pt-6 text-center sm:px-8 sm:pt-8">
+                        <CardTitle className="text-primary text-2xl font-bold sm:text-3xl">Create a Teacher Account</CardTitle>
+                        <CardDescription className="text-muted-foreground text-sm sm:text-base">
+                            Enter teacher details to register as a teacher
+                        </CardDescription>
+                    </CardHeader>
 
-                    <FormField
-                      control={form.control}
-                      name="department_id"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Department</FormLabel>
-                          <Select
-                            onValueChange={(value) => field.onChange(Number(value))}
-                            defaultValue={field.value?.toString()}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a department" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {departments?.map((dept) => (
-                                <SelectItem key={dept.id} value={dept.id.toString()}>
-                                  {dept.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {/* Use a standard form element */}
+                    <form onSubmit={handleSubmit}>
+                        <CardContent className="flex-1 space-y-6 px-6 py-6 sm:space-y-8 sm:px-8 sm:py-8">
+                            <div className="space-y-4">
+                                {/* First Name Input */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="first_name">First Name</Label>
+                                    <Input
+                                        id="first_name"
+                                        placeholder="First Name"
+                                        value={data.first_name}
+                                        onChange={(e) => setData('first_name', e.target.value)}
+                                    />
+                                    <InputError message={errors.first_name} />
+                                </div>
 
-                  </div>
-                </CardContent>
-                <CardFooter className="flex flex-col space-y-4 px-6 sm:px-8 pb-6 sm:pb-8">
-                  <Button type="submit" className="w-full">
-                    Create Account
-                  </Button>
-                </CardFooter>
-              </form>
-            </Form>
-          </div>
-        </Card>
-      </div>
-  );
+                                {/* Last Name Input */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="last_name">Last Name</Label>
+                                    <Input
+                                        id="last_name"
+                                        placeholder="Last Name"
+                                        value={data.last_name}
+                                        onChange={(e) => setData('last_name', e.target.value)}
+                                    />
+                                    <InputError message={errors.last_name} />
+                                </div>
+
+                                {/* Email Input */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="email">Email</Label>
+                                    <Input
+                                        id="email"
+                                        type="email" // Use type="email" for email input
+                                        placeholder="teacher@gmail.com"
+                                        value={data.email}
+                                        onChange={(e) => setData('email', e.target.value)}
+                                    />
+                                    <InputError message={errors.email} />
+                                </div>
+
+                                {/* Password Input */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="password">Password</Label>
+                                    <div className="relative">
+                                        <Input
+                                            id="password"
+                                            type={showPassword ? 'text' : 'password'}
+                                            placeholder="Password"
+                                            value={data.password}
+                                            onChange={(e) => setData('password', e.target.value)}
+                                            className="pr-10" // Add padding for the icon
+                                        />
+                                        <button
+                                            type="button"
+                                            className="text-muted-foreground absolute top-1/2 right-3 -translate-y-1/2"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                        >
+                                            {showPassword ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+                                        </button>
+                                    </div>
+                                    <InputError message={errors.password} />
+                                </div>
+
+                                {/* Password Confirmation Input */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="password_confirmation">Confirm Password</Label>
+                                    <div className="relative">
+                                        <Input
+                                            id="password_confirmation"
+                                            type={showPasswordConfirmation ? 'text' : 'password'}
+                                            placeholder="Confirm Password"
+                                            value={data.password_confirmation}
+                                            onChange={(e) => setData('password_confirmation', e.target.value)}
+                                            className="pr-10" // Add padding for the icon
+                                        />
+                                        <button
+                                            type="button"
+                                            className="text-muted-foreground absolute top-1/2 right-3 -translate-y-1/2"
+                                            onClick={() => setShowPasswordConfirmation(!showPasswordConfirmation)}
+                                        >
+                                            {showPasswordConfirmation ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+                                        </button>
+                                    </div>
+                                    {/* Error for password_confirmation is often attached to password */}
+                                    {/* <InputError message={errors.password_confirmation} /> */}
+                                </div>
+
+                                {/* Department Select */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="department_id">Department</Label>
+                                    <Select
+                                        value={data.department_id?.toString()} // Bind value
+                                        onValueChange={(value) => setData('department_id', Number(value))} // Update value
+                                    >
+                                        <SelectTrigger id="department_id">
+                                            <SelectValue placeholder="Select a department" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {departments?.map((dept) => (
+                                                <SelectItem key={dept.id} value={dept.id.toString()}>
+                                                    {dept.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError message={errors.department_id} />
+                                </div>
+                            </div>
+                        </CardContent>
+                        <CardFooter className="flex flex-col space-y-4 px-6 pb-6 sm:px-8 sm:pb-8">
+                            <Button type="submit" className="w-full" disabled={processing}>
+                                {' '}
+                                {/* Disable while processing */}
+                                {processing ? (
+                                    <>
+                                        <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                                        Creating...
+                                    </>
+                                ) : (
+                                    'Create Account'
+                                )}
+                            </Button>
+                        </CardFooter>
+                    </form>
+                </div>
+            </Card>
+        </div>
+    );
 }
