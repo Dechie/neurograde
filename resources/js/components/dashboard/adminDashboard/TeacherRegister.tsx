@@ -40,7 +40,7 @@ export  function TeacherSignupForm() {
       first_name: "",
       last_name: "",
       email: "",
-      department_id: undefined,
+      department_id: 0,
     },
   });
 
