@@ -1,5 +1,5 @@
 import { GradingPage } from '@/components/dashboard/teacherDashboard/Grading';
-import { AppLayout } from '@/layouts/dashboard/studentDashboard/studentDashboardLayout';
+import { AppLayout } from "@/layouts/dashboard/teacherDashboard/teacherDashoboardLayout";
 
 export default function TeacherGradingPage() {
     return (

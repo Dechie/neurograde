@@ -8,12 +8,22 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useForm } from '@inertiajs/react';
 import { EyeIcon, EyeOffIcon, LoaderCircle } from 'lucide-react';
-import { FormEventHandler, useState } from 'react';
-import { type LoginForm, LoginProps } from '@/types';
+import { FormEventHandler, useState, useEffect } from 'react'; // Import useEffect
+import { type LoginForm, LoginProps } from '@/types'; // Assuming LoginForm from types file
+
+// Define the specific type for the form data
+// It includes email, password, remember, and the 'role' field
+type LoginFormWithRole = {
+    email: string; // Assuming email is always required based on your backend rules
+    password: string;
+    remember: boolean;
+    role: 'student' | 'teacher'; // The role field sent to backend
+};
 
 export default function Login({ status, canResetPassword }: LoginProps) {
+    // Renamed activeTab state to selectedRole
     const [showPassword, setShowPassword] = useState(false);
-    const [activeTab, setActiveTab] = useState<'student' | 'teacher'>('student');
+    const [selectedRole, setSelectedRole] = useState<'student' | 'teacher'>('student'); // State for the selected role
     const [imageLoaded, setImageLoaded] = useState(false);
 
     const images = {
@@ -21,15 +31,23 @@ export default function Login({ status, canResetPassword }: LoginProps) {
         teacher: `/teacher.jpg?t=${Date.now()}`,
     };
 
-    const { data, setData, post, processing, errors, reset } = useForm<LoginForm>({
+    // Use 'role' in the useForm data initialization
+    const { data, setData, post, processing, errors, reset } = useForm<LoginFormWithRole>({
         email: '',
-        name: '',
         password: '',
         remember: false,
+        role: selectedRole, // Initialize 'role' in form data with the state value
     });
+
+    // Update form data's 'role' when the selectedRole state changes
+    useEffect(() => {
+        setData('role', selectedRole);
+    }, [selectedRole, setData]);
+
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
+        // Send the entire data object, which now includes 'role'
         post(route('login-store'), {
             onFinish: () => reset('password'),
         });
@@ -40,22 +58,23 @@ export default function Login({ status, canResetPassword }: LoginProps) {
             <div className="flex min-h-screen w-full items-center justify-center p-2 sm:p-4">
                 <Card className="flex w-full max-w-[90%] flex-col items-center justify-center overflow-hidden shadow-xl sm:max-w-3xl md:max-w-4xl md:flex-row">
                     <div className="hidden w-full sm:flex md:w-1/2">
+                        {/* Use selectedRole for image source */}
                         <img
-                            src={images[activeTab]}
-                            key={activeTab}
+                            src={images[selectedRole]}
+                            key={selectedRole}
                             className={`h-120 w-full rounded-lg object-contain transition-opacity md:h-full${
                                 imageLoaded ? 'opacity-100' : 'opacity-0'
                             }`}
                             onLoad={() => {
                                 setImageLoaded(true);
-                                console.log(`Loaded image: ${images[activeTab]}`);
+                                console.log(`Loaded image: ${images[selectedRole]}`);
                             }}
                             onError={(e) => {
-                                console.error(`Failed to load image: ${images[activeTab]}`);
-                                e.currentTarget.src = `https://via.placeholder.com/1350x900?text=${activeTab}+Image+Not+Found`;
+                                console.error(`Failed to load image: ${images[selectedRole]}`);
+                                e.currentTarget.src = `https://via.placeholder.com/1350x900?text=${selectedRole}+Image+Not+Found`;
                                 setImageLoaded(true);
                             }}
-                            alt={`${activeTab} illustration`}
+                            alt={`${selectedRole} illustration`}
                         />
                     </div>
                     <div className="flex w-full flex-col p-6 sm:p-8 md:w-1/2">
@@ -68,11 +87,15 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                 <Tabs
                                     defaultValue="student"
                                     className="w-full"
-                                    value={activeTab}
+                                    // Use selectedRole for Tabs value
+                                    value={selectedRole}
                                     onValueChange={(value) => {
-                                        setActiveTab(value as 'student' | 'teacher');
+                                        // Update selectedRole state
+                                        setSelectedRole(value as 'student' | 'teacher');
                                         setImageLoaded(false);
                                         console.log(`Switched to ${value} tab`);
+                                        // When tab changes, clear errors related to the previous tab's validation
+                                        errors.email = undefined; // Clear email error (where role error will be attached)
                                     }}
                                 >
                                     <TabsList className="mb-4 grid w-full grid-cols-2 gap-4 bg-white p-2">
@@ -102,11 +125,11 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                                 autoFocus
                                                 tabIndex={1}
                                                 autoComplete="email"
-                                                value={data.email || ''}
+                                                value={data.email} // Assuming email is always string now
                                                 onChange={(e) => setData('email', e.target.value)}
                                                 placeholder="email@example.com"
                                             />
-                                            <InputError message={errors.email} />
+                                            <InputError message={errors.email} /> {/* Error message display */}
                                         </div>
                                         <div className="space-y-2">
                                             <div className="flex items-center">
@@ -137,7 +160,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                                     {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                                                 </button>
                                             </div>
-                                            <InputError message={errors.password} />
+                                            <InputError message={errors.password} /> {/* Error message display */}
                                         </div>
                                         <div className="flex items-center space-x-3">
                                             <Checkbox
@@ -163,11 +186,11 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                                 autoFocus
                                                 tabIndex={1}
                                                 autoComplete="email"
-                                                value={data.email || ''}
+                                                value={data.email} // Assuming email is always string now
                                                 onChange={(e) => setData('email', e.target.value)}
                                                 placeholder="Your Email"
                                             />
-                                            <InputError message={errors.email} />
+                                            <InputError message={errors.email} /> {/* Error message display */}
                                         </div>
                                         <div className="space-y-2">
                                             <div className="flex items-center">
@@ -198,7 +221,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                                     {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                                                 </button>
                                             </div>
-                                            <InputError message={errors.password} />
+                                            <InputError message={errors.password} /> {/* Error message display */}
                                         </div>
                                         <div className="flex items-center space-x-3">
                                             <Checkbox
@@ -223,7 +246,8 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                     {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                                     Log in
                                 </Button>
-                                {activeTab === 'student' || activeTab === 'teacher' ? (
+                                {/* Use selectedRole for the ternary check */}
+                                {selectedRole === 'student' || selectedRole === 'teacher' ? (
                                     <div className="text-muted-foreground text-center text-sm">
                                         Don't have an account?{' '}
                                         <TextLink href={route('student-register')} tabIndex={5}>

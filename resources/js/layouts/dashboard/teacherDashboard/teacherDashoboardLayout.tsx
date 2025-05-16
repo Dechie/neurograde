@@ -1,7 +1,6 @@
 import type { ReactNode } from "react"
-import { SidebarProvider } from "@/components/ui/sidebar"
 import { DashboardHeader } from "@/components/dashboard/studentDashboard/DashboardHeader"
-import { Sidebar } from "@/components/dashboard/studentDashboard/StudentSidebar";
+import { Sidebar } from "@/components/dashboard/teacherDashboard/TeacherSidebar";
 
 export function AppLayout({ children, title }: { children: ReactNode; title?: string }) {
   return (

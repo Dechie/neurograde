@@ -2,7 +2,6 @@ import { CreateClassForm } from "@/components/dashboard/adminDashboard/CreateCla
 import TeacherList from "@/components/dashboard/adminDashboard/TeacherList";
 import {TeacherSignupForm }from "@/components/dashboard/adminDashboard/TeacherRegister";
 import { AppLayout } from "@/layouts/dashboard/adminDashboard/AdminDashboardLayout";
-import { TypeOf, ZodObject, ZodString, ZodNumber, ZodTypeAny } from "zod";
 
 export default function CreateClassPage() {
   return (

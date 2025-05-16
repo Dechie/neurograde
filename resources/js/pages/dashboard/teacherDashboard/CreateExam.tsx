@@ -1,6 +1,6 @@
 import { CreateExamForm } from "@/components/dashboard/teacherDashboard/ExamForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AppLayout } from "@/layouts/dashboard/studentDashboard/studentDashboardLayout";
+import { AppLayout } from "@/layouts/dashboard/teacherDashboard/teacherDashoboardLayout";
 
 export default function CreateExamPage() {
   return (
