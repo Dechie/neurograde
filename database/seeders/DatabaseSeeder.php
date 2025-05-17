@@ -21,6 +21,14 @@ class DatabaseSeeder extends Seeder
 
         $this->call(RolesAndPermissionsSeeder::class);
         $this->call(DepartmentSeeder::class);
+
+        $this->call(TestAndSubmissionSeeder::class);
+        $this->call(AdminSeeder::class);
+
+        User::factory()->create([
+            'first_name' => 'Test',
+            'last_name' => 'User',
+            'email' => 'test@example.com',
         // create user and assign student role
         $userStudent = User::create([
             'first_name' => 'Student1',

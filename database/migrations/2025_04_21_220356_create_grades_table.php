@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('grades', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("submission_id")->contstrained("submission");
-            $table->foreignId("teacher_id")->contstrained("teachers");
+            $table->foreignId("submission_id")->constrained("submissions");
+            $table->foreignId("teacher_id")->constrained("teachers");
             $table->float("graded_value");
             $table->float("adjusted_grade");
             $table->text("override_reason");
@@ -31,3 +31,4 @@ return new class extends Migration
         Schema::dropIfExists('grades');
     }
 };
+

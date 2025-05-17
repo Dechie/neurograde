@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('tests', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("teacher_id")->contstrained("teachers");
-            $table->foreignId("student_id")->contstrained("students");
-            $table->foreignId("class_id")->contstrained("classes");
+            $table->foreignId("teacher_id")->constrained("teachers");
+           // $table->foreignId("student_id")->constrained("students");
+            $table->foreignId("class_id")->constrained("classes");
             $table->string("title");
             $table->text("problem_statement");
             $table->enum("status", ['Upcoming', 'Done']);
@@ -33,3 +33,4 @@ return new class extends Migration
         Schema::dropIfExists('tests');
     }
 };
+

@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-
+use Illuminate\Database\Eloquent\Model;
 
 class Submission extends Model
 {
@@ -12,7 +11,7 @@ class Submission extends Model
 
     protected $fillable = [
         "test_id",
-        "submission_id",
+        "student_id",
         "submission_type",
         "code_file_path",
         "code_editor_text",
@@ -20,18 +19,33 @@ class Submission extends Model
         "statue"
     ];
 
-    function grades()
+    protected $casts = [
+        'submission_date' => 'datetime'
+    ];
+
+    public function grades()
     {
-        return $this->hasMany(AiGradingResult::class, 'submissions_id');
+        return $this->hasMany(Grade::class);
     }
 
-    function feedbacks()
+    public function feedbacks()
     {
         return $this->hasMany(Feedback::class);
     }
-    function test()
+    
+    public function test()
     {
         return $this->belongsTo(Test::class);
+    }
+    
+    public function student()
+    {
+        return $this->belongsTo(Student::class);
+    }
+    
+    public function aiGradingResults()
+    {
+        return $this->hasMany(AiGradingResult::class);
     }
 }
 

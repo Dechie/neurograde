@@ -14,6 +14,7 @@ class ClassRoom extends Model
         'name',
         'department_id',
         'teacher_id',
+        'department_id',
         'admin_id',
         'max_students',
         'created_by'
