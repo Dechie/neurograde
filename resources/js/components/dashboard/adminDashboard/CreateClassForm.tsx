@@ -4,18 +4,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Department } from '@/types';
 import { useForm } from '@inertiajs/react'; // Use useForm from Inertia
 import { useState } from 'react';
+import { Department, Teacher, User, CreateClassPageProps } from '@/types';
 
 // Define the props expected by the CreateClassForm component itself
-interface CreateClassFormProps {
-    departments: Department[];
-    teachers: any[];
-}
+
 
 // Modify the component function signature to accept props
-export function CreateClassForm({ departments, teachers }: CreateClassFormProps) {
+export function CreateClassForm({ departments, teachers }: CreateClassPageProps) {
     // Accept departments and teachers as props
     // Removed: const { departments, teachers } = usePage<Props>().props;
     // Now departments and teachers are available directly from the function arguments
