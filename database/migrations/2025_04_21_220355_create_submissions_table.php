@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('submissions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("test_id")->contstrained("tests");
-            $table->foreignId("submission_id")->contstrained("submissions");
+            $table->foreignId("test_id")->constrained("tests");
+            $table->foreignId("student_id")->constrained("students");
+            // $table->foreignId("submission_id")->constrained("submissions");
             $table->enum("submission_type", ["file", "editor"]);
             $table->string("code_file_path")->nullable();
             $table->text("code_editor_text")->nullable();
@@ -32,3 +33,4 @@ return new class extends Migration
         Schema::dropIfExists('submissions');
     }
 };
+

@@ -13,6 +13,7 @@ class ClassRoom extends Model
     protected $fillable = [
         'name',
         'teacher_id',
+        'department_id',
         'admin_id',
         'max_students',
         'created_by'

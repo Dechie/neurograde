@@ -91,7 +91,7 @@ class AdminController extends Controller
 
         $class = ClassRoom::create([
             'name' => $request->name,
-            'department_id' => $request->department_id,
+            'department_id' => $request->department_id, 
             'teacher_id' => $request->teacher_id,
             'admin_id' => auth()->id(),
             'max_students' => $request->max_students,
@@ -127,7 +127,7 @@ class AdminController extends Controller
         $invalidStudents = Student::whereIn('id', $request->student_ids)
             ->where('department_id', '!=', $class->department_id)
             ->exists();
-            
+
         if ($invalidStudents) {
             return response()->json(['message' => 'Some students do not belong to the same department as the class'], 400);
         }
@@ -150,7 +150,7 @@ class AdminController extends Controller
         $unassignedStudents = Student::whereDoesntHave('classes')
             ->with('user', 'department')
             ->get();
-    
+
         return response()->json($unassignedStudents);
     }
 }
