@@ -11,31 +11,34 @@ use App\Models\Department;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
+use App\Http\Requests\Auth\LoginRequest;
+use Illuminate\Support\Facades\Route;
+
+use Inertia\Response;
+
 class AdminController extends Controller
 {
-    public function login(Request $request)
+    public function showLogin(Request $request): Response
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
+        return Inertia::render('auth/admin_login'); 
+    }
 
-        $user = User::where('email', $request->email)->first();
+    public function login(LoginRequest $request): RedirectResponse
+    {
+        $request->authenticate();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+        // --- Add these lines temporarily for debugging ---
+        if (Auth::check()) {
+            \Log::info('User authenticated successfully', ['user_id' => Auth::id(), 'roles' => Auth::user()->getRoleNames()]);
+        } else {
+            \Log::warning('Authentication attempt failed unexpectedly after authenticate() call');
         }
+        \Log::info('Intended redirect URL: ' . redirect()->intended(route('dashboard', absolute: false))->getTargetUrl());
+        // --- End temporary debugging lines ---
 
-        if (!$user->hasRole('admin')) {
-            return response()->json(['message' => 'Unauthorized access'], 403);
-        }
+        $request->session()->regenerate();
 
-        $token = $user->createToken('admin-token')->plainTextToken;
-
-        return response()->json([
-            'user' => $user,
-            'token' => $token,
-        ]);
+        return redirect()->intended(route('dashboard', absolute: false));
     }
 
     public function createTeacher(Request $request)
@@ -43,8 +46,8 @@ class AdminController extends Controller
         $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => ['required'],
+            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'department_id' => 'required|exists:departments,id',
         ]);
 
@@ -54,7 +57,11 @@ class AdminController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
-        $user->assignRole('teacher');
+        
+        $role = Role::where('name', 'teacher')->where('guard_name', 'web')->first();
+        
+        //$user->assignRole('teacher');
+        $user->assignRole($role);
 
         $teacher = Teacher::create([
             'user_id' => $user->id,
@@ -62,6 +69,8 @@ class AdminController extends Controller
             'department_id' => $request->department_id,
         ]);
 
+        $user->teacher()->save($teacher);
+        
         return response()->json([
             'message' => 'Teacher created successfully',
             'teacher' => $teacher->load(['user', 'department']),

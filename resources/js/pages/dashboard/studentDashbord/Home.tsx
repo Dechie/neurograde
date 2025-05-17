@@ -4,7 +4,7 @@ import { RecentResult } from "@/components/dashboard/studentDashboard/RecentResu
 import { UpcomingTest } from "@/components/dashboard/studentDashboard/UpcomingTest"
 import { WelcomeBanner } from "@/components/dashboard/studentDashboard/WelcomeBanner"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import AppLayout from "@/layouts/dashboard/studentDashboard/studentDashboardLayout"
+import { AppLayout } from "@/layouts/dashboard/studentDashboard/studentDashboardLayout"
 
 interface HomeProps {
   user: {
@@ -38,9 +38,7 @@ export default function Home({ user, upcomingTests, recentResults }: HomeProps) 
   return (
     <AppLayout title="Overview">
       <div className="space-y-6">
-        <div className="border border-red-500 bg-yellow-200">
           <WelcomeBanner userName={user.name} />
-        </div>
 
         <div className="grid gap-6 md:grid-cols-2">
           <Card>

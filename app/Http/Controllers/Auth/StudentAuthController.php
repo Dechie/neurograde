@@ -15,7 +15,7 @@ use Inertia\Response;
 use App\Models\Department;
 use App\Models\Student;
 
-class RegisteredUserController extends Controller
+class StudentAuthController extends Controller
 {
     /**
      * Show the registration page.
@@ -35,11 +35,10 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        // dd();
         $data = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'email' => 'required|string|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'id_number' => 'required|string|max:255',
             'department' => 'required|integer|exists:departments,id',
@@ -65,10 +64,25 @@ class RegisteredUserController extends Controller
         ]);
 
         $user->student()->save($student);
-        //event(new Registered($user));
-        // var_dump($user);
         Auth::login($user);
 
         return to_route('dashboard');
+    }
+
+    public function loginCreate(Request $request): Response
+    {
+        return Inertia::render('auth/login', [
+            'canResetPassword' => Route::has('password.request'),
+            'status' => $request->session()->get('status'),
+        ]);
+    }
+
+    public function loginStore(Request $request): Response
+    { 
+        $request->authenticate();
+
+        $request->session()->regenerate();
+
+        return redirect()->intended(route('dashboard', absolute: false));
     }
 }

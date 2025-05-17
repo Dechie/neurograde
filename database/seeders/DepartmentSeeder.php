@@ -13,8 +13,10 @@ class DepartmentSeeder extends Seeder
     public function run(): void
     {
         $departments = [
+            ['name' => 'Software Engineering'],
             ['name' => 'Computer Science'],
             ['name' => 'Electrical Engineering'],
+            ['name' => 'Mechatronics Engineering']
         ];
 
         foreach ($departments as $department) {

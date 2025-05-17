@@ -1,9 +1,8 @@
 import type { ReactNode } from "react"
-import { SidebarProvider } from "@/components/ui/sidebar"
 import { DashboardHeader } from "@/components/dashboard/studentDashboard/DashboardHeader"
 import { Sidebar } from "@/components/dashboard/studentDashboard/StudentSidebar"
 
- const AppLayout = ({ children, title }: { children: ReactNode; title?: string })=> {
+export const AppLayout = ({ children, title }: { children: ReactNode; title?: string })=> {
   return (
     <div className="flex min-h-screen">
       <Sidebar />
@@ -14,4 +13,3 @@ import { Sidebar } from "@/components/dashboard/studentDashboard/StudentSidebar"
     </div>
   )
 }
-export default AppLayout;
