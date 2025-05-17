@@ -1,33 +1,41 @@
-import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useForm } from '@inertiajs/react'; // Use useForm from Inertia
+// Import model interfaces from your types file
+import InputError from '@/components/input-error';
+import { Label } from '@/components/ui/label';
+import { Department, Teacher } from '@/types'; // Import from types file
+import { useForm } from '@inertiajs/react';
 import { useState } from 'react';
-import { Department, Teacher, User, CreateClassPageProps } from '@/types';
+import { route } from 'ziggy-js';
 
 // Define the props expected by the CreateClassForm component itself
+interface CreateClassFormProps {
+    departments: Department[]; // Use imported Department interface
+    teachers: Teacher[]; // Use imported Teacher interface
+}
 
+// Define the type for the form data
+interface CreateClassFormData {
+    name: string;
+    department_id: number | '';
+    teacher_id: number | '';
+    max_students: number;
+}
 
 // Modify the component function signature to accept props
-export function CreateClassForm({ departments, teachers }: CreateClassPageProps) {
+export function CreateClassForm({ departments, teachers }: CreateClassFormProps) {
     // Accept departments and teachers as props
-    // Removed: const { departments, teachers } = usePage<Props>().props;
-    // Now departments and teachers are available directly from the function arguments
-
     const [imageLoaded, setImageLoaded] = useState(false);
 
     const { data, setData, post, processing, errors, reset } = useForm({
-        // Added type argument
         name: '',
         department_id: 0, // Initialize as empty string
         teacher_id: 0, // Initialize as empty string
         max_students: 30, // Initialize with a default value
     });
 
-    // Handle form submission using Inertia's post method
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         console.log('Form Submitted', data);
@@ -86,7 +94,8 @@ export function CreateClassForm({ departments, teachers }: CreateClassPageProps)
                                         <SelectValue placeholder="Select a department" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {departments?.map((dept) => (
+                                        {/* Use imported Department interface in map */}
+                                        {departments?.map((dept: Department) => (
                                             <SelectItem key={dept.id} value={dept.id.toString()}>
                                                 {dept.name}
                                             </SelectItem>
@@ -103,7 +112,8 @@ export function CreateClassForm({ departments, teachers }: CreateClassPageProps)
                                         <SelectValue placeholder="Select a teacher" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {teachers?.map((teacher) => (
+                                        {/* Use imported Teacher interface in map */}
+                                        {teachers?.map((teacher: Teacher) => (
                                             <SelectItem key={teacher.id} value={teacher.id.toString()}>
                                                 {teacher.user?.first_name} {teacher.user?.last_name}
                                             </SelectItem>

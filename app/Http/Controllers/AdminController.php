@@ -72,6 +72,7 @@ class AdminController extends Controller
             ->get();
         // In AdminController@showStudentListPage
         $departments = Department::all();
+        $classes = ClassRoom::all();
         \Log::info('Departments fetched for StudentList', ['count' => $departments->count(), 'first_dept' => $departments->first()]);
 
         return Inertia::render('dashboard/adminDashboard/StudentListPage', [

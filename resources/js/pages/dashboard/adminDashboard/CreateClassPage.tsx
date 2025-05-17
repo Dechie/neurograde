@@ -1,17 +1,15 @@
-import { AppLayout } from "@/layouts/dashboard/adminDashboard/AdminDashboardLayout"; // Assuming this is your admin layout
-import { CreateClassForm } from "@/components/dashboard/adminDashboard/CreateClassForm"; // Corrected path based on user clarification
-import { CreateClassPageProps } from "@/types"; // Assuming PageProps type
-import { usePage } from "@inertiajs/react";
-// This is the page component that Inertia renders
-export default function CreateClassPage() {
-  const { departments, teachers } = usePage<CreateClassPageProps>().props;
-  // ...
-  return (
-    <AppLayout title="Create Class">
-        <CreateClassForm departments={departments} teachers={teachers} />
-    </AppLayout>
-  );
-}
+import { CreateClassForm } from '@/components/dashboard/adminDashboard/CreateClassForm'; // Corrected path
+import { AppLayout } from '@/layouts/dashboard/adminDashboard/AdminDashboardLayout';
+// Import the specific PageProps interface from your types file
+import { CreateClassPageProps } from '@/types'; // Import from types file
 
-// Note: The CreateClassForm component itself is in components/dashboard/adminDashboard/CreateClass.tsx
-// This file (CreateClassPage.tsx) is the Inertia page component that uses the form component.
+// The page component now uses the specific PageProps interface from types.d.ts
+export default function CreateClassPage({ departments, teachers }: CreateClassPageProps) {
+    // departments and teachers are available directly from the props
+    return (
+        <AppLayout title="Create Class">
+            {/* Pass the props down to the form component */}
+            <CreateClassForm departments={departments} teachers={teachers} />
+        </AppLayout>
+    );
+}
