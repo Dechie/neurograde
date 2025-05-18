@@ -2,38 +2,34 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-// Import model interfaces from your types file
 import InputError from '@/components/input-error';
 import { Label } from '@/components/ui/label';
-import { Department, Teacher } from '@/types'; // Import from types file
+import { Department } from '@/types';
 import { useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import { route } from 'ziggy-js';
+import { LoaderCircle } from 'lucide-react'; 
 
-// Define the props expected by the CreateClassForm component itself
+
 interface CreateClassFormProps {
-    departments: Department[]; // Use imported Department interface
-    teachers: Teacher[]; // Use imported Teacher interface
+    departments: Department[]; 
 }
 
-// Define the type for the form data
 interface CreateClassFormData {
     name: string;
     department_id: number | '';
-    teacher_id: number | '';
     max_students: number;
+    [key: string]: any
 }
 
 // Modify the component function signature to accept props
-export function CreateClassForm({ departments, teachers }: CreateClassFormProps) {
-    // Accept departments and teachers as props
+export function CreateClassForm({ departments }: CreateClassFormProps) { // Accept only departments as prop
     const [imageLoaded, setImageLoaded] = useState(false);
 
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, post, processing, errors, reset } = useForm<CreateClassFormData>({
         name: '',
-        department_id: 0, // Initialize as empty string
-        teacher_id: 0, // Initialize as empty string
-        max_students: 30, // Initialize with a default value
+        department_id: '', 
+        max_students: 30, 
     });
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -48,7 +44,8 @@ export function CreateClassForm({ departments, teachers }: CreateClassFormProps)
             onError: (errors) => {
                 console.error('Form submission errors:', errors);
             },
-            onFinish: () => {},
+            onFinish: () => {
+            },
         });
     };
 
@@ -81,12 +78,14 @@ export function CreateClassForm({ departments, teachers }: CreateClassFormProps)
 
                     <form onSubmit={handleSubmit}>
                         <CardContent className="flex-1 space-y-6 px-6 py-6 sm:space-y-8 sm:px-8 sm:py-8">
+                            {/* Class Name Input */}
                             <div className="space-y-2">
                                 <Label htmlFor="name">Class Name</Label>
                                 <Input id="name" placeholder="Section A" value={data.name} onChange={(e) => setData('name', e.target.value)} />
                                 <InputError message={errors.name} />
                             </div>
 
+                            {/* Department Select */}
                             <div className="space-y-2">
                                 <Label htmlFor="department_id">Department</Label>
                                 <Select value={data.department_id?.toString()} onValueChange={(value) => setData('department_id', Number(value))}>
@@ -105,24 +104,7 @@ export function CreateClassForm({ departments, teachers }: CreateClassFormProps)
                                 <InputError message={errors.department_id} />
                             </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="teacher_id">Assign Teacher</Label>
-                                <Select value={data.teacher_id?.toString()} onValueChange={(value) => setData('teacher_id', Number(value))}>
-                                    <SelectTrigger id="teacher_id">
-                                        <SelectValue placeholder="Select a teacher" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {/* Use imported Teacher interface in map */}
-                                        {teachers?.map((teacher: Teacher) => (
-                                            <SelectItem key={teacher.id} value={teacher.id.toString()}>
-                                                {teacher.user?.first_name} {teacher.user?.last_name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <InputError message={errors.teacher_id} />
-                            </div>
-
+                            {/* Maximum Students Input */}
                             <div className="space-y-2">
                                 <Label htmlFor="max_students">Maximum Students</Label>
                                 <Input
@@ -138,7 +120,14 @@ export function CreateClassForm({ departments, teachers }: CreateClassFormProps)
                         </CardContent>
                         <CardFooter className="flex flex-col space-y-4 px-6 pb-6 sm:px-8 sm:pb-8">
                             <Button type="submit" className="w-full" disabled={processing}>
-                                {processing ? 'Creating...' : 'Create Class'}
+                                {processing ? (
+                                    <>
+                                        <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                                        Creating...
+                                    </>
+                                ) : (
+                                    'Create Class'
+                                )}
                             </Button>
                         </CardFooter>
                     </form>

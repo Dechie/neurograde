@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Spatie\Permission\Models\Role;
 use Inertia\Response;
+use Illuminate\Validation\ValidationException;
 
 class AdminController extends Controller
 {
@@ -46,20 +47,7 @@ class AdminController extends Controller
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
-    // Assuming you have a logout method for admins if needed separately from main logout
-    // public function logout(Request $request): RedirectResponse
-    // {
-    //     Auth::guard('web')->logout(); // Or your admin guard if different
-
-    //     $request->session()->invalidate();
-    //     $request->session()->regenerateToken();
-
-    //     return redirect()->route('admin-login'); // Redirect to admin login page after logout
-    // }
-
-
     // --- Inertia Page Rendering Methods (GET requests) ---
-
     /**
      * Show the admin student list page.
      */
@@ -88,18 +76,19 @@ class AdminController extends Controller
      */
     public function showTeacherListPage(): Response
     {
-        // Fetch data needed for the teacher list page
-        $teachers = Teacher::with(['user', 'department', 'classes'])->get();
-        // Fetch data needed for the assign class dialog
-        $classes = ClassRoom::all(); // Fetch all classes
+         // Fetch teachers with their user, department, and classes relationships
+        $teachers = Teacher::with(['user', 'department', 'classes.department'])->get(); // Eager load classes and their departments
 
-        return Inertia::render('dashboard/adminDashboard/TeacherListPage', [ // Assuming TeacherListPage.tsx is the component name
-            'teachers' => $teachers->toArray(), // Pass teachers data
-            'classes' => $classes->toArray(), // Pass classes data
-             // You might also pass departments for filtering/display
-            'departments' => Department::all()->toArray(),
+        // Fetch all classes and departments for the assignment dialog/filtering
+        $classes = ClassRoom::with('department')->get(); // Eager load department for display in select
+        $departments = Department::all();
+
+        return Inertia::render('dashboard/adminDashboard/TeacherListPage', [
+            'teachers' => $teachers->toArray(),
+            'classes' => $classes->toArray(),
+            'departments' => $departments->toArray(),
         ]);
-    }
+    } 
     
 
     /**
@@ -136,14 +125,19 @@ class AdminController extends Controller
     public function showClassListPage(): Response
     {
         // Fetch data needed for the class list page
-        $classes = ClassRoom::with(['teacher.user', 'students.user', 'department'])->get();
+        // Corrected eager loading to use the plural 'teachers' relationship
+        // and load the nested 'user' relationship for each teacher.
+        $classes = ClassRoom::with(['teachers.user', 'students.user', 'department'])->get();
 
-        return Inertia::render('dashboard/adminDashboard/TeacherListPage', [ // Assuming TeacherListPage can also show classes, or create a separate ClassListPage.tsx
-            'classes' => $classes->toArray(), // Pass data as props
-             // You might also pass departments for filtering/display
-            'departments' => Department::all()->toArray(),
+        // Fetch all departments for filtering/display if needed on the class list page
+        $departments = Department::all();
+
+        return Inertia::render('dashboard/adminDashboard/ClassListPage', [ // Assuming you have a ClassListPage.tsx
+            'classes' => $classes->toArray(), // Pass classes data
+             // Pass departments for filtering/display
+            'departments' => $departments->toArray(),
         ]);
-    }
+    } 
 
      /**
      * Show the admin unassigned students page (if separate).
@@ -211,23 +205,12 @@ class AdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'department_id' => 'required|exists:departments,id',
-            'teacher_id' => 'required|exists:teachers,id',
             'max_students' => 'required|integer|min:1',
         ]);
-
-        // Verify teacher belongs to the same department
-        $teacher = Teacher::findOrFail($request->teacher_id);
-        if ($teacher->department_id != $request->department_id) {
-            // Throw a validation exception if the teacher department doesn't match
-             throw \Illuminate\Validation\ValidationException::withMessages([
-                'teacher_id' => 'Teacher does not belong to the specified department.',
-            ]);
-        }
 
         $class = ClassRoom::create([
             'name' => $request->name,
             'department_id' => $request->department_id,
-            'teacher_id' => $request->teacher_id,
             'admin_id' => auth()->id(),
             'max_students' => $request->max_students,
             'created_by' => auth()->id(),
@@ -241,33 +224,42 @@ class AdminController extends Controller
     /**
      * Handle assigning a teacher to a class
      */
-    public function assignTeacherToClass(Request $request, Teacher $teacher): RedirectResponse // Return RedirectResponse
+    public function assignTeacherToClass(Request $request, ClassRoom $class): RedirectResponse // Return RedirectResponse, receives ClassRoom via route model binding
     {
-        // Validate the incoming class_id
+        // Validate the incoming teacher_id from the request body
         $request->validate([
-            'class_id' => ['required', 'exists:classes,id'], // Expecting a single class ID
+            'teacher_id' => ['required', 'exists:teachers,id'], // Corrected: Expecting teacher_id in the request body
         ]);
 
-        // Find the ClassRoom model (optional, but good for confirmation/future checks)
-        $class = ClassRoom::findOrFail($request->class_id);
+        // Find the Teacher model and eager load its department
+        $teacher = Teacher::with('department')->findOrFail($request->teacher_id); // Eager load teacher's department
 
-        // Optional: Add a check if the class's department matches the teacher's department
-        // if ($class->department_id !== $teacher->department_id) {
-        //      throw ValidationException::withMessages([
-        //         'class_id' => 'The selected class does not belong to this teacher\'s department.',
-        //     ]);
-        // }
+        // Eager load the class's department if not already loaded by route model binding with('department')
+        // If your route model binding doesn't automatically load department, do it here:
+        // $class->load('department');
+
+
+        // --- Department Matching Check ---
+        if ($class->department_id !== $teacher->department_id) {
+             // Throw a validation exception if the departments do not match
+             // Corrected error message to refer to teacher_id
+             throw ValidationException::withMessages([
+                'teacher_id' => "The selected teacher ({$teacher->user->first_name} {$teacher->user->last_name}) does not belong to the same department as the class ({$class->name}).",
+            ]);
+        }
+        // --- End Department Matching Check ---
+
 
         try {
-            // --- Core Logic to Assign Single Class (without detaching from others) ---
-            // Attach this specific class to the selected teacher.
+            // --- Core Logic to Assign Single Teacher to Class (Many-to-Many) ---
+            // Attach this specific teacher to the selected class.
             // syncWithoutDetaching adds the relationship if it doesn't exist,
             // and does nothing if it already exists. It does NOT detach others.
-            $teacher->classes()->syncWithoutDetaching([$class->id]);
+            $class->teachers()->syncWithoutDetaching([$teacher->id]);
 
             // If you wanted to use 'attach' and handle duplicates manually:
             // try {
-            //     $teacher->classes()->attach($class->id);
+            //     $class->teachers()->attach($teacher->id);
             // } catch (\Illuminate\Database\QueryException $e) {
             //     // Handle duplicate entry error if needed, or just let syncWithoutDetaching handle it
             // }
@@ -276,16 +268,16 @@ class AdminController extends Controller
 
             // Redirect back to the teacher list page
             return redirect()->route('admin.teachers.index')
-                             ->with('success', "Class {$class->name} assigned to teacher {$teacher->user->first_name} {$teacher->user->last_name} successfully!"); // Add a success flash message
+                             ->with('success', "Teacher {$teacher->user->first_name} {$teacher->user->last_name} assigned to class {$class->name} successfully!"); // Add a success flash message
 
         } catch (\Exception $e) {
             // Log the error for debugging
-            \Log::error('Failed to assign class to teacher', ['error' => $e->getMessage(), 'teacher_id' => $teacher->id, 'class_id' => $request->class_id]);
+            \Log::error('Failed to assign teacher to class', ['error' => $e->getMessage(), 'class_id' => $class->id, 'teacher_id' => $request->teacher_id]);
 
             // Redirect back with an error flash message
             return redirect()->back()
                              ->withInput() // Keep old input if needed (less relevant for this form)
-                             ->with('error', 'Failed to assign class to teacher. Please try again.'); // Add an error flash message
+                             ->with('error', 'Failed to assign teacher to class. Please try again.'); // Add an error flash message
         }
     } 
 

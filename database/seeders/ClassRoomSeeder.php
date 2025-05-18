@@ -20,7 +20,21 @@ class ClassRoomSeeder extends Seeder
         $class1 = ClassRoom::create([
             'name' => 'Section A',
             'department_id' => 1,  
-            'teacher_id' => 1,
+            'max_students' => 10,
+            'admin_id' => 1,
+            'created_by' => 1,
+        ]);
+        $class2 = ClassRoom::create([
+            'name' => 'Section B',
+            'department_id' => 1,  
+            'max_students' => 10,
+            'admin_id' => 1,
+            'created_by' => 1,
+        ]);
+
+        $class3 = ClassRoom::create([
+            'name' => 'Section C',
+            'department_id' => 1,  
             'max_students' => 10,
             'admin_id' => 1,
             'created_by' => 1,
