@@ -42,6 +42,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // Route to handle assigning students to a class
     // Using PATCH is more semantically correct for updating a resource (the class)
     Route::patch('/classes/{class}/students', [AdminController::class, 'assignStudentsToClass'])->name('admin.classes.assign-students');
+    Route::patch('/classes/{class}/assign-teacher', [AdminController::class, 'assignTeacherToClass'])->name('admin.classes.assign-teacher');
 
     // Add routes for updating/deleting teachers, classes, students if needed
     // Route::patch('/teachers/{teacher}', [AdminController::class, 'updateTeacher'])->name('admin.teachers.update');

@@ -19,7 +19,6 @@ class TestFactory extends Factory
         return [
             'id' => $this->faker->numberBetween(1, 1000),
             'teacher_id' => 1, 
-            'student_id' => $this->faker->numberBetween(1, 10),
             'class_id' => $this->faker->numberBetween(1, 10),
             'title' => "Palindrome",
             'problem_statement' => $this->faker->paragraph(),

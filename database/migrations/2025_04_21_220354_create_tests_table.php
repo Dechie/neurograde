@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('tests', function (Blueprint $table) {
             $table->id();
             $table->foreignId("teacher_id")->constrained("teachers");
-           // $table->foreignId("student_id")->constrained("students");
             $table->foreignId("class_id")->constrained("classes");
             $table->string("title");
             $table->text("problem_statement");

@@ -156,7 +156,20 @@ export interface AiGradingResult {
     };
     // Add any other grading result attributes
 }
-
+export interface UnassignedStudentsPageProps {
+  unassignedStudents: Student[]
+  departments: Department[]
+  classes: ClassRoom[]
+  [key: string]: any 
+}
+export interface CreateExamPageProps extends PageProps {
+  classes: ClassRoom[]; // Expecting an array of ClassRoom objects from the backend
+  // You might also need the authenticated teacher user data if not globally shared
+  auth: { // Assuming auth is a shared prop
+      user: Teacher; // Assuming the authenticated user is a Teacher
+  };
+  [key: string]: any 
+}
 export interface Test {
     id: number;
     title: string;

@@ -19,8 +19,7 @@ class TestAndSubmissionSeeder extends Seeder
         for ($i = 1; $i <= 8; $i++) {
             $test = Test::factory()->create([
                 'teacher_id' => 1, 
-                'student_id' => $i <= 3 ? $i : 1,
-                'class_id' => 1, // Make sure a class with id=1 exists
+                'class_id' => 1, 
                 'title' => 'Palindrome',
                 'status' => 'Done',
                 'due_date' => '2025-05-09',
@@ -28,7 +27,7 @@ class TestAndSubmissionSeeder extends Seeder
 
             Submission::factory()->create([
                 'test_id' => $test->id,
-                'submission_id' => $test->id, // Adjust depending on your schema
+                'student_id' => $student->id,
                 'submission_type' => 'editor',
                 'code_editor_text' => 'def is_palindrome(s): return s == s[::-1]',
                 'submission_date' => fake()->dateTimeBetween('now', '+2 weeks')->format('Y-m-d'), // ✅ CORRECT

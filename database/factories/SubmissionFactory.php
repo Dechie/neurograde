@@ -18,8 +18,8 @@ class SubmissionFactory extends Factory
     {
         return [
             'test_id' => 1, // replace dynamically
-            'submission_id' => 1, // if recursive, you may need to revise this
             'submission_type' => $this->faker->randomElement(['file', 'editor']),
+            'student_id' => 1,
             'code_file_path' => null,
             'code_editor_text' => 'print("Hello World")',
             'submission_date' => fake()->dateTimeBetween('now', '+1 month')->format('Y-m-d'),

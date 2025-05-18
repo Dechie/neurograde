@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('class_student', function (Blueprint $table) {
-            $table->foreignId('class_id')->constrained('classes')->cascadeOnDelete();
-            $table->foreignId('student_id')->constrained('students')->cascadeOnDelete();
-            $table->primary(['class_id', 'student_id']);
+        Schema::create('class_teacher', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('class_id')->constrained('classes');
+            $table->foreignId('teacher_id')->constrained('teachers');
+            $table->timestamps();
         });
     }
 
@@ -23,7 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('class_student_pivot');
+        Schema::dropIfExists('class_teacher');
     }
 };
-

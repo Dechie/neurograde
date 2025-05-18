@@ -20,9 +20,9 @@ class ClassRoom extends Model
         'created_by'
     ];
 
-    public function teacher()
+    public function teachers()
     {
-        return $this->belongsTo(Teacher::class);
+        return $this->belongsToMany(Teacher::class, 'class_teacher', 'class_id', 'teacher_id');
     }
 
     public function admin()

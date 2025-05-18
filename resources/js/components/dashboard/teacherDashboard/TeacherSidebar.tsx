@@ -20,7 +20,7 @@ const TEACHER_MENU_ITEMS = [
     // Assuming 'teacher.dashboard.home' is the route for the teacher's main dashboard landing page
     //{ path: route('teacher.home'), label: 'Dashboard Home', icon: Home },
     // Add links for teacher-specific pages (ensure these routes are defined)
-    { path: route('teacher.show-create-exam'), label: 'Create Exam', icon: BookOpen },
+    { path: route('teacher.tests.create'), label: 'Create Exam', icon: BookOpen },
     { path: route('teacher.show-grading'), label: 'View Grades', icon: GraduationCap },
     { path: route('teacher.show-submissions'), label: 'View Submissions', icon: GraduationCap },
     // Add other teacher-specific links as needed

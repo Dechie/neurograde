@@ -150,16 +150,16 @@ class AdminController extends Controller
      */
     public function showUnassignedStudentsPage(): Response
     {
-         $unassignedStudents = Student::whereDoesntHave('classes')
+        $unassignedStudents = Student::whereDoesntHave('classes')
             ->with('user', 'department')
             ->get();
 
-        return Inertia::render('dashboard/adminDashboard/StudentListPage', [ // Assuming StudentListPage can handle displaying unassigned students
-             'unassignedStudents' => $unassignedStudents->toArray(),
-             // You might pass other data needed for this view
-             'departments' => Department::all()->toArray(),
+        return Inertia::render('dashboard/adminDashboard/UnassignedStudentsPage', [
+            'unassignedStudents' => $unassignedStudents->toArray(),
+            'departments' => Department::all()->toArray(),
+            'classes' => ClassRoom::all()->toArray(), // Add this line to provide classes data
         ]);
-     }
+    } 
 
 
     // --- Action Methods (POST/PATCH requests) ---
@@ -237,6 +237,57 @@ class AdminController extends Controller
         return redirect()->route('admin.students.index')
                          ->with('success', 'Class created successfully!'); // Add a success flash message
     }
+
+    /**
+     * Handle assigning a teacher to a class
+     */
+    public function assignTeacherToClass(Request $request, Teacher $teacher): RedirectResponse // Return RedirectResponse
+    {
+        // Validate the incoming class_id
+        $request->validate([
+            'class_id' => ['required', 'exists:classes,id'], // Expecting a single class ID
+        ]);
+
+        // Find the ClassRoom model (optional, but good for confirmation/future checks)
+        $class = ClassRoom::findOrFail($request->class_id);
+
+        // Optional: Add a check if the class's department matches the teacher's department
+        // if ($class->department_id !== $teacher->department_id) {
+        //      throw ValidationException::withMessages([
+        //         'class_id' => 'The selected class does not belong to this teacher\'s department.',
+        //     ]);
+        // }
+
+        try {
+            // --- Core Logic to Assign Single Class (without detaching from others) ---
+            // Attach this specific class to the selected teacher.
+            // syncWithoutDetaching adds the relationship if it doesn't exist,
+            // and does nothing if it already exists. It does NOT detach others.
+            $teacher->classes()->syncWithoutDetaching([$class->id]);
+
+            // If you wanted to use 'attach' and handle duplicates manually:
+            // try {
+            //     $teacher->classes()->attach($class->id);
+            // } catch (\Illuminate\Database\QueryException $e) {
+            //     // Handle duplicate entry error if needed, or just let syncWithoutDetaching handle it
+            // }
+            // --- End Core Logic ---
+
+
+            // Redirect back to the teacher list page
+            return redirect()->route('admin.teachers.index')
+                             ->with('success', "Class {$class->name} assigned to teacher {$teacher->user->first_name} {$teacher->user->last_name} successfully!"); // Add a success flash message
+
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            \Log::error('Failed to assign class to teacher', ['error' => $e->getMessage(), 'teacher_id' => $teacher->id, 'class_id' => $request->class_id]);
+
+            // Redirect back with an error flash message
+            return redirect()->back()
+                             ->withInput() // Keep old input if needed (less relevant for this form)
+                             ->with('error', 'Failed to assign class to teacher. Please try again.'); // Add an error flash message
+        }
+    } 
 
      /**
      * Handle assigning students to a class.

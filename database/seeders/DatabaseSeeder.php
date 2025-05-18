@@ -22,13 +22,8 @@ class DatabaseSeeder extends Seeder
         $this->call(RolesAndPermissionsSeeder::class);
         $this->call(DepartmentSeeder::class);
 
-        $this->call(TestAndSubmissionSeeder::class);
-        $this->call(AdminSeeder::class);
 
-        User::factory()->create([
-            'first_name' => 'Test',
-            'last_name' => 'User',
-            'email' => 'test@example.com',
+
         // create user and assign student role
         $userStudent = User::create([
             'first_name' => 'Student1',
@@ -36,6 +31,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'Student1@email.com',
             'password' => Hash::make('1234'),
         ]);
+
         $userStudent->assignRole('student');
         $student = new Student([
             'user_id' => $userStudent->id,
@@ -80,7 +76,9 @@ class DatabaseSeeder extends Seeder
         $userTeacher->teacher()->save($teacher);
 
         $this->call(AdminSeeder::class);
+        $this->call(ClassRoomSeeder::class);
         $this->call(TestAndSubmissionSeeder::class);
+
         
         
     }
