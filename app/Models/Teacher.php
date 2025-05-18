@@ -29,7 +29,7 @@ class Teacher extends Model
 
    public function classes()
    {
-      return $this->belongsToMany(ClassRoom::class, "class_teacher", "teacher_id", "class_id");
+      return $this->belongsToMany(ClassRoom::class, 'class_teacher', 'teacher_id', 'class_id');
    }
 
    public function grades()

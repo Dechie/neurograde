@@ -284,7 +284,7 @@ class AdminController extends Controller
      /**
      * Handle assigning students to a class.
      */
-    public function assignStudentsToClass(Request $request, ClassRoom $class): RedirectResponse // Return RedirectResponse
+     public function assignStudentsToClass(Request $request, ClassRoom $class): RedirectResponse // Return RedirectResponse
     {
          // Consider creating a dedicated Form Request for this validation
         $request->validate([
@@ -311,10 +311,10 @@ class AdminController extends Controller
 
         $class->students()->syncWithoutDetaching($attachments);
 
-        // Redirect back to the class list page or the specific class view
-        return redirect()->route('admin.classes.index') // Or route('admin.classes.show', $class)
+        // Redirect back to the student list page after successful assignment
+        return redirect()->route('admin.students.index') // Corrected redirect route
                          ->with('success', 'Students assigned successfully!'); // Add a success flash message
-    }
+    } 
 
 
     // Existing API methods are now handled by the Inertia rendering methods above

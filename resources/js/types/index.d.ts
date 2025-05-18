@@ -171,11 +171,23 @@ export interface CreateExamPageProps extends PageProps {
   [key: string]: any 
 }
 export interface Test {
-    id: number;
-    title: string;
-    // Add other test attributes like description, due_date, etc.
-    // Include relationships if they are eager loaded
-    departments?: Department[]; // Assuming tests can be associated with departments
+  id: number
+  title: string
+  problem_statement: string
+  due_date: string // This comes as a string from the backend
+  status: string
+  teacher_id: number
+  class_id: number
+  metrics: any
+  created_at: string
+  updated_at: string
+  class?: ClassRoom // From eager loading
+}
+
+// Page props interface
+export interface TestsPageProps {
+  tests: Test[]
+  [key: string]: any // For Inertia compatibility
 }
 
 
