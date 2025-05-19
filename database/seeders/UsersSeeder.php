@@ -19,23 +19,38 @@ class UsersSeeder extends Seeder
     {
         //
         // create user and assign student role
-        $userStudent = User::create([
+         $userStudent1 = User::create([
             'first_name' => 'Student1',
             'last_name' => 'Student1',
             'email' => 'Student1@email.com',
             'password' => Hash::make('1234'),
         ]);
 
-        $userStudent->assignRole('student');
-        $student = new Student([
-            'user_id' => $userStudent->id,
+        $userStudent1->assignRole('student');
+        $student1 = new Student([
+            'user_id' => $userStudent1->id,
             'id_number' => '000/13',
             'academic_year' => '5th',
             'department_id' => 1,
         ]);
-        $userStudent->student()->save($student);
+        $userStudent1->student()->save($student1);
+        $userStudent2 = User::create([
+            'first_name' => 'Student2',
+            'last_name' => 'Student2',
+            'email' => 'Student2@email.com',
+            'password' => Hash::make('1234'),
+        ]);
 
-        // create user and assign admin role
+        $userStudent2->assignRole('student');
+        $student2 = new Student([
+            'user_id' => $userStudent2->id,
+            'id_number' => '000/13',
+            'academic_year' => '5th',
+            'department_id' => 1,
+        ]);
+        $userStudent2->student()->save($student2);
+
+       // create user and assign admin role
         $userAdmin = User::create([
             'first_name' => "Admin1",
             'last_name' => "Admin1", 

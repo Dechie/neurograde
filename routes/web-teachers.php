@@ -22,5 +22,6 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->group(function()
     // Route::get('/tests/{test}/submissions', [TeacherController::class, 'showTestSubmissionsPage'])->name('teacher.tests.submissions.index'); // Renders submissions for a test
     // Route::get('/submissions/{submission}/review', [TeacherController::class, 'showSubmissionReviewPage'])->name('teacher.submissions.review'); // Renders review page for a submission
     // Route::patch('/submissions/{submission}/grade', [TeacherController::class, 'gradeSubmission'])->name('teacher.submissions.grade'); // Handles grading action
-    // Route::post('/tests/{test}/publish', [TeacherController::class, 'publishTestGrades'])->name('teacher.tests.publish'); // Handles publishing grades
+    Route::post('/tests/{test}/publish', [TeacherController::class, 'publishGrades'])->name('teacher.tests.publish');
+    Route::post('/grades/{grade}/override', [TeacherController::class, 'overrideGrade'])->name('teacher.grades.override');
 });

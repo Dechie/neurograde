@@ -12,7 +12,12 @@ class Grade extends Model
         "graded_value",
         "adjusted_grade",
         "override_reason",
-        "comments"
+        "comments",
+        "status"
+    ];
+
+    protected $casts = [
+        'status' => 'string'
     ];
 
     public function submission()

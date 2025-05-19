@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('ai_grading_results', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("submissions_id")->contstrained("submissions");
+            $table->foreignId("submissions_id")->constrained("submissions");
             $table->json("metrics");
             $table->text("comment");
             $table->float("graded_value");

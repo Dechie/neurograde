@@ -15,18 +15,24 @@ class Test extends Model
         'due_date',
         'status',
         'teacher_id',
+        'department_id',
+        'section',
         'class_id',
-        'metrics'
+        'metrics',
+        'published_at',
+        'published'
     ];
 
     protected $casts = [
         'metrics' => 'array',
-        'due_date' => 'date'
+        'due_date' => 'date',
+        'published_at' => 'datetime',
+        'published' => 'boolean'
     ];
 
-    public function departments()
+    public function department()
     {
-        return $this->belongsToMany(Department::class, 'test_departments');
+        return $this->belongsTo(Department::class);
     }
 
     public function students()

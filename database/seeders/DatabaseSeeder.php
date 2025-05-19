@@ -18,16 +18,16 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        $this->call(RolesAndPermissionsSeeder::class);
-        $this->call(DepartmentSeeder::class);
-        $this->call(UsersSeeder::class);
-
-        $this->call(AdminSeeder::class);
-        $this->call(ClassRoomSeeder::class);
-        $this->call(TestAndSubmissionSeeder::class);
-
-        
-        
+        $this->call([
+            RolesAndPermissionsSeeder::class,
+            DepartmentSeeder::class,
+            UsersSeeder::class,
+            AdminSeeder::class,
+            ClassRoomSeeder::class,
+            TestAndSubmissionSeeder::class,
+            TestSeeder::class,
+            DepartmentStructureSeeder::class,
+        ]);
     }
 }
 

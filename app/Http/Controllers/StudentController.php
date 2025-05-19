@@ -10,6 +10,8 @@ use App\Models\Test;
 use App\Models\AiGradingResult;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Validator;
+use App\Models\Submission;
 
 class StudentController extends Controller
 {
@@ -79,43 +81,56 @@ class StudentController extends Controller
     /**
      * Show a specific test page for a student.
      */
-    public function showTest($id): Response // Specify return type
+    public function showTest(Test $test): Response
     {
-        $user = auth()->user()->load('student'); // Load the student relationship
-        $student = $user->student;
+        $student = auth()->user()->student;
+        
+        // Verify student has access to this test
+        if ($test->department_id !== $student->department_id || 
+            $test->section !== $student->section) {
+            abort(403, 'Unauthorized');
+        }
 
-        // Find the test and ensure it is assigned to the authenticated student
-        $test = Test::whereHas('students', function($query) use ($student) {
-            $query->where('students.id', $student->id);
-        })
-        ->findOrFail($id); // Find the test by ID, or throw 404 if not found or not assigned
-
-        // You might want to eager load the class, teacher, etc. here if needed for the Show page
+        // Load necessary relationships
         $test->load(['class.department', 'teacher.user']);
 
-        // You might also want to fetch the student's submission for this test if one exists
-        $submission = $test->submissions()->where('student_id', $student->id)->first();
+        // Get student's submission if exists
+        $submission = $test->submissions()
+            ->where('student_id', $student->id)
+            ->first();
 
-        return Inertia::render('dashboard/studentDashbord/Tests/Show', [
+        return Inertia::render('dashboard/studentDashboard/TestDetail', [
             'test' => [
                 'id' => $test->id,
                 'title' => $test->title,
                 'problemStatement' => $test->problem_statement,
-                'dueDate' => $test->due_date ? $test->due_date->format('Y-m-d H:i:s') : null, // Format date
+                'dueDate' => $test->due_date ? $test->due_date->format('Y-m-d H:i:s') : null,
                 'status' => $test->status,
-                'metrics' => $test->metrics, // Pass metrics if needed on the show page
-                'class' => $test->class ? ['id' => $test->class->id, 'name' => $test->class->name, 'department' => $test->class->department->name ?? 'N/A'] : null,
-                'teacher' => $test->teacher ? ['id' => $test->teacher->id, 'name' => $test->teacher->user->first_name . ' ' . $test->teacher->user->last_name] : null,
+                'metrics' => $test->metrics,
+                'class' => $test->class ? [
+                    'id' => $test->class->id,
+                    'name' => $test->class->name,
+                    'department' => $test->class->department->name ?? 'N/A'
+                ] : null,
+                'teacher' => $test->teacher ? [
+                    'id' => $test->teacher->id,
+                    'name' => $test->teacher->user->first_name . ' ' . $test->teacher->user->last_name
+                ] : null,
             ],
-            'submission' => $submission ? [ // Pass submission data if it exists
+            'submission' => $submission ? [
                 'id' => $submission->id,
-                'submitted_code' => $submission->submitted_code, // Assuming this column exists
-                'submitted_file_path' => $submission->submitted_file_path, // Assuming this column exists
+                'submitted_code' => $submission->submitted_code,
+                'submitted_file_path' => $submission->submitted_file_path,
                 'status' => $submission->status,
                 'created_at' => $submission->created_at ? $submission->created_at->format('Y-m-d H:i:s') : null,
-                // You might eager load and pass grades/feedback here too
-                'grade' => $submission->grade ? ['graded_value' => $submission->grade->graded_value, 'adjusted_grade' => $submission->grade->adjusted_grade, 'comments' => $submission->grade->comments] : null,
-                'feedback' => $submission->feedback ? ['feedback_text' => $submission->feedback->feedback_text] : null,
+                'grade' => $submission->grade ? [
+                    'graded_value' => $submission->grade->graded_value,
+                    'adjusted_grade' => $submission->grade->adjusted_grade,
+                    'comments' => $submission->grade->comments
+                ] : null,
+                'feedback' => $submission->feedback ? [
+                    'feedback_text' => $submission->feedback->feedback_text
+                ] : null,
             ] : null,
         ]);
     }
@@ -142,5 +157,74 @@ class StudentController extends Controller
 
         // Redirect after successful submission
         return redirect()->back()->with('success', 'Code submitted successfully!');
+    }
+
+    public function showTests()
+    {
+        $student = auth()->user()->student;
+        
+        // Get tests for student's department and section
+        $tests = Test::where('department_id', $student->department_id)
+            ->where('section', $student->section)
+            ->where('due_date', '>', now())
+            ->where('published', false)
+            ->with(['teacher', 'submissions' => function($query) use ($student) {
+                $query->where('student_id', $student->id);
+            }])
+            ->get();
+
+        return Inertia::render('dashboard/studentDashbord/Tests/Index', [
+            'tests' => $tests
+        ]);
+    }
+
+    public function submitTest(Request $request, Test $test)
+    {
+        $student = auth()->user()->student;
+        
+        // Verify student has access to this test
+        if ($test->department_id !== $student->department_id || 
+            $test->section !== $student->section) {
+            abort(403, 'Unauthorized');
+        }
+
+        // Verify test is still open
+        if ($test->due_date < now()) {
+            return response()->json(['error' => 'Test deadline has passed'], 400);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'code_file' => 'nullable|file|max:10240', // 10MB max
+            'code_editor_text' => 'nullable|string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        try {
+            $submission = new Submission();
+            $submission->test_id = $test->id;
+            $submission->student_id = $student->id;
+            $submission->submission_date = now();
+
+            if ($request->hasFile('code_file')) {
+                $path = $request->file('code_file')->store('submissions');
+                $submission->code_file_path = $path;
+                $submission->submission_type = 'file';
+            } elseif ($request->has('code_editor_text')) {
+                $submission->code_editor_text = $request->code_editor_text;
+                $submission->submission_type = 'text';
+            } else {
+                return response()->json(['error' => 'Either code file or text must be provided'], 422);
+            }
+
+            $submission->save();
+
+            return response()->json(['message' => 'Submission successful']);
+        } catch (\Exception $e) {
+            \Log::error('Failed to submit test', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Failed to submit test'], 500);
+        }
     }
 }

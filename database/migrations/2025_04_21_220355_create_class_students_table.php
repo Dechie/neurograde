@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId("student_id")->constrained("students");
             $table->boolean("assigned")->default(true);
             $table->timestamps();
+            $table->unique('student_id');
         });
     }
 

@@ -54,11 +54,11 @@ class TeacherController extends Controller
             "title" => "required|string|max:255",
             "problem_statement" => "required|string",
             "due_date" => "required|date|after:now",
-            "class_id" => "required|exists:classes,id", // Validate class_id exists
-            "metrics" => "required|json" // Validate as JSON string initially
+            "class_id" => "required|exists:classes,id",
+            "section" => "required|string|max:10",
+            "metrics" => "required|json"
         ]);
 
-        // If validation fails, throw a ValidationException
         if ($validator->fails()) {
             throw ValidationException::withMessages($validator->errors()->toArray());
         }
@@ -66,58 +66,40 @@ class TeacherController extends Controller
         // Find the class
         $class = ClassRoom::findOrFail($request->class_id);
 
-        // --- Updated Check: Verify the teacher is assigned to this class via the many-to-many relationship ---
-        // Check if the authenticated teacher's collection of classes contains the selected class ID
+        // Verify the teacher is assigned to this class
         if (!$teacher->classes->contains($class->id)) {
-             // Throw a validation exception if the teacher is NOT assigned to the class
-             throw ValidationException::withMessages([
+            throw ValidationException::withMessages([
                 'class_id' => 'You are not assigned to this class.',
             ]);
         }
-        // --- End Updated Check ---
-
-        // Note: A department match check between teacher and class is implicitly handled
-        // if the admin assignment process (using assignClassToTeacher) already enforces it.
-        // If you need an explicit check here as well:
-        // if ($teacher->department_id !== $class->department_id) {
-        //      throw ValidationException::withMessages([
-        //         'class_id' => 'This class does not belong to your department.',
-        //     ]);
-        // }
-
 
         try {
             // Create the Test record
-            // We still store teacher_id on the test to indicate who created it.
-            // We still store class_id on the test as per your schema, assuming a test belongs to a single class.
             $test = Test::create([
-                "teacher_id" => $teacher->id, // The teacher who created the test
-                "class_id" => $request->class_id, // The class the test is for
+                "teacher_id" => $teacher->id,
+                "department_id" => $teacher->department_id, // Use teacher's department
+                "section" => $request->section,
+                "class_id" => $request->class_id,
                 "title" => $request->title,
                 "problem_statement" => $request->problem_statement,
                 "due_date" => $request->due_date,
-                "metrics" => json_decode($request->metrics, true), // Decode JSON string to array
-                "status" => "Upcoming" // Set initial status
+                "metrics" => json_decode($request->metrics, true),
+                "status" => "Upcoming"
             ]);
 
             // Assign the test to all students in the class via the test_student pivot table
-            // This assumes a test is assigned to ALL students in the selected class.
             $studentIds = $class->students()->pluck("students.id");
-            $test->students()->sync($studentIds); // Sync the test with student IDs
+            $test->students()->sync($studentIds);
 
-            // Redirect to the teacher's test list page on success
-            // Assuming you have a route named 'teacher.tests.index' for the test list
             return redirect()->route('teacher.tests.index')
-                             ->with('success', 'Test created successfully!'); // Add a success flash message
+                             ->with('success', 'Test created successfully!');
 
         } catch (\Exception $e) {
-            // Log the error for debugging
             \Log::error('Failed to create test', ['error' => $e->getMessage(), 'request' => $request->all()]);
 
-            // Redirect back with an error flash message
             return redirect()->back()
-                             ->withInput() // Keep old input in the form
-                             ->with('error', 'Failed to create test. Please try again.'); // Add an error flash message
+                             ->withInput()
+                             ->with('error', 'Failed to create test. Please try again.');
         }
     }
 
@@ -135,4 +117,48 @@ class TeacherController extends Controller
     // public function addFeedback(Request $request, Submission $submission) { ... } // Needs conversion if used for a web action
     // public function getClasses(Request $request) { ... } // This data is now fetched and passed by showCreateExam
 
+    public function publishGrades(Test $test)
+    {
+        // Ensure the teacher owns this test
+        if ($test->teacher_id !== auth()->user()->teacher->id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        // Update all grades for this test's submissions
+        foreach ($test->submissions as $submission) {
+            foreach ($submission->grades as $grade) {
+                $grade->update(['status' => 'published']);
+            }
+        }
+
+        // Mark the test as published
+        $test->update([
+            'published' => true,
+            'published_at' => now()
+        ]);
+
+        return response()->json(['message' => 'Grades published successfully']);
+    }
+
+    public function overrideGrade(Request $request, Grade $grade)
+    {
+        // Ensure the teacher owns this grade's test
+        if ($grade->submission->test->teacher_id !== auth()->user()->teacher->id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'adjusted_grade' => 'required|numeric|min:0|max:100',
+            'override_reason' => 'required|string|max:500',
+            'comments' => 'nullable|string|max:1000'
+        ]);
+
+        $grade->update([
+            'adjusted_grade' => $validated['adjusted_grade'],
+            'override_reason' => $validated['override_reason'],
+            'comments' => $validated['comments'] ?? null
+        ]);
+
+        return response()->json(['message' => 'Grade overridden successfully']);
+    }
 }

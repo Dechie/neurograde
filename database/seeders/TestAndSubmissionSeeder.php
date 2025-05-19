@@ -16,6 +16,24 @@ class TestAndSubmissionSeeder extends Seeder
         $teacher = Teacher::first(); // Or select a specific one
         $student = Student::first(); // Same here
 
+        $tests = [
+            Test::factory()->create([
+                'title' => 'Palindrome',
+                'status' => 'Done',
+                'due_date' => '2025-05-09',
+            ]),
+            Test::factory()->create([
+                'title' => 'Binary Search',
+                'status' => 'Done',
+                'due_date' => '2025-05-10',
+            ]),
+            Test::factory()->create([
+                'title' => 'Quick Sort',
+                'status' => 'Done',
+                'due_date' => '2025-05-11',
+            ])
+        ];
+
         for ($i = 1; $i <= 8; $i++) {
             $test = Test::factory()->create([
                 'teacher_id' => 1, 

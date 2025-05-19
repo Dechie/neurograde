@@ -3,6 +3,9 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\Teacher;
+use App\Models\ClassRoom;
+use App\Models\Department;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Test>
@@ -17,20 +20,17 @@ class TestFactory extends Factory
     public function definition(): array
     {
         return [
-            'id' => $this->faker->numberBetween(1, 1000),
-            'teacher_id' => 1, 
-            'class_id' => $this->faker->numberBetween(1, 10),
-            'title' => "Palindrome",
-            'problem_statement' => $this->faker->paragraph(),
-            'status' => "Done", 
-            'due_date' => fake()->dateTimeBetween('now', '+1 month')->format('Y-m-d'),
-            'metrics' => json_encode(fake()->randomElements([
-                'time_taken' => fake()->numberBetween(10, 60),
-                'errors' => fake()->numberBetween(0, 5),
-                'hints_used' => fake()->numberBetween(0, 2)
-            ], 3)),
-            'created_at' => now(), 
-            'updated_at' => now(), 
+            'title' => fake()->sentence(),
+            'problem_statement' => fake()->paragraph(),
+            'due_date' => fake()->dateTimeBetween('now', '+1 month'),
+            'status' => fake()->randomElement(['Upcoming', 'Done']),
+            'teacher_id' => 1,
+            'class_id' => 1,
+            'metrics' => json_encode([
+                'correctness' => fake()->numberBetween(30, 50),
+                'efficiency' => fake()->numberBetween(20, 40),
+                'code_style' => fake()->numberBetween(10, 30)
+            ]),
         ];
     }
 }

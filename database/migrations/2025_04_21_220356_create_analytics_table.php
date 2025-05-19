@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('analytics', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("student_id")->contstrained("students");
-            $table->foreignId("test_id")->contstrained("tests");
+            $table->foreignId("student_id")->constrained("students");
+            $table->foreignId("test_id")->constrained("tests");
             $table->json("metrics");
             $table->timestamps();
         });
