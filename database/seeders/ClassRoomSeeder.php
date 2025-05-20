@@ -9,6 +9,8 @@ use App\Models\Admin;
 use App\Models\ClassRoom;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Teacher;
+
 class ClassRoomSeeder extends Seeder
 {
     /**
@@ -16,29 +18,40 @@ class ClassRoomSeeder extends Seeder
      */
     public function run(): void
     {
-        //
-        $class1 = ClassRoom::create([
-            'name' => 'Section A',
-            'department_id' => 1,  
-            'max_students' => 10,
-            'admin_id' => 1,
-            'created_by' => 1,
-        ]);
-        $class2 = ClassRoom::create([
-            'name' => 'Section B',
-            'department_id' => 1,  
-            'max_students' => 10,
-            'admin_id' => 1,
-            'created_by' => 1,
-        ]);
+        $departments = \App\Models\Department::all();
+        $admin = \App\Models\Admin::first();
 
-        $class3 = ClassRoom::create([
-            'name' => 'Section C',
-            'department_id' => 1,  
-            'max_students' => 10,
-            'admin_id' => 1,
-            'created_by' => 1,
-        ]);
-         
+        foreach ($departments as $department) {
+            // Create 3 classes for each department
+            for ($i = 1; $i <= 3; $i++) {
+                $class = ClassRoom::create([
+                    'name' => "Section {$i} - {$department->name}",
+                    'department_id' => $department->id,
+                    'max_students' => 30,
+                    'admin_id' => $admin->id,
+                    'created_by' => $admin->user_id,
+                ]);
+
+                // Get teachers for this department
+                $teachers = \App\Models\Teacher::where('department_id', $department->id)->get();
+                if ($teachers->isNotEmpty()) {
+                    // Assign first teacher to this class
+                    $class->teachers()->attach($teachers->first()->id);
+                }
+
+                // Get students for this department and distribute them across classes
+                $students = \App\Models\Student::where('department_id', $department->id)->get();
+                if ($students->isNotEmpty()) {
+                    // Only assign 80% of students to classes
+                    $studentsToAssign = $students->take(ceil($students->count() * 0.8));
+                    // Calculate how many students per class
+                    $studentsPerClass = ceil($studentsToAssign->count() / 3);
+                    // Get the chunk of students for this class
+                    $classStudents = $studentsToAssign->forPage($i, $studentsPerClass);
+                    // Assign students to this class
+                    $class->students()->attach($classStudents->pluck('id'));
+                }
+            }
+        }
     }
 }

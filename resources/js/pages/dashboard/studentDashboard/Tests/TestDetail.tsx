@@ -24,7 +24,7 @@ export default function TestDetail({ test }: TestDetailProps) {
                 </Card>
 
                 <div>
-                    <CodeEditor />
+                    <CodeEditor testId={test.id} />
                 </div>
             </div>
         </AppLayout>

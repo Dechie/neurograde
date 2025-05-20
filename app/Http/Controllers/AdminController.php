@@ -53,22 +53,24 @@ class AdminController extends Controller
      */
     public function showStudentListPage(): Response
     {
-        // Fetch data needed for the student list page
+        // Fetch all students with their relationships
         $students = Student::with(['user', 'classes', 'department'])->get();
-        $unassignedStudents = Student::whereDoesntHave('classes')
-            ->with('user', 'department')
-            ->get();
-        // In AdminController@showStudentListPage
+        
+        // Get unassigned students count using a separate query
+        $unassignedCount = Student::whereDoesntHave('classes')->count();
+        
+        // Log the counts for debugging
+        \Log::info('Total students fetched', ['count' => $students->count()]);
+        \Log::info('Unassigned students count', ['count' => $unassignedCount]);
+
         $departments = Department::all();
         $classes = ClassRoom::all();
-        \Log::info('Departments fetched for StudentList', ['count' => $departments->count(), 'first_dept' => $departments->first()]);
 
         return Inertia::render('dashboard/adminDashboard/StudentListPage', [
             'students' => $students->toArray(),
             'classes' => $classes->toArray(),
             'departments' => $departments->toArray(),
         ]);
-
     }
 
      /**

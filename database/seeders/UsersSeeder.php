@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Teacher;
 use App\Models\Admin;
 use App\Models\Student;
+use App\Models\Department;
 
 class UsersSeeder extends Seeder
 {
@@ -17,40 +18,7 @@ class UsersSeeder extends Seeder
      */
     public function run(): void
     {
-        //
-        // create user and assign student role
-         $userStudent1 = User::create([
-            'first_name' => 'Student1',
-            'last_name' => 'Student1',
-            'email' => 'Student1@email.com',
-            'password' => Hash::make('1234'),
-        ]);
-
-        $userStudent1->assignRole('student');
-        $student1 = new Student([
-            'user_id' => $userStudent1->id,
-            'id_number' => '000/13',
-            'academic_year' => '5th',
-            'department_id' => 1,
-        ]);
-        $userStudent1->student()->save($student1);
-        $userStudent2 = User::create([
-            'first_name' => 'Student2',
-            'last_name' => 'Student2',
-            'email' => 'Student2@email.com',
-            'password' => Hash::make('1234'),
-        ]);
-
-        $userStudent2->assignRole('student');
-        $student2 = new Student([
-            'user_id' => $userStudent2->id,
-            'id_number' => '000/13',
-            'academic_year' => '5th',
-            'department_id' => 1,
-        ]);
-        $userStudent2->student()->save($student2);
-
-       // create user and assign admin role
+        // Create admin user first
         $userAdmin = User::create([
             'first_name' => "Admin1",
             'last_name' => "Admin1", 
@@ -60,46 +28,97 @@ class UsersSeeder extends Seeder
 
         $userAdmin->assignRole('admin');
 
-        $admin= new Admin([
+        $admin = new Admin([
             'user_id' => $userAdmin->id, 
         ]);
 
         $userAdmin->admin()->save($admin);
 
-        // create user and assign teacher role
-        $userTeacher1 = User::create([
-            'first_name' => "Teacher1",
-            'last_name' => "Teacher1", 
-            'email' => "Teacher1@email.com",
-            'password' => Hash::make("1234"), 
-        ]);
+        // Get all departments
+        $departments = Department::all();
+        
+        // Create students for each department
+        foreach ($departments as $department) {
+            for ($i = 1; $i <= 5; $i++) {
+                $user = User::create([
+                    'first_name' => "Student{$i}",
+                    'last_name' => $department->name,
+                    'email' => "student{$i}." . str_replace(' ', '.', strtolower($department->name)) . "@example.com",
+                    'password' => Hash::make('password'),
+                ]);
 
-        $userTeacher1->assignRole('teacher');
+                $user->assignRole('student');
+                
+                $student = new Student([
+                    'user_id' => $user->id,
+                    'id_number' => sprintf('%03d/%02d', $i, date('y')),
+                    'academic_year' => '5th',
+                    'department_id' => $department->id,
+                ]);
+                
+                $user->student()->save($student);
+            }
+        }
 
-        $teacher1 = new Teacher([
-            'user_id' => $userTeacher1->id, 
-            'created_by' => 1,
-            'department_id' => 1,
-        ]);
+        // Add a student to the first department who is not assigned to any class
+        $firstDepartment = $departments->first();
+        if ($firstDepartment) {
+            $user = User::create([
+                'first_name' => 'Unassigned',
+                'last_name' => $firstDepartment->name,
+                'email' => 'unassigned.' . str_replace(' ', '.', strtolower($firstDepartment->name)) . '@example.com',
+                'password' => Hash::make('password'),
+            ]);
+            $user->assignRole('student');
+            $student = new Student([
+                'user_id' => $user->id,
+                'id_number' => '999/99',
+                'academic_year' => '5th',
+                'department_id' => $firstDepartment->id,
+            ]);
+            $user->student()->save($student);
+        }
 
-        $userTeacher1->teacher()->save($teacher1);
-        $userTeacher2 = User::create([
-            'first_name' => "Teacher2",
-            'last_name' => "Teacher2", 
-            'email' => "Teacher2@email.com",
-            'password' => Hash::make("1234"), 
-        ]);
+        // Add 2/3 students to the first department who are not assigned to any class
+        if ($firstDepartment) {
+            for ($i = 1; $i <= 3; $i++) {
+                $user = User::create([
+                    'first_name' => "Unassigned{$i}",
+                    'last_name' => $firstDepartment->name,
+                    'email' => "unassigned{$i}." . str_replace(' ', '.', strtolower($firstDepartment->name)) . '@example.com',
+                    'password' => Hash::make('password'),
+                ]);
+                $user->assignRole('student');
+                $student = new Student([
+                    'user_id' => $user->id,
+                    'id_number' => sprintf('999/%02d', $i),
+                    'academic_year' => '5th',
+                    'department_id' => $firstDepartment->id,
+                ]);
+                $user->student()->save($student);
+            }
+        }
 
-        $userTeacher2->assignRole('teacher');
+        // Create teachers for each department
+        foreach ($departments as $department) {
+            for ($i = 1; $i <= 2; $i++) {
+                $user = User::create([
+                    'first_name' => "Teacher{$i}",
+                    'last_name' => $department->name,
+                    'email' => "teacher{$i}." . str_replace(' ', '.', strtolower($department->name)) . "@example.com",
+                    'password' => Hash::make('password'),
+                ]);
 
-        $teacher2 = new Teacher([
-            'user_id' => $userTeacher2->id, 
-            'created_by' => 1,
-            'department_id' => 1,
-        ]);
+                $user->assignRole('teacher');
 
-        $userTeacher2->teacher()->save($teacher2);
+                $teacher = new Teacher([
+                    'user_id' => $user->id,
+                    'created_by' => $admin->id,
+                    'department_id' => $department->id,
+                ]);
 
-
+                $user->teacher()->save($teacher);
+            }
+        }
     }
 }

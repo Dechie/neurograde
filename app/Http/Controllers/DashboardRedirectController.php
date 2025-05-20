@@ -42,7 +42,7 @@ class DashboardRedirectController extends Controller
             });
 
             // Return the student dashboard page with necessary data
-            return Inertia::render('dashboard/studentDashbord/Home', [
+            return Inertia::render('dashboard/studentDashboard/Home', [
                     'user' => [
                         'id' => $user->id,
                         'name' => $user->first_name . ' ' . $user->last_name,

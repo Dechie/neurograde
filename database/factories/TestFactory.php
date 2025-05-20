@@ -26,6 +26,7 @@ class TestFactory extends Factory
             'status' => fake()->randomElement(['Upcoming', 'Done']),
             'teacher_id' => 1,
             'class_id' => 1,
+            'department_id' => 1,
             'metrics' => json_encode([
                 'correctness' => fake()->numberBetween(30, 50),
                 'efficiency' => fake()->numberBetween(20, 40),

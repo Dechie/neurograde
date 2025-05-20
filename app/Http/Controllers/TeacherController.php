@@ -55,7 +55,6 @@ class TeacherController extends Controller
             "problem_statement" => "required|string",
             "due_date" => "required|date|after:now",
             "class_id" => "required|exists:classes,id",
-            "section" => "required|string|max:10",
             "metrics" => "required|json"
         ]);
 
@@ -78,7 +77,6 @@ class TeacherController extends Controller
             $test = Test::create([
                 "teacher_id" => $teacher->id,
                 "department_id" => $teacher->department_id, // Use teacher's department
-                "section" => $request->section,
                 "class_id" => $request->class_id,
                 "title" => $request->title,
                 "problem_statement" => $request->problem_statement,

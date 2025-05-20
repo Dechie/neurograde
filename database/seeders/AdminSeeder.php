@@ -23,9 +23,10 @@ class AdminSeeder extends Seeder
 
         $admin->assignRole($adminRole);
 
-        Admin::create([
+        $adminAcc = Admin::create([
             'user_id' => $admin->id,
         ]);
+        $admin->admin()->save($adminAcc);
     }
 }
 

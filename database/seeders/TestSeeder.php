@@ -73,13 +73,14 @@ class TestSeeder extends Seeder
                 'due_date' => $testData['due_date'],
                 'teacher_id' => $teacher->id,
                 'class_id' => $class->id,
+                'department_id' => $teacher->department_id,
                 'metrics' => $testData['metrics'],
                 'status' => 'Upcoming',
                 'published' => false
             ]);
 
             // Assign test to all students in the class
-            $studentIds = $class->students()->pluck('id');
+            $studentIds = $class->students()->pluck('students.id');
             $test->students()->sync($studentIds);
         }
     }

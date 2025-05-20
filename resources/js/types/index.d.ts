@@ -110,6 +110,7 @@ export interface Department {
 export interface ClassRoom {
     id: number;
     name: string;
+    department_id: number;
     // Add any other class attributes
     // Include relationships if they are eager loaded and expected in the data
     teacher?: User; // Assuming teacher relationship on ClassRoom loads the User model

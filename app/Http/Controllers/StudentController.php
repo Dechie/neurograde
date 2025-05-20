@@ -51,7 +51,7 @@ class StudentController extends Controller
             ];
         })->toArray(); // Convert to array
 
-        return Inertia::render('dashboard/studentDashbord/Results', [
+        return Inertia::render('dashboard/studentDashboard/Results', [
             'results' => $formattedResults
         ]);
     }
@@ -73,7 +73,7 @@ class StudentController extends Controller
         // --- End Fetch ---
 
         // Return the Inertia page with the student's tests
-        return Inertia::render('dashboard/studentDashbord/Tests/Index', [
+        return Inertia::render('dashboard/studentDashboard/Tests/Index', [
             'tests' => $tests->toArray(), // Pass the tests as an array
         ]);
     }
@@ -86,8 +86,7 @@ class StudentController extends Controller
         $student = auth()->user()->student;
         
         // Verify student has access to this test
-        if ($test->department_id !== $student->department_id || 
-            $test->section !== $student->section) {
+        if ($test->department_id !== $student->department_id) {
             abort(403, 'Unauthorized');
         }
 
@@ -99,7 +98,7 @@ class StudentController extends Controller
             ->where('student_id', $student->id)
             ->first();
 
-        return Inertia::render('dashboard/studentDashboard/TestDetail', [
+        return Inertia::render('dashboard/studentDashboard/Tests/TestDetail', [
             'test' => [
                 'id' => $test->id,
                 'title' => $test->title,
@@ -165,7 +164,6 @@ class StudentController extends Controller
         
         // Get tests for student's department and section
         $tests = Test::where('department_id', $student->department_id)
-            ->where('section', $student->section)
             ->where('due_date', '>', now())
             ->where('published', false)
             ->with(['teacher', 'submissions' => function($query) use ($student) {
@@ -173,58 +171,61 @@ class StudentController extends Controller
             }])
             ->get();
 
-        return Inertia::render('dashboard/studentDashbord/Tests/Index', [
+        return Inertia::render('dashboard/studentDashboard/Tests/Index', [
             'tests' => $tests
         ]);
     }
 
     public function submitTest(Request $request, Test $test)
     {
-        $student = auth()->user()->student;
-        
-        // Verify student has access to this test
-        if ($test->department_id !== $student->department_id || 
-            $test->section !== $student->section) {
-            abort(403, 'Unauthorized');
-        }
-
-        // Verify test is still open
-        if ($test->due_date < now()) {
-            return response()->json(['error' => 'Test deadline has passed'], 400);
-        }
-
         $validator = Validator::make($request->all(), [
-            'code_file' => 'nullable|file|max:10240', // 10MB max
-            'code_editor_text' => 'nullable|string'
+            "submission_type" => "required|in:file,editor",
+            "code_file" => "required_if:submission_type,file|nullable|file|mimes:txt,py,java,cpp,js,cs,php",
+            "code_editor_text" => "required_if:submission_type,editor|string"
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return Inertia::render('dashboard/studentDashboard/Tests/TestDetail', [
+                'test' => $test,
+                'errors' => $validator->errors()
+            ]);
+        }
+
+        $student = $request->user()->student;
+
+        if (!$student->tests()->where("test_id", $test->id)->exists()) {
+            return Inertia::render('dashboard/studentDashboard/Tests/TestDetail', [
+                'test' => $test,
+                'error' => 'You are not assigned to this test'
+            ]);
         }
 
         try {
-            $submission = new Submission();
-            $submission->test_id = $test->id;
-            $submission->student_id = $student->id;
-            $submission->submission_date = now();
-
-            if ($request->hasFile('code_file')) {
-                $path = $request->file('code_file')->store('submissions');
-                $submission->code_file_path = $path;
-                $submission->submission_type = 'file';
-            } elseif ($request->has('code_editor_text')) {
-                $submission->code_editor_text = $request->code_editor_text;
-                $submission->submission_type = 'text';
-            } else {
-                return response()->json(['error' => 'Either code file or text must be provided'], 422);
+            $filePath = null;
+            if ($request->submission_type === "file" && $request->hasFile("code_file")) {
+                $filePath = $request->file("code_file")->store("submissions");
             }
 
-            $submission->save();
+            $submission = Submission::create([
+                "test_id" => $test->id,
+                "student_id" => $student->id,
+                "submission_type" => $request->submission_type,
+                "code_file_path" => $filePath,
+                "code_editor_text" => $request->code_editor_text,
+                "submission_date" => now(),
+                "status" => "pending"
+            ]);
 
-            return response()->json(['message' => 'Submission successful']);
+            return Inertia::render('dashboard/studentDashboard/Tests/TestDetail', [
+                'test' => $test,
+                'success' => 'Test submitted successfully'
+            ]);
         } catch (\Exception $e) {
-            \Log::error('Failed to submit test', ['error' => $e->getMessage()]);
-            return response()->json(['error' => 'Failed to submit test'], 500);
+            return Inertia::render('dashboard/studentDashboard/Tests/TestDetail', [
+                'test' => $test,
+                'error' => 'Failed to submit test: ' . $e->getMessage()
+            ]);
         }
     }
+   
 }

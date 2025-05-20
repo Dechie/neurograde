@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId("teacher_id")->constrained("teachers");
             $table->foreignId("department_id")->after('teacher_id')->constrained()->onDelete('cascade');
-            $table->string("class")->after('department_id');
             $table->foreignId("class_id")->constrained("classes");
             $table->string("title");
             $table->text("problem_statement");

@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { router, usePage } from "@inertiajs/react"
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import type { ClassRoom, Department, Student, UnassignedStudentsPageProps } from "@/types"
 import { route } from "ziggy-js"
 
@@ -26,11 +26,23 @@ export default function UnassignedStudentsList() {
       ? unassignedStudents
       : unassignedStudents.filter((student) => student.department.id.toString() === activeDepartmentId)
 
+  // Filter classes based on the selected student's department
+  const filteredClassesForStudent = useMemo(() => {
+    if (!selectedStudent) return [];
+    const filtered = classes.filter(
+      classItem => String(classItem.department_id) === String(selectedStudent.department.id)
+    );
+    console.log('All classes:', classes);
+    console.log('Selected student:', selectedStudent);
+    console.log('Filtered classes for student:', filtered);
+    return filtered;
+  }, [selectedStudent, classes]);
+
   // Handle assigning a class
   const handleAssignClass = () => {
-    if (!selectedStudent || !selectedClass) return
+    if (!selectedStudent || !selectedClass) return;
 
-    console.log(`Attempting to assign Class ID ${selectedClass} to Student ID ${selectedStudent.id}`)
+    console.log(`Attempting to assign Class ID ${selectedClass} to Student ID ${selectedStudent.id}`);
 
     // API call to assign class to student
     router.patch(
@@ -40,17 +52,17 @@ export default function UnassignedStudentsList() {
       },
       {
         onSuccess: () => {
-          console.log("Class assigned successfully via API")
-          setIsDialogOpen(false)
-          setSelectedStudent(null)
-          setSelectedClass("")
+          console.log("Class assigned successfully via API");
+          setIsDialogOpen(false);
+          setSelectedStudent(null);
+          setSelectedClass("");
         },
         onError: (errors) => {
-          console.error("Failed to assign class via API", errors)
+          console.error("Failed to assign class via API", errors);
         },
       },
-    )
-  }
+    );
+  };
 
   return (
     <div className="container mx-auto py-6">
@@ -94,8 +106,8 @@ export default function UnassignedStudentsList() {
                     size="sm"
                     variant="outline"
                     onClick={() => {
-                      setSelectedStudent(student)
-                      setIsDialogOpen(true)
+                      setSelectedStudent(student);
+                      setIsDialogOpen(true);
                     }}
                   >
                     Assign Class
@@ -124,7 +136,7 @@ export default function UnassignedStudentsList() {
                 <SelectValue placeholder="Select a class" />
               </SelectTrigger>
               <SelectContent>
-                {classes?.map((classItem: ClassRoom) => (
+                {filteredClassesForStudent?.map((classItem: ClassRoom) => (
                   <SelectItem key={classItem.id} value={String(classItem.id)}>
                     {classItem.name}
                   </SelectItem>
