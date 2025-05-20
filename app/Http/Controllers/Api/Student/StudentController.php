@@ -100,21 +100,20 @@ class StudentController extends Controller
         ]);
     }
 
-   public function profile(Request $request)
-{
-    $student = $request->user()->student;
+    public function profile(Request $request)
+    {
+        $student = $request->user()->student;
 
-    if (!$student) {
+        if (!$student) {
+            return response()->json([
+                'message' => 'No student profile found for this user.'
+            ], 404);
+        }
+
         return response()->json([
-            'message' => 'No student profile found for this user.'
-        ], 404);
+            'student' => $student->load(['user', 'department', 'classes'])
+        ]);
     }
-
-    return response()->json([
-        'student' => $student->load(['user', 'department', 'classes'])
-    ]);
-}
-
 
     public function getTests(Request $request)
     {
@@ -132,7 +131,7 @@ class StudentController extends Controller
     {
         $validator = Validator::make($request->all(), [
             "submission_type" => "required|in:file,editor",
-            "code_file" => "required_if:submission_type,file|nullable|file|mimes:txt,py,java,cpp,js,cs,php",
+            "code_file" => "required_if:submission_type,file|nullable|file|mimetypes:text/plain,text/x-python,application/octet-stream|mimes:txt,py,java,cpp,js,cs,php",
             "code_editor_text" => "required_if:submission_type,editor|string"
         ]);
 
@@ -149,7 +148,10 @@ class StudentController extends Controller
         try {
             $filePath = null;
             if ($request->submission_type === "file" && $request->hasFile("code_file")) {
-                $filePath = $request->file("code_file")->store("submissions");
+                $originalName = $request->file("code_file")->getClientOriginalName();
+                $timestamp = now()->format('Ymd_His');
+                $newFileName = $timestamp . '_' . $originalName;
+                $filePath = $request->file("code_file")->storeAs("submissions", $newFileName);
             }
 
             $submission = Submission::create([
