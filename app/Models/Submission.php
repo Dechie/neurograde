@@ -16,7 +16,7 @@ class Submission extends Model
         "code_file_path",
         "code_editor_text",
         "submission_date",
-        "statue"
+        "status"
     ];
 
     protected $casts = [
