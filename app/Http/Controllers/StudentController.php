@@ -81,8 +81,9 @@ class StudentController extends Controller
     /**
      * Show a specific test page for a student.
      */
-    public function showTest(Test $test): Response
+    public function showTest($id): Response
     {
+        $test = Test::findOrFail($id);
         $student = auth()->user()->student;
         
         // Verify student has access to this test
@@ -176,11 +177,25 @@ class StudentController extends Controller
         ]);
     }
 
-    public function submitTest(Request $request, Test $test)
+    public function submitTest(Request $request, $id)
     {
+        $test = Test::findOrFail($id);
         $validator = Validator::make($request->all(), [
             "submission_type" => "required|in:file,editor",
-            "code_file" => "required_if:submission_type,file|nullable|file|mimes:txt,py,java,cpp,js,cs,php",
+            "code_file" => [
+                "required_if:submission_type,file",
+                "nullable",
+                "file",
+                function ($attribute, $value, $fail) {
+                    if ($value) {
+                        $extension = strtolower($value->getClientOriginalExtension());
+                        $allowedExtensions = ['cpp', 'hpp', 'h', 'c', 'py'];
+                        if (!in_array($extension, $allowedExtensions)) {
+                            $fail('The file must be a C++ or Python file.');
+                        }
+                    }
+                }
+            ],
             "code_editor_text" => "required_if:submission_type,editor|string"
         ]);
 
@@ -201,6 +216,18 @@ class StudentController extends Controller
         }
 
         try {
+            // Check if submission already exists
+            $existingSubmission = Submission::where('student_id', $student->id)
+                ->where('test_id', $test->id)
+                ->first();
+
+            if ($existingSubmission) {
+                return Inertia::render('dashboard/studentDashboard/Tests/TestDetail', [
+                    'test' => $test,
+                    'error' => 'You have already submitted this test. Please contact your teacher if you need to resubmit.'
+                ]);
+            }
+
             $filePath = null;
             if ($request->submission_type === "file" && $request->hasFile("code_file")) {
                 $filePath = $request->file("code_file")->store("submissions");
@@ -221,9 +248,10 @@ class StudentController extends Controller
                 'success' => 'Test submitted successfully'
             ]);
         } catch (\Exception $e) {
+            // Handle other types of errors
             return Inertia::render('dashboard/studentDashboard/Tests/TestDetail', [
                 'test' => $test,
-                'error' => 'Failed to submit test: ' . $e->getMessage()
+                'error' => 'An error occurred while submitting your test. Please try again.'
             ]);
         }
     }

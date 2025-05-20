@@ -89,15 +89,37 @@
 
 // Import necessary types from Inertia
 import { Page, PageProps as InertiaPageProps } from '@inertiajs/core';
+import { LucideIcon } from 'lucide-react';
+import type { Config } from 'ziggy-js';
 
 // --- Core Model Interfaces ---
+
+export interface BreadcrumbItem {
+    title: string;
+    href: string;
+}
+
+export interface SharedData {
+    name: string;
+    quote: { message: string; author: string };
+    auth: {
+        user: User;
+    };
+    ziggy: Config & { location: string };
+    sidebarOpen: boolean;
+    [key: string]: unknown;
+}
 
 // Assuming your User model has first_name and last_name
 export interface User {
     id: number;
     first_name: string;
     last_name: string;
+    name: string;
     email: string;
+    email_verified_at: string | null;
+    created_at: string;
+    updated_at: string;
     // Add any other common user attributes
 }
 

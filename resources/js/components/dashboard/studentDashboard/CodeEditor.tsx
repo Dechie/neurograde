@@ -2,8 +2,8 @@ import { Button } from '@/components/ui/button';
 import { cpp } from '@codemirror/lang-cpp';
 import { python } from '@codemirror/lang-python';
 import CodeMirror from '@uiw/react-codemirror';
-import { Upload } from 'lucide-react';
-import { useState } from 'react';
+import { Upload, X } from 'lucide-react';
+import { useState, useRef } from 'react';
 import { useForm } from '@inertiajs/react';
 import { useToast } from '@/components/ui/use-toast';
 import { linter, lintGutter, Diagnostic } from '@codemirror/lint';
@@ -119,12 +119,14 @@ export function CodeEditor({ initialCode, testId, questionId, language: initialL
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedLanguage, setSelectedLanguage] = useState<'cpp' | 'python'>(initialLanguage);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const { data, setData, post, processing } = useForm({
         submission_type: 'editor',
         code_editor_text: initialCode || STARTER_CODE[selectedLanguage],
         test_id: testId,
         question_id: questionId,
+        code_file: null as File | null,
     });
 
     const onChange = (value: string) => {
@@ -136,25 +138,79 @@ export function CodeEditor({ initialCode, testId, questionId, language: initialL
         setData('code_editor_text', STARTER_CODE[lang]);
     };
 
+    const handleFileUpload = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Check file extension based on selected language
+        const allowedExtensions = {
+            cpp: ['.cpp', '.hpp', '.h', '.c'],
+            python: ['.py']
+        };
+
+        const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+        if (!allowedExtensions[selectedLanguage].includes(fileExtension)) {
+            toast({
+                title: "Invalid File Type",
+                description: `Please upload a ${selectedLanguage === 'cpp' ? 'C++' : 'Python'} file (${allowedExtensions[selectedLanguage].join(', ')})`,
+                variant: "destructive",
+            });
+            return;
+        }
+
+        setData('code_file', file);
+        setData('submission_type', 'file');
+        
+        // Read file content and update editor
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            if (event.target?.result) {
+                setData('code_editor_text', event.target.result as string);
+            }
+        };
+        reader.readAsText(file);
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
         
-        post(route("student.tests.submit", { test: testId }), {
-            onSuccess: () => {
-                toast({
-                    title: "Success",
-                    description: "Code submitted successfully",
-                });
-                console.log('Code submitted successfully');
+        post(route("student.tests.submit", { id: testId }), {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: (page) => {
+                if (page.props.success) {
+                    toast({
+                        title: "Success",
+                        description: String(page.props.success),
+                    });
+                } else if (page.props.error) {
+                    toast({
+                        title: "Cannot Submit",
+                        description: String(page.props.error),
+                        variant: "destructive",
+                    });
+                }
+                setIsSubmitting(false);
             },
             onError: (errors) => {
+                const errorMessage = errors.submission_type || 
+                                   errors.code_editor_text || 
+                                   errors.code_file || 
+                                   "An unexpected error occurred. Please try again.";
+                
                 toast({
-                    title: "Error",
-                    description: errors.message || "Failed to submit code",
+                    title: "Submission Error",
+                    description: errorMessage,
                     variant: "destructive",
                 });
-                console.error('Failed to submit code:', errors);
+                setIsSubmitting(false);
             },
             onFinish: () => {
                 setIsSubmitting(false);
@@ -221,23 +277,63 @@ export function CodeEditor({ initialCode, testId, questionId, language: initialL
                 }}
                 className="text-sm"
             />
-            <div className="border-muted flex justify-between border-t p-2">
-                <Button 
-                    type="button"
-                    variant="outline" 
-                    className="gap-2" 
-                    aria-label="Upload Code"
-                >
-                    <Upload className="h-4 w-4" />
-                    Upload code as file
-                </Button>
-                <Button 
-                    type="submit"
-                    aria-label="Submit Code"
-                    disabled={isSubmitting || processing}
-                >
-                    {isSubmitting || processing ? 'Submitting...' : 'Submit Code'}
-                </Button>
+            <div className="border-muted flex flex-col gap-2 border-t p-2">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileChange}
+                            accept={selectedLanguage === 'cpp' ? '.cpp,.hpp,.h,.c' : '.py'}
+                            className="hidden"
+                        />
+                        {!data.code_file ? (
+                            <Button 
+                                type="button"
+                                variant="outline" 
+                                className="gap-2" 
+                                onClick={handleFileUpload}
+                                aria-label="Upload Code"
+                            >
+                                <Upload className="h-4 w-4" />
+                                Upload code as file
+                            </Button>
+                        ) : (
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium">
+                                    Selected file: {data.code_file.name}
+                                </span>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                        setData('code_file', null);
+                                        setData('submission_type', 'editor');
+                                        if (fileInputRef.current) {
+                                            fileInputRef.current.value = '';
+                                        }
+                                    }}
+                                >
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                    <Button 
+                        type="submit"
+                        aria-label="Submit Code"
+                        disabled={isSubmitting || processing}
+                    >
+                        {isSubmitting || processing ? 'Submitting...' : 'Submit Code'}
+                    </Button>
+                </div>
+                {data.code_file && (
+                    <div className="text-sm text-muted-foreground">
+                        <p>File will be submitted instead of the code in the editor.</p>
+                        <p>Click the X button to remove the file and submit the code from the editor instead.</p>
+                    </div>
+                )}
             </div>
         </form>
     );

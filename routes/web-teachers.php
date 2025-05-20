@@ -10,6 +10,14 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->group(function()
     // Routes for Test Management
     Route::get('/tests/create', [TeacherController::class, 'showCreateExam'])->name('teacher.tests.create'); // Renders the create test form
     Route::post('/tests', [TeacherController::class, 'createTest'])->name('teacher.tests.store'); // Handles storing the test
+    Route::get('/tests', [TeacherController::class, 'showTests'])->name('teacher.tests.index');
+    Route::get('/tests/{test}', [TeacherController::class, 'showTest'])->name('teacher.tests.show');
+
+    // Routes for Submissions
+    Route::get('/submissions', [TeacherController::class, 'showSubmissions'])->name('teacher.submissions.index');
+    Route::get('/tests/{test}/submissions', [TeacherController::class, 'showTestSubmissions'])->name('teacher.tests.submissions');
+    Route::get('/submissions/{submission}', [TeacherController::class, 'showSubmission'])->name('teacher.submissions.show');
+    Route::post('/submissions/{submission}/grade', [TeacherController::class, 'gradeSubmission'])->name('teacher.submissions.grade');
 
     // Routes for Submissions and Grading (will need conversion later)
     Route::get('/show-grading', [TeacherController::class, 'showGradingPage'])->name('teacher.show-grading'); // Renders grading page (needs data fetch)
@@ -19,9 +27,7 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->group(function()
     // Route::get('/tests', [TeacherController::class, 'showTeacherTestsList'])->name('teacher.tests.index'); // Renders the teacher's test list
 
     // You will likely need routes for submission review/grading actions
-    // Route::get('/tests/{test}/submissions', [TeacherController::class, 'showTestSubmissionsPage'])->name('teacher.tests.submissions.index'); // Renders submissions for a test
     // Route::get('/submissions/{submission}/review', [TeacherController::class, 'showSubmissionReviewPage'])->name('teacher.submissions.review'); // Renders review page for a submission
-    // Route::patch('/submissions/{submission}/grade', [TeacherController::class, 'gradeSubmission'])->name('teacher.submissions.grade'); // Handles grading action
     Route::post('/tests/{test}/publish', [TeacherController::class, 'publishGrades'])->name('teacher.tests.publish');
     Route::post('/grades/{grade}/override', [TeacherController::class, 'overrideGrade'])->name('teacher.grades.override');
 });

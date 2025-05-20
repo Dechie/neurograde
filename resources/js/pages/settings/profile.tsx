@@ -2,7 +2,7 @@
 
 import type { BreadcrumbItem, SharedData } from "@/types";
 import { Transition } from "@headlessui/react";
-import { Head, Link, useForm, usePage, route } from "@inertiajs/react";
+import { Head, Link, useForm, usePage } from "@inertiajs/react";
 import type { FormEventHandler } from "react";
 
 import DeleteUser from "@/components/delete-user";
@@ -26,7 +26,12 @@ type ProfileForm = {
   email: string;
 };
 
-export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status?: string }) {
+interface ProfileProps {
+  mustVerifyEmail?: boolean;
+  status?: string;
+}
+
+export default function Profile({ mustVerifyEmail = false, status }: ProfileProps) {
   const { auth } = usePage<SharedData>().props;
 
   const { data, setData, patch, errors, processing, recentlySuccessful } = useForm<Required<ProfileForm>>({
@@ -37,7 +42,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
 
-    patch(route("profile.update"), {
+    patch("/profile", {
       preserveScroll: true,
     });
   };
@@ -89,7 +94,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                 <p className="text-muted-foreground -mt-4 text-sm">
                   Your email address is unverified.{" "}
                   <Link
-                    href={route("verification.send")}
+                    href="/email/verification-notification"
                     method="post"
                     as="button"
                     className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"

@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card"
 // In components/dashboard/studentDashboard/UpcomingTest.tsx
 import React from "react";
 import { Button } from "@/components/ui/button";
+import { Link } from "@inertiajs/react";
 
 // Define the props interface
 interface UpcomingTestProps {
@@ -31,7 +32,9 @@ export function UpcomingTest({ tests = [] }: UpcomingTestProps) {
             <h3 className="font-medium">{test.title}</h3>
             <p className="text-sm text-muted-foreground">{test.date}</p>
           </div>
-          <Button variant="outline" size="sm">View Details</Button>
+          <Link href={`/student/tests/${test.id}`}>
+            <Button variant="outline" size="sm">View Details</Button>
+          </Link>
         </div>
       ))}
     </div>

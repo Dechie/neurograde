@@ -43,6 +43,8 @@ class TestAndSubmissionSeeder extends Seeder
                 'due_date' => '2025-05-09',
             ]);
 
+            // Temporarily commenting out submissions
+            /*
             Submission::factory()->create([
                 'test_id' => $test->id,
                 'student_id' => $student->id,
@@ -51,6 +53,7 @@ class TestAndSubmissionSeeder extends Seeder
                 'submission_date' => fake()->dateTimeBetween('now', '+2 weeks')->format('Y-m-d'), // ✅ CORRECT
                 'status' => 'graded',
             ]);
+            */
         }
     }
 }
