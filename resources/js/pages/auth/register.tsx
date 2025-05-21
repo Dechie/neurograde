@@ -143,7 +143,7 @@ export default function SignupForm() {
                                             />
                                             <button
                                                 type="button"
-                                                className="text-muted-foreground absolute top-1/2 right-3 -translate-y-1/2"
+                                                className="text-muted-foreground absolute top-2/3 right-3 -translate-y-1/2"
                                                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                             >
                                                 {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
