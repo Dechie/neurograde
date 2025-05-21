@@ -68,7 +68,7 @@ export function Sidebar() {
                 }`}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between border-b p-4">
+                <div className="flex items-center justify-between border-b p-2">
                     <div className="flex items-center gap-2">
                         <div className="bg-primary text-primary-foreground flex h-8 w-8 items-center justify-center rounded">
                             <FileText className="h-4 w-4" /> {/* Adjust icon if needed */}
