@@ -8,7 +8,7 @@ document.body.dataset.theme = document.body.dataset.theme || "light";
 export const myEditorTheme = EditorView.theme({
   "&": {
     color: "var(--color-foreground)",
-    backgroundColor: "var(--color-background)",
+    backgroundColor: "#FFFFFF",
   },
 
   ".cm-content": {

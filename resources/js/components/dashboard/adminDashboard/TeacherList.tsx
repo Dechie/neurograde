@@ -172,90 +172,95 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { router, usePage } from "@inertiajs/react"
-import { useState, useEffect } from "react" // Import useEffect
+import { useState, useEffect } from "react" 
 import type { ClassRoom, Department, Teacher, TeacherListPageProps } from "@/types"
 import { route } from "ziggy-js"
-import InputError from "@/components/input-error" // Assuming you have an InputError component
-
+import InputError from "@/components/input-error" 
+import { Input } from "@/components/ui/input"; 
+import { Search } from "lucide-react"
 
 export default function TeacherList() {
-    // Access the data and errors from Inertia page props
-    const { teachers, classes, departments, errors } = usePage<TeacherListPageProps>().props; // Destructure errors
+    const { teachers, classes, departments, errors } = usePage<TeacherListPageProps>().props;
 
     const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
     const [selectedClassIdToAssign, setSelectedClassIdToAssign] = useState<string>("");
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [activeDepartmentId, setActiveDepartmentId] = useState<string | "all">("all");
-
-    // State to hold local error message specifically for the dialog
+    const [searchTerm, setSearchTerm] = useState("");
     const [dialogError, setDialogError] = useState<string | null>(null);
 
-    // Effect to clear dialog error when dialog is closed
     useEffect(() => {
-        if (!isDialogOpen) {
-            setDialogError(null); // Clear error when dialog closes
-        }
+        if (!isDialogOpen) setDialogError(null);
     }, [isDialogOpen]);
 
+    //filtering by department and by name
+    const filteredTeachers = teachers.filter((teacher) => {
+        const matchesDepartment =
+            activeDepartmentId === "all" || teacher.department.id.toString() === activeDepartmentId;
+        const matchesSearch =
+            `${teacher.user.first_name} ${teacher.user.last_name}`
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase());
+        return matchesDepartment && matchesSearch;
+    });
 
-    // Filter students based on the active department tab
-    const filteredTeachers =
-        activeDepartmentId === "all"
-            ? teachers
-            : teachers.filter((teacher) => teacher.department.id.toString() === activeDepartmentId);
-
-
-    // Handle assigning the selected teacher TO the selected single class
     const handleAssignClassToTeacher = () => {
-        // Clear previous dialog errors
         setDialogError(null);
-
         if (!selectedTeacher || !selectedClassIdToAssign) {
-            // Optionally set a local error if validation is done client-side too
             setDialogError("Please select a teacher and a class.");
             return;
         }
 
-        console.log(`Attempting to assign Class ID ${selectedClassIdToAssign} to Teacher ID: ${selectedTeacher.id}`);
-
-        // --- API call to assign the selected single class TO the selected teacher ---
         router.patch(
-            route('admin.classes.assign-teacher', { class: selectedClassIdToAssign }),
-            {
-                teacher_id: Number(selectedTeacher.id),
-            },
+            route("admin.classes.assign-teacher", { class: selectedClassIdToAssign }),
+            { teacher_id: Number(selectedTeacher.id) },
             {
                 onSuccess: () => {
-                    console.log("Class assigned to teacher successfully via API");
                     setIsDialogOpen(false);
                     setSelectedTeacher(null);
                     setSelectedClassIdToAssign("");
-                    // Inertia handles flash messages for success toasts
                 },
                 onError: (backendErrors) => {
-                    console.error("Failed to assign teacher to class via API", backendErrors);
-                    // Check if there is a specific error for 'teacher_id'
                     if (backendErrors.teacher_id) {
-                         setDialogError(backendErrors.teacher_id); // Set the backend error message
+                        setDialogError(backendErrors.teacher_id);
                     } else {
-                         // Handle other potential errors if needed
-                         setDialogError("An unexpected error occurred. Please try again.");
+                        setDialogError("An unexpected error occurred. Please try again.");
                     }
                 },
-                onFinish: () => {
-                    // Optional: Any cleanup after submission attempt
-                }
             }
         );
     };
 
     return (
-        <div className="container mx-auto py-6">
-            <h1 className="mb-6 text-2xl font-bold">Teacher Management</h1>
+        <div className="container mx-auto py-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0 mb-4">
+                <div className="relative w-full sm:w-1/2">
+                    <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    <Input
+                        type="text"
+                        placeholder="Search Teacher by Name..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10" 
+                    />
+                </div>
 
-            {/* Department Filter Tabs (Optional for TeacherList) */}
-            {/* ... (tabs code remains the same) ... */}
+                <Select onValueChange={setActiveDepartmentId} value={activeDepartmentId}>
+                    <SelectTrigger className="w-full sm:w-64">
+                        <SelectValue placeholder="Select Department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Departments</SelectItem>
+                        {departments?.map((dept: Department) => (
+                            <SelectItem key={dept.id} value={dept.id.toString()}>
+                                {dept.name}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
 
+            {/* 👇 Teacher Table */}
             <div className="rounded-lg bg-white shadow">
                 <Table>
                     <TableHeader>
@@ -275,18 +280,22 @@ export default function TeacherList() {
                                 </TableCell>
                                 <TableCell>{teacher.department.name}</TableCell>
                                 <TableCell>
-                                    <Badge variant={teacher.classes.length > 0 ? 'default' : 'secondary'}>
-                                        {teacher.classes.length > 0 ? 'Assigned' : 'Unassigned'}
+                                    <Badge variant={teacher.classes.length > 0 ? "default" : "secondary"}>
+                                        {teacher.classes.length > 0 ? "Assigned" : "Unassigned"}
                                     </Badge>
                                 </TableCell>
-                                <TableCell>{teacher.classes.length > 0 ? teacher.classes.map((c) => c.name).join(', ') : 'None'}</TableCell>
+                                <TableCell>
+                                    {teacher.classes.length > 0
+                                        ? teacher.classes.map((c) => c.name).join(", ")
+                                        : "None"}
+                                </TableCell>
                                 <TableCell>
                                     <Button
                                         size="sm"
                                         variant="outline"
                                         onClick={() => {
                                             setSelectedTeacher(teacher);
-                                            setSelectedClassIdToAssign(""); // Reset selected class when opening dialog
+                                            setSelectedClassIdToAssign("");
                                             setIsDialogOpen(true);
                                         }}
                                     >
@@ -311,7 +320,6 @@ export default function TeacherList() {
                     </DialogHeader>
 
                     <div className="space-y-4">
-                        {/* Select component for class assignment */}
                         <Select onValueChange={setSelectedClassIdToAssign} value={selectedClassIdToAssign}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select a class" />
@@ -327,18 +335,7 @@ export default function TeacherList() {
                         {classes?.length === 0 && (
                             <div className="text-muted-foreground text-center text-sm">No classes available to assign.</div>
                         )}
-
-                         {/* --- Display Validation Error --- */}
-                         {/* Check if there is a dialogError state set */}
-                         {dialogError && (
-                             <InputError message={dialogError} className="mt-2" />
-                         )}
-                         {/* Alternatively, you could check usePage().props.errors.teacher_id directly */}
-                         {/* {errors.teacher_id && (
-                              <InputError message={errors.teacher_id} className="mt-2" />
-                         )} */}
-                         {/* --- End Display Validation Error --- */}
-
+                        {dialogError && <InputError message={dialogError} className="mt-2" />}
                     </div>
 
                     <div className="flex justify-end space-x-2">

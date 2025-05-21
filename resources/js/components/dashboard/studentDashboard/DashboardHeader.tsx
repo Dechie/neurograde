@@ -9,9 +9,8 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
 import { router, usePage } from '@inertiajs/react';
-import { Bell, LogOut, Search, Settings, User } from 'lucide-react';
+import { Bell, LogOut, Settings, User } from 'lucide-react';
 
 export function DashboardHeader({ title }: { title?: string }) {
     const { url, auth } = usePage().props as any;
@@ -32,13 +31,13 @@ export function DashboardHeader({ title }: { title?: string }) {
     };
 
     return (
-        <header className="sticky top-0 z-20 flex h-16 w-full items-center justify-between border-b bg-white px-4 md:px-6">
+        <header className="sticky top-0 z-20 flex h-18 w-full items-center justify-between bg-white px-4 md:px-6">
             <h1 className="ml-8 text-xl font-semibold md:ml-0">{getPageTitle()}</h1>
             <div className="flex items-center gap-2 md:gap-4">
-                <div className="relative hidden md:block">
+                {/* <div className="relative hidden md:block">
                     <Search className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
                     <Input type="search" placeholder="Search" className="bg-muted w-full rounded-full pl-8 lg:w-[250px]" />
-                </div>
+                </div> */}
                 <div className="flex gap-1 md:gap-2">
                     <Button variant="ghost" size="icon" className="rounded-full">
                         <Settings className="h-5 w-5" />

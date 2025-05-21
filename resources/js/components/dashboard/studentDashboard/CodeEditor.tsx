@@ -246,6 +246,7 @@ export function CodeEditor({ initialCode, testId, questionId, language: initialL
             <CodeMirror
                 value={data.code_editor_text}
                 height="400px"
+                
                 theme={myEditorTheme}
                 extensions={[
                     selectedLanguage === 'cpp' ? cpp() : python(),
