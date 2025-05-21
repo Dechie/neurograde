@@ -17,6 +17,7 @@ use Illuminate\Validation\Rules;
 use Spatie\Permission\Models\Role;
 use Inertia\Response;
 use Illuminate\Validation\ValidationException;
+use App\Models\Test;
 
 class AdminController extends Controller
 {
@@ -157,6 +158,38 @@ class AdminController extends Controller
         ]);
     } 
 
+    public function showUnassignedStudents()
+    {
+        $students = Student::with('user')
+            ->where('status', 'pending')
+            ->get();
+            
+        $classes = ClassRoom::with('department')->get();
+
+        return Inertia::render('dashboard/adminDashboard/UnassignedStudents', [
+            'students' => $students,
+            'classes' => $classes
+        ]);
+    }
+
+    public function assignStudent(Request $request)
+    {
+        $validated = $request->validate([
+            'student_id' => 'required|exists:students,id',
+            'class_id' => 'required|exists:classes,id'
+        ]);
+
+        $student = Student::findOrFail($validated['student_id']);
+        $class = ClassRoom::findOrFail($validated['class_id']);
+
+        // Assign student to class
+        $student->classes()->attach($class->id);
+        
+        // Update student status
+        $student->update(['status' => 'assigned']);
+
+        return response()->json(['message' => 'Student assigned successfully']);
+    }
 
     // --- Action Methods (POST/PATCH requests) ---
 
@@ -286,9 +319,8 @@ class AdminController extends Controller
      /**
      * Handle assigning students to a class.
      */
-     public function assignStudentsToClass(Request $request, ClassRoom $class): RedirectResponse // Return RedirectResponse
+     public function assignStudentsToClass(Request $request, ClassRoom $class): RedirectResponse
     {
-         // Consider creating a dedicated Form Request for this validation
         $request->validate([
             'student_ids' => 'required|array',
             'student_ids.*' => 'exists:students,id',
@@ -297,25 +329,29 @@ class AdminController extends Controller
         // Verify all students belong to the same department as the class
         $invalidStudentsCount = Student::whereIn('id', $request->student_ids)
             ->where('department_id', '!=', $class->department_id)
-            ->count(); // Use count() instead of exists() to check if any invalid students exist
+            ->count();
 
         if ($invalidStudentsCount > 0) {
-             // Throw a validation exception if there are invalid students
-             throw \Illuminate\Validation\ValidationException::withMessages([
+            throw \Illuminate\Validation\ValidationException::withMessages([
                 'student_ids' => 'Some students do not belong to the same department as the class.',
             ]);
         }
 
+        // Prepare attachments with assigned flag
         $attachments = [];
         foreach ($request->student_ids as $student_id) {
-            $attachments[$student_id] = ['assigned' => true]; // Assuming 'assigned' is a pivot table column
+            $attachments[$student_id] = ['assigned' => true];
         }
 
+        // Use syncWithoutDetaching for efficient relationship management
         $class->students()->syncWithoutDetaching($attachments);
 
-        // Redirect back to the student list page after successful assignment
-        return redirect()->route('admin.students.index') // Corrected redirect route
-                         ->with('success', 'Students assigned successfully!'); // Add a success flash message
+        // Update student statuses in a single query
+        Student::whereIn('id', $request->student_ids)
+            ->update(['status' => 'assigned']);
+
+        return redirect()->route('admin.students.index')
+            ->with('success', 'Students assigned successfully!');
     } 
 
 

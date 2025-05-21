@@ -46,37 +46,28 @@ class TeacherController extends Controller
      */
     public function createTest(Request $request): RedirectResponse
     {
-        // Get the authenticated teacher model
-        $teacher = Auth::user()->teacher;
-
-        // Use a Form Request for cleaner validation if this gets complex
-        $validator = Validator::make($request->all(), [
-            "title" => "required|string|max:255",
-            "problem_statement" => "required|string",
-            "due_date" => "required|date|after:now",
-            "class_id" => "required|exists:classes,id",
-            "metrics" => "required|json"
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'problem_statement' => 'required|string',
+            'due_date' => 'required|date|after:now',
+            'class_id' => 'required|exists:classes,id',
+            'metrics' => 'required|json'
         ]);
 
-        if ($validator->fails()) {
-            throw ValidationException::withMessages($validator->errors()->toArray());
-        }
-
-        // Find the class
+        $teacher = auth()->user()->teacher;
         $class = ClassRoom::findOrFail($request->class_id);
 
-        // Verify the teacher is assigned to this class
-        if (!$teacher->classes->contains($class->id)) {
-            throw ValidationException::withMessages([
-                'class_id' => 'You are not assigned to this class.',
-            ]);
+        if ($class->teacher_id != $teacher->id) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'You are not assigned to this class');
         }
 
         try {
             // Create the Test record
             $test = Test::create([
                 "teacher_id" => $teacher->id,
-                "department_id" => $teacher->department_id, // Use teacher's department
+                "department_id" => $teacher->department_id,
                 "class_id" => $request->class_id,
                 "title" => $request->title,
                 "problem_statement" => $request->problem_statement,
@@ -85,19 +76,15 @@ class TeacherController extends Controller
                 "status" => "Upcoming"
             ]);
 
-            // Assign the test to all students in the class via the test_student pivot table
-            $studentIds = $class->students()->pluck("students.id");
-            $test->students()->sync($studentIds);
-
             return redirect()->route('teacher.tests.index')
-                             ->with('success', 'Test created successfully!');
+                ->with('success', 'Test created successfully!');
 
         } catch (\Exception $e) {
             \Log::error('Failed to create test', ['error' => $e->getMessage(), 'request' => $request->all()]);
 
             return redirect()->back()
-                             ->withInput()
-                             ->with('error', 'Failed to create test. Please try again.');
+                ->withInput()
+                ->with('error', 'Failed to create test. Please try again.');
         }
     }
 
@@ -106,8 +93,14 @@ class TeacherController extends Controller
         return Inertia::render("dashboard/teacherDashboard/GradingPage");
     }
     public function showSubmissionsPage() { 
+        $teacher = auth()->user()->teacher;
+        $tests = $teacher->tests()
+            ->with(['submissions.student.user'])
+            ->get();
 
-        return Inertia::render("dashboard/teacherDashboard/SubmittedExam");
+        return Inertia::render("dashboard/teacherDashboard/SubmittedExam", [
+            'tests' => $tests
+        ]);
     }
     // public function getTests(Request $request) { ... } // Needs conversion if used for a page
     // public function getTestSubmissions(Request $request, Test $test) { ... } // Needs conversion if used for a page
@@ -158,5 +151,66 @@ class TeacherController extends Controller
         ]);
 
         return response()->json(['message' => 'Grade overridden successfully']);
+    }
+
+    public function showTestSubmissions($testId)
+    {
+        $teacher = auth()->user()->teacher;
+        $test = $teacher->tests()
+            ->with(['submissions.student.user'])
+            ->findOrFail($testId);
+
+        return Inertia::render('dashboard/teacherDashboard/SubmittedExam', [
+            'test' => $test
+        ]);
+    }
+
+    public function showSubmission($submissionId)
+    {
+        $teacher = auth()->user()->teacher;
+        
+        // Get the submission with its relationships
+        $submission = Submission::with(['student.user', 'test', 'grades'])
+            ->whereHas('test', function ($query) use ($teacher) {
+                $query->where('teacher_id', $teacher->id);
+            })
+            ->findOrFail($submissionId);
+
+        return Inertia::render('dashboard/teacherDashboard/SubmissionDetail', [
+            'submission' => $submission
+        ]);
+    }
+
+    public function gradeSubmission(Request $request, $submissionId)
+    {
+        $teacher = auth()->user()->teacher;
+        
+        // Verify the submission belongs to a test created by this teacher
+        $submission = Submission::whereHas('test', function ($query) use ($teacher) {
+            $query->where('teacher_id', $teacher->id);
+        })->findOrFail($submissionId);
+
+        $validated = $request->validate([
+            'grade' => 'required|numeric|min:0|max:100',
+            'feedback' => 'nullable|string|max:1000'
+        ]);
+
+        // Create or update the grade
+        $grade = $submission->grades()->updateOrCreate(
+            ['teacher_id' => $teacher->id],
+            [
+                'grade' => $validated['grade'],
+                'feedback' => $validated['feedback'],
+                'status' => 'graded'
+            ]
+        );
+
+        // Update submission status
+        $submission->update(['status' => 'graded']);
+
+        return response()->json([
+            'message' => 'Submission graded successfully',
+            'grade' => $grade
+        ]);
     }
 }

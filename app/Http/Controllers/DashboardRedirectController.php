@@ -17,6 +17,11 @@ class DashboardRedirectController extends Controller
             return Inertia::render('dashboard/teacherDashboard/CreateExam');
         } elseif (auth()->user()->hasRole('student')){
             $user = auth()->user()->load('student.department');
+            
+            // Check if student is pending
+            if ($user->student->status === 'pending') {
+                return redirect()->route('student.waiting');
+            }
                 
             $upcomingTests = Test::all();
             

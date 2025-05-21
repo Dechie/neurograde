@@ -14,9 +14,10 @@ return new class extends Migration
         Schema::create('students', function (Blueprint $table) {
             $table->id();
             $table->foreignId("user_id")->constrained("users");
-            $table->string("id_number");
+            $table->string("id_number")->unique();
             $table->string("academic_year");
             $table->foreignId("department_id")->constrained("departments");
+            $table->string("status")->default('pending')->check("status in ('pending', 'assigned')");
             $table->timestamps();
         });
     }

@@ -43,7 +43,7 @@ class StudentAuthController extends Controller
             'id_number' => 'required|string|max:255',
             'department' => 'required|integer|exists:departments,id',
             'academic_year' => 'required|string|max:255',
-            ]);
+        ]);
 
         $passwordHashed = Hash::make($data["password"]);
 
@@ -60,13 +60,14 @@ class StudentAuthController extends Controller
             'user_id' => $user->id,
             'id_number' => $data['id_number'],
             'academic_year' => $data['academic_year'],
-            'department_id' => $data['department']
+            'department_id' => $data['department'],
+            'status' => 'pending'
         ]);
 
         $user->student()->save($student);
         Auth::login($user);
 
-        return to_route('dashboard');
+        return to_route('student.waiting');
     }
 
     public function loginCreate(Request $request): Response
@@ -77,11 +78,20 @@ class StudentAuthController extends Controller
         ]);
     }
 
-    public function loginStore(Request $request): Response
+    public function loginStore(Request $request): RedirectResponse
     { 
         $request->authenticate();
 
         $request->session()->regenerate();
+
+        // Check if the user is a student and their status
+        $user = Auth::user();
+        if ($user->hasRole('student')) {
+            $user->load('student'); // Ensure student relationship is loaded
+            if ($user->student->status === 'pending') {
+                return redirect()->route('student.waiting');
+            }
+        }
 
         return redirect()->intended(route('dashboard', absolute: false));
     }

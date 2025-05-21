@@ -8,52 +8,123 @@ use App\Models\User;
 use App\Models\Teacher;
 use App\Models\Student;
 use Illuminate\Database\Seeder;
+use App\Models\ClassRoom;
+use App\Models\Department;
+use Carbon\Carbon;
 
 class TestAndSubmissionSeeder extends Seeder
 {
     public function run(): void
     {
-        $teacher = Teacher::first(); // Or select a specific one
-        $student = Student::first(); // Same here
+        // Get or create departments
+        $csDepartment = Department::firstOrCreate(['name' => 'Computer Science']);
+        $eeDepartment = Department::firstOrCreate(['name' => 'Electrical Engineering']);
+        $meDepartment = Department::firstOrCreate(['name' => 'Mechanical Engineering']);
 
-        $tests = [
-            Test::factory()->create([
-                'title' => 'Palindrome',
-                'status' => 'Done',
-                'due_date' => '2025-05-09',
-            ]),
-            Test::factory()->create([
-                'title' => 'Binary Search',
-                'status' => 'Done',
-                'due_date' => '2025-05-10',
-            ]),
-            Test::factory()->create([
-                'title' => 'Quick Sort',
-                'status' => 'Done',
-                'due_date' => '2025-05-11',
-            ])
+        // Get or create classes for each department
+        $csClasses = [
+            ClassRoom::firstOrCreate(['name' => 'CS101', 'department_id' => $csDepartment->id]),
+            ClassRoom::firstOrCreate(['name' => 'CS201', 'department_id' => $csDepartment->id]),
+            ClassRoom::firstOrCreate(['name' => 'CS301', 'department_id' => $csDepartment->id]),
         ];
 
-        for ($i = 1; $i <= 8; $i++) {
-            $test = Test::factory()->create([
-                'teacher_id' => 1, 
-                'class_id' => 1, 
-                'title' => 'Palindrome',
-                'status' => 'Done',
-                'due_date' => '2025-05-09',
+        $eeClasses = [
+            ClassRoom::firstOrCreate(['name' => 'EE101', 'department_id' => $eeDepartment->id]),
+            ClassRoom::firstOrCreate(['name' => 'EE201', 'department_id' => $eeDepartment->id]),
+        ];
+
+        $meClasses = [
+            ClassRoom::firstOrCreate(['name' => 'ME101', 'department_id' => $meDepartment->id]),
+            ClassRoom::firstOrCreate(['name' => 'ME201', 'department_id' => $meDepartment->id]),
+        ];
+
+        // Get or create teachers for each department
+        $csTeacher = Teacher::firstOrCreate(
+            ['user_id' => User::where('email', 'teacher@example.com')->first()->id],
+            ['department_id' => $csDepartment->id]
+        );
+
+        $eeTeacher = Teacher::firstOrCreate(
+            ['user_id' => User::where('email', 'teacher2@example.com')->first()->id],
+            ['department_id' => $eeDepartment->id]
+        );
+
+        $meTeacher = Teacher::firstOrCreate(
+            ['user_id' => User::where('email', 'teacher3@example.com')->first()->id],
+            ['department_id' => $meDepartment->id]
+        );
+
+        // Create tests for CS classes
+        foreach ($csClasses as $class) {
+            Test::create([
+                'title' => "Programming Assignment - {$class->name}",
+                'problem_statement' => "Write a program to implement a binary search tree with the following operations:\n1. Insert\n2. Delete\n3. Search\n4. Inorder traversal",
+                'due_date' => Carbon::now()->addDays(7),
+                'status' => 'active',
+                'teacher_id' => $csTeacher->id,
+                'department_id' => $csDepartment->id,
+                'class_id' => $class->id,
+                'published' => true,
+                'metrics' => [
+                    'time_limit' => 2,
+                    'memory_limit' => 256,
+                    'test_cases' => 5
+                ]
             ]);
 
-            // Temporarily commenting out submissions
-            /*
-            Submission::factory()->create([
-                'test_id' => $test->id,
-                'student_id' => $student->id,
-                'submission_type' => 'editor',
-                'code_editor_text' => 'def is_palindrome(s): return s == s[::-1]',
-                'submission_date' => fake()->dateTimeBetween('now', '+2 weeks')->format('Y-m-d'), // ✅ CORRECT
-                'status' => 'graded',
+            Test::create([
+                'title' => "Data Structures Quiz - {$class->name}",
+                'problem_statement' => "Implement a stack using arrays and perform the following operations:\n1. Push\n2. Pop\n3. Peek\n4. IsEmpty",
+                'due_date' => Carbon::now()->addDays(14),
+                'status' => 'active',
+                'teacher_id' => $csTeacher->id,
+                'department_id' => $csDepartment->id,
+                'class_id' => $class->id,
+                'published' => true,
+                'metrics' => [
+                    'time_limit' => 1,
+                    'memory_limit' => 128,
+                    'test_cases' => 3
+                ]
             ]);
-            */
+        }
+
+        // Create tests for EE classes
+        foreach ($eeClasses as $class) {
+            Test::create([
+                'title' => "Circuit Analysis - {$class->name}",
+                'problem_statement' => "Analyze the given circuit and calculate:\n1. Total resistance\n2. Current through each branch\n3. Voltage across each component",
+                'due_date' => Carbon::now()->addDays(10),
+                'status' => 'active',
+                'teacher_id' => $eeTeacher->id,
+                'department_id' => $eeDepartment->id,
+                'class_id' => $class->id,
+                'published' => true,
+                'metrics' => [
+                    'time_limit' => 3,
+                    'memory_limit' => 512,
+                    'test_cases' => 4
+                ]
+            ]);
+        }
+
+        // Create tests for ME classes
+        foreach ($meClasses as $class) {
+            Test::create([
+                'title' => "Thermodynamics Problem - {$class->name}",
+                'problem_statement' => "Solve the following thermodynamics problems:\n1. Calculate heat transfer\n2. Determine work done\n3. Find efficiency",
+                'due_date' => Carbon::now()->addDays(12),
+                'status' => 'active',
+                'teacher_id' => $meTeacher->id,
+                'department_id' => $meDepartment->id,
+                'class_id' => $class->id,
+                'published' => true,
+                'metrics' => [
+                    'time_limit' => 2,
+                    'memory_limit' => 256,
+                    'test_cases' => 4
+                ]
+            ]);
         }
     }
 }

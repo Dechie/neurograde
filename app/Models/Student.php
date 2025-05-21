@@ -12,6 +12,7 @@ class Student extends Model
         'id_number',
         'department_id',
         'academic_year',
+        'status'
     ];
 
     public function user()

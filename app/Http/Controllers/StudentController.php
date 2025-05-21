@@ -107,6 +107,7 @@ class StudentController extends Controller
                 'dueDate' => $test->due_date ? $test->due_date->format('Y-m-d H:i:s') : null,
                 'status' => $test->status,
                 'metrics' => $test->metrics,
+                'gradingCriteria' => $test->grading_criteria,
                 'class' => $test->class ? [
                     'id' => $test->class->id,
                     'name' => $test->class->name,
@@ -132,6 +133,7 @@ class StudentController extends Controller
                     'feedback_text' => $submission->feedback->feedback_text
                 ] : null,
             ] : null,
+            'submissionWarning' => !$submission ? 'Note: You can only submit once. Please make sure your solution is correct before submitting.' : null
         ]);
     }
 
@@ -208,10 +210,11 @@ class StudentController extends Controller
 
         $student = $request->user()->student;
 
-        if (!$student->tests()->where("test_id", $test->id)->exists()) {
+        // Check if student is in the same class as the test
+        if (!$student->classes()->where('class_id', $test->class_id)->exists()) {
             return Inertia::render('dashboard/studentDashboard/Tests/TestDetail', [
                 'test' => $test,
-                'error' => 'You are not assigned to this test'
+                'error' => 'You are not enrolled in the class for this test'
             ]);
         }
 
@@ -255,5 +258,93 @@ class StudentController extends Controller
             ]);
         }
     }
-   
+
+    public function checkStatus()
+    {
+        $student = auth()->user()->student;
+        
+        if ($student->status === 'assigned') {
+            return Inertia::render('WaitingScreen', [
+                'status' => 'success',
+                'message' => 'You have been assigned to a class! Redirecting to dashboard...'
+            ]);
+        }
+        
+        return Inertia::render('WaitingScreen', [
+            'status' => 'info',
+            'message' => 'Your account is still pending assignment. Please wait while an administrator assigns you to a class.'
+        ]);
+    }
+
+    public function dashboard(): Response
+    {
+        $student = auth()->user()->student;
+        
+        // Get tests for the student's class
+        $tests = Test::where('class_id', $student->class_id)
+            ->where('published', true)
+            ->with(['class.department', 'teacher.user'])
+            ->get()
+            ->map(function ($test) use ($student) {
+                $submission = $test->submissions()
+                    ->where('student_id', $student->id)
+                    ->first();
+
+                return [
+                    'id' => $test->id,
+                    'title' => $test->title,
+                    'dueDate' => $test->due_date ? $test->due_date->format('Y-m-d H:i:s') : null,
+                    'status' => $test->status,
+                    'class' => $test->class ? [
+                        'id' => $test->class->id,
+                        'name' => $test->class->name,
+                        'department' => $test->class->department->name ?? 'N/A'
+                    ] : null,
+                    'teacher' => $test->teacher ? [
+                        'id' => $test->teacher->id,
+                        'name' => $test->teacher->user->first_name . ' ' . $test->teacher->user->last_name
+                    ] : null,
+                    'submission' => $submission ? [
+                        'id' => $submission->id,
+                        'status' => $submission->status,
+                        'created_at' => $submission->created_at ? $submission->created_at->format('Y-m-d H:i:s') : null,
+                        'grade' => $submission->grade ? [
+                            'graded_value' => $submission->grade->graded_value,
+                            'adjusted_grade' => $submission->grade->adjusted_grade,
+                            'comments' => $submission->grade->comments
+                        ] : null,
+                        'feedback' => $submission->feedback ? [
+                            'feedback_text' => $submission->feedback->feedback_text
+                        ] : null,
+                    ] : null,
+                ];
+            });
+
+        return Inertia::render('dashboard/studentDashboard/StudentDashboard', [
+            'tests' => $tests,
+            'student' => [
+                'id' => $student->id,
+                'name' => $student->user->first_name . ' ' . $student->user->last_name,
+                'class' => $student->class ? [
+                    'id' => $student->class->id,
+                    'name' => $student->class->name,
+                    'department' => $student->class->department->name ?? 'N/A'
+                ] : null,
+            ]
+        ]);
+    }
+
+    public function showWaitingScreen()
+    {
+        $student = auth()->user()->student;
+        
+        if ($student->status === 'assigned') {
+            return redirect()->route('student.dashboard');
+        }
+
+        return Inertia::render('WaitingScreen', [
+            'status' => 'info',
+            'message' => 'Your account is still pending assignment. Please wait while an administrator assigns you to a class.'
+        ]);
+    }
 }

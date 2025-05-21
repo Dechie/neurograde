@@ -30,14 +30,16 @@ class Test extends Model
         'published' => 'boolean'
     ];
 
+    protected $appends = ['grading_criteria'];
+
+    public function getGradingCriteriaAttribute()
+    {
+        return GradingCriteria::getVerdicts();
+    }
+
     public function department()
     {
         return $this->belongsTo(Department::class);
-    }
-
-    public function students()
-    {
-        return $this->belongsToMany(Student::class, 'test_student');
     }
 
     public function submissions()
