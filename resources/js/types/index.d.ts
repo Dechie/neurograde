@@ -1,92 +1,3 @@
-// import { LucideIcon } from 'lucide-react';
-// import type { Config } from 'ziggy-js';
-
-// export type LoginForm = {
-//     email?: string;
-//     name?: string;
-//     password: string;
-//     remember: boolean;
-// };
-
-// export interface LoginProps {
-//     status?: string;
-//     canResetPassword: boolean;
-// }
-// export interface Auth {
-//     user: User;
-// }
-
-// export interface BreadcrumbItem {
-//     title: string;
-//     href: string;
-// }
-
-// export interface NavGroup {
-//     title: string;
-//     items: NavItem[];
-// }
-
-// export interface NavItem {
-//     title: string;
-//     href: string;
-//     icon?: LucideIcon | null;
-//     isActive?: boolean;
-// }
-
-// export interface SharedData {
-//     name: string;
-//     quote: { message: string; author: string };
-//     auth: Auth;
-//     ziggy: Config & { location: string };
-//     sidebarOpen: boolean;
-//     [key: string]: unknown;
-// }
-
-
-// export interface TestsProps {
-//     tests: Array<{
-//         id: number;
-//         title: string;
-//         dueDate: string;
-//         status: string;
-//     }>;
-// }
-// interface Department {
-//   id: number;
-//   name: string;
-// }
-// export interface User {
-//     id: number;
-//     first_name: string; // Ensure this is defined
-//     last_name: string;  // Ensure this is defined
-
-//     email: string;
-//     email_verified_at: string | null;
-//     created_at: string;
-//     updated_at: string;
-//     // Add other properties you expect on the User object, like avatar, roles, student relation
-//     avatar?: string; // Example if user has an avatar field
-//     roles?: { name: string }[]; // Example if roles are loaded
-//     student?: any; // Example if student relation is loaded
-// }
-
-// // Ensure PageProps structure matches what your backend is passing
-// export interface PageProps {
-//     auth: {
-//         user: User | null; // 'user' can be null if the user is not authenticated
-//     };
-//     // Add other props like 'departments' if your pages receive them
-//     departments?: { id: number; name: string }[];
-//     [key: string]: any; // Catch-all for other potential props
-// }
-
-// // Add other relevant types as needed
-// export interface BreadcrumbItem {
-//     title: string;
-//     href: string;
-// }
-// resources/js/types/index.d.ts (or types.ts)
-
 // Import necessary types from Inertia
 import { Page, PageProps as InertiaPageProps } from '@inertiajs/core';
 import { LucideIcon } from 'lucide-react';
@@ -115,7 +26,6 @@ export interface User {
     id: number;
     first_name: string;
     last_name: string;
-    name: string;
     email: string;
     email_verified_at: string | null;
     created_at: string;
@@ -142,17 +52,21 @@ export interface ClassRoom {
 
 export interface Student {
     id: number;
-    user: User; // Student has a user relationship
-    department: Department; // Student has a department relationship
-    classes: ClassRoom[]; // Student has a many-to-many relationship with ClassRoom
-    id_number: string; // Assuming id_number is on the Student model
-    academic_year: string; // Assuming academic_year is on the Student model
+    user: {
+        id: number;
+        first_name: string;
+        last_name: string;
+        email: string;
+    };
+    department: Department;
+    classes: ClassRoom[];
+    id_number: string;
+    academic_year: string;
     // Add any other student attributes
 }
 
-export interface Teacher {
+export interface Teacher extends User {
     id: number;
-    user: User; // Teacher has a user relationship
     department: Department; // Teacher has a department relationship
     classes: ClassRoom[]; // Teacher has a many-to-many relationship with ClassRoom
     // Add any other teacher attributes
@@ -187,24 +101,96 @@ export interface UnassignedStudentsPageProps {
 }
 export interface CreateExamPageProps extends PageProps {
   classes: ClassRoom[]; // Expecting an array of ClassRoom objects from the backend
-  // You might also need the authenticated teacher user data if not globally shared
-  auth: { // Assuming auth is a shared prop
-      user: Teacher; // Assuming the authenticated user is a Teacher
+  auth: {
+    user: Teacher; // Now Teacher extends User, so this is valid
   };
-  [key: string]: any 
+  [key: string]: any;
 }
 export interface Test {
-  id: number
-  title: string
-  problem_statement: string
-  due_date: string // This comes as a string from the backend
-  status: string
-  teacher_id: number
-  class_id: number
-  metrics: any
-  created_at: string
-  updated_at: string
-  class?: ClassRoom // From eager loading
+  id: number;
+  title: string;
+  problem_statement: string;
+  due_date: string;
+  status: 'Upcoming' | 'Done' | string;
+  teacher_id: number;
+  department_id: number;
+  class_id: number;
+  published_at: string | null;
+  published: boolean;
+  created_at: string;
+  updated_at: string;
+  teacher?: {
+    id: number;
+    user: {
+      name: string;
+      email: string;
+    };
+  };
+  department?: {
+    id: number;
+    name: string;
+  };
+  class?: {
+    id: number;
+    name: string;
+  };
+  submissions?: Submission[];
+}
+
+export interface Submission {
+  id: number;
+  test_id: number;
+  student_id: number;
+  code_editor_text: string;
+  code_file_path: string | null;
+  submission_type: 'editor' | 'file';
+  submission_date: string;
+  status: 'pending' | 'graded';
+  grade: number | null;
+  feedback: string | null;
+  ml_verdict_id: number | null;
+  ml_verdict_string: string | null;
+  ml_verdict_probabilities: {
+    Accepted: number;
+    'Wrong Answer': number;
+    'Time Limit Exceeded': number;
+    'Memory Limit Exceeded': number;
+    'Runtime Error': number;
+    'Compile Error': number;
+    'Presentation Error': number;
+  } | null;
+  created_at: string;
+  updated_at: string;
+  test?: Test;
+  student: {
+    id: number;
+    user: {
+      name: string;
+      email: string;
+    };
+  };
+  aiGradingResults?: Array<{
+    id: number;
+    predicted_verdict_id: number;
+    predicted_verdict_string: string;
+    verdict_probabilities: {
+      Accepted: number;
+      'Wrong Answer': number;
+      'Time Limit Exceeded': number;
+      'Memory Limit Exceeded': number;
+      'Runtime Error': number;
+      'Compile Error': number;
+      'Presentation Error': number;
+    };
+    requested_language: string;
+    created_at: string;
+  }>;
+}
+
+export interface TestSubmission {
+    id: number;
+    title: string;
+    submissions: Submission[];
 }
 
 // Page props interface

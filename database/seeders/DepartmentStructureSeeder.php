@@ -17,29 +17,28 @@ class DepartmentStructureSeeder extends Seeder
     {
         // Create departments
         $departments = [
-            ['name' => 'Computer Science'],
-            ['name' => 'Electrical Engineering'],
-            ['name' => 'Mechanical Engineering'],
+            [
+                'name' => 'Electrical Engineering'
+            ],
+            [
+                'name' => 'Software Engineering'
+            ],
+            [
+                'name' => 'Mechatronics Engineering'
+            ]
         ];
 
-        foreach ($departments as $dept) {
-            Department::create($dept);
-        }
-
-        // Create classes for each department
-        $departments = Department::all();
-        $adminId = User::whereHas('roles', function($query) {
-            $query->where('name', 'admin');
-        })->first()->id;
-
         foreach ($departments as $department) {
-            for ($i = 1; $i <= 3; $i++) {
+            $dept = Department::create($department);
+
+            // Create 2 sections for each department
+            for ($i = 1; $i <= 2; $i++) {
                 ClassRoom::create([
-                    'name' => "Class {$i}",
-                    'department_id' => $department->id,
-                    'admin_id' => $adminId,
+                    'name' => "Section {$i}",
+                    'department_id' => $dept->id,
+                    'admin_id' => 1,
                     'max_students' => 30,
-                    'created_by' => $adminId
+                    'created_by' => 1
                 ]);
             }
         }

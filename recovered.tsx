@@ -4,38 +4,6 @@ import { AppLayout } from '@/layouts/dashboard/studentDashboard/studentDashboard
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 
-// Define the global grading criteria
-const GRADING_CRITERIA: Record<number, { name: string; description: string }> = {
-    0: {
-        name: "Accepted",
-        description: "Your solution is correct and meets all requirements"
-    },
-    1: {
-        name: "Wrong Answer",
-        description: "Your solution produces incorrect output"
-    },
-    2: {
-        name: "Time Limit Exceeded",
-        description: "Your solution takes too long to execute"
-    },
-    3: {
-        name: "Memory Limit Exceeded",
-        description: "Your solution uses too much memory"
-    },
-    4: {
-        name: "Runtime Error",
-        description: "Your solution crashes during execution"
-    },
-    5: {
-        name: "Compile Error",
-        description: "Your solution fails to compile"
-    },
-    6: {
-        name: "Presentation Error",
-        description: "Your solution output format is incorrect"
-    }
-};
-
 interface TestDetailProps {
     test: {
         id: number;
@@ -43,8 +11,7 @@ interface TestDetailProps {
         problemStatement: string;
         dueDate: string;
         status: string;
-        questionId: number;
-        initialCode: string;
+        gradingCriteria: Record<number, string>;
         class?: {
             name: string;
             department: string;
@@ -88,11 +55,13 @@ export default function TestDetail({ test, submission, submissionWarning }: Test
                             <CardDescription>Possible verdicts for your submission</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="space-y-3">
-                                {Object.entries(GRADING_CRITERIA).map(([id, { name, description }]) => (
-                                    <div key={id} className="space-y-1">
-                                        <span className="font-medium text-foreground">{name}</span>
-                                        <p className="text-sm text-muted-foreground">{description}</p>
+                            <div className="space-y-2">
+                                {Object.entries(test.gradingCriteria).map(([id, name]) => (
+                                    <div key={id} className="flex items-center gap-2">
+                                        <span className="font-medium">{name}</span>
+                                        <span className="text-muted-foreground text-sm">
+                                            (ID: {id})
+                                        </span>
                                     </div>
                                 ))}
                             </div>
@@ -123,11 +92,7 @@ export default function TestDetail({ test, submission, submissionWarning }: Test
                             </CardContent>
                         </Card>
                     ) : (
-                        <CodeEditor 
-                            testId={test.id} 
-                            questionId={test.questionId} 
-                            initialCode={test.initialCode} 
-                        />
+                        <CodeEditor testId={test.id} />
                     )}
                 </div>
             </div>

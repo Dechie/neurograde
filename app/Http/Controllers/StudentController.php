@@ -12,9 +12,17 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Submission;
+use App\Services\AiGradingService;
 
 class StudentController extends Controller
 {
+    protected $aiGradingService;
+
+    public function __construct(AiGradingService $aiGradingService)
+    {
+        $this->aiGradingService = $aiGradingService;
+    }
+
     /**
      * Show the student results page.
      */
@@ -165,13 +173,25 @@ class StudentController extends Controller
     {
         $student = auth()->user()->student;
         
-        // Get tests for student's department and section
-        $tests = Test::where('department_id', $student->department_id)
+        // Get the student's first class
+        $class = $student->classes->first();
+        
+        if (!$class) {
+            return Inertia::render('dashboard/studentDashboard/Tests/Index', [
+                'tests' => []
+            ]);
+        }
+        
+        // Get tests for student's class that are not past due date
+        $tests = Test::where('class_id', $class->id)
             ->where('due_date', '>', now())
-            ->where('published', false)
-            ->with(['teacher', 'submissions' => function($query) use ($student) {
-                $query->where('student_id', $student->id);
-            }])
+            ->with([
+                'class.department',
+                'teacher.user',
+                'submissions' => function($query) use ($student) {
+                    $query->where('student_id', $student->id);
+                }
+            ])
             ->get();
 
         return Inertia::render('dashboard/studentDashboard/Tests/Index', [
@@ -181,50 +201,74 @@ class StudentController extends Controller
 
     public function submitTest(Request $request, $id)
     {
-        $test = Test::findOrFail($id);
-        $validator = Validator::make($request->all(), [
-            "submission_type" => "required|in:file,editor",
-            "code_file" => [
-                "required_if:submission_type,file",
-                "nullable",
-                "file",
-                function ($attribute, $value, $fail) {
-                    if ($value) {
-                        $extension = strtolower($value->getClientOriginalExtension());
-                        $allowedExtensions = ['cpp', 'hpp', 'h', 'c', 'py'];
-                        if (!in_array($extension, $allowedExtensions)) {
-                            $fail('The file must be a C++ or Python file.');
+        try {
+            $test = Test::findOrFail($id);
+            \Log::info('Test submission attempt', [
+                'test_id' => $id,
+                'submission_type' => $request->submission_type,
+                'has_file' => $request->hasFile('code_file'),
+                'code_length' => strlen($request->code_editor_text ?? '')
+            ]);
+
+            $validator = Validator::make($request->all(), [
+                "submission_type" => "required|in:file,editor",
+                "code_file" => [
+                    "required_if:submission_type,file",
+                    "nullable",
+                    "file",
+                    function ($attribute, $value, $fail) {
+                        if ($value) {
+                            $extension = strtolower($value->getClientOriginalExtension());
+                            $allowedExtensions = ['cpp', 'hpp', 'h', 'c', 'py'];
+                            if (!in_array($extension, $allowedExtensions)) {
+                                $fail('The file must be a C++ or Python file.');
+                            }
                         }
                     }
-                }
-            ],
-            "code_editor_text" => "required_if:submission_type,editor|string"
-        ]);
-
-        if ($validator->fails()) {
-            return Inertia::render('dashboard/studentDashboard/Tests/TestDetail', [
-                'test' => $test,
-                'errors' => $validator->errors()
+                ],
+                "code_editor_text" => "required_if:submission_type,editor|string"
             ]);
-        }
 
-        $student = $request->user()->student;
+            if ($validator->fails()) {
+                \Log::warning('Validation failed for test submission', [
+                    'test_id' => $id,
+                    'errors' => $validator->errors()->toArray()
+                ]);
+                
+                return Inertia::render('dashboard/studentDashboard/Tests/TestDetail', [
+                    'test' => $test,
+                    'errors' => $validator->errors()
+                ]);
+            }
 
-        // Check if student is in the same class as the test
-        if (!$student->classes()->where('class_id', $test->class_id)->exists()) {
-            return Inertia::render('dashboard/studentDashboard/Tests/TestDetail', [
-                'test' => $test,
-                'error' => 'You are not enrolled in the class for this test'
-            ]);
-        }
+            $student = $request->user()->student;
 
-        try {
+            // Check if student is in the same class as the test
+            if (!$student->classes()->where('class_id', $test->class_id)->exists()) {
+                \Log::warning('Student not enrolled in test class', [
+                    'student_id' => $student->id,
+                    'test_id' => $test->id,
+                    'class_id' => $test->class_id
+                ]);
+                
+                return Inertia::render('dashboard/studentDashboard/Tests/TestDetail', [
+                    'test' => $test,
+                    'error' => 'You are not enrolled in the class for this test'
+                ]);
+            }
+
             // Check if submission already exists
             $existingSubmission = Submission::where('student_id', $student->id)
                 ->where('test_id', $test->id)
                 ->first();
 
             if ($existingSubmission) {
+                \Log::warning('Duplicate submission attempt', [
+                    'student_id' => $student->id,
+                    'test_id' => $test->id,
+                    'existing_submission_id' => $existingSubmission->id
+                ]);
+                
                 return Inertia::render('dashboard/studentDashboard/Tests/TestDetail', [
                     'test' => $test,
                     'error' => 'You have already submitted this test. Please contact your teacher if you need to resubmit.'
@@ -233,7 +277,19 @@ class StudentController extends Controller
 
             $filePath = null;
             if ($request->submission_type === "file" && $request->hasFile("code_file")) {
-                $filePath = $request->file("code_file")->store("submissions");
+                try {
+                    $filePath = $request->file("code_file")->store("submissions");
+                    \Log::info('File stored successfully', [
+                        'file_path' => $filePath,
+                        'original_name' => $request->file("code_file")->getClientOriginalName()
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::error('File storage failed', [
+                        'error' => $e->getMessage(),
+                        'file_name' => $request->file("code_file")->getClientOriginalName()
+                    ]);
+                    throw new \Exception('Failed to store the submitted file: ' . $e->getMessage());
+                }
             }
 
             $submission = Submission::create([
@@ -242,8 +298,25 @@ class StudentController extends Controller
                 "submission_type" => $request->submission_type,
                 "code_file_path" => $filePath,
                 "code_editor_text" => $request->code_editor_text,
-                "submission_date" => now(),
-                "status" => "pending"
+                "submission_date" => $request->submission_date ? date('Y-m-d H:i:s', strtotime($request->submission_date)) : now(),
+                "status" => Submission::STATUS_PENDING
+            ]);
+
+            // Trigger AI grading
+            try {
+                $this->aiGradingService->gradeSubmission($submission);
+            } catch (\Exception $e) {
+                \Log::error('AI grading failed', [
+                    'submission_id' => $submission->id,
+                    'error' => $e->getMessage()
+                ]);
+                // Continue with the submission even if AI grading fails
+            }
+
+            \Log::info('Test submission successful', [
+                'submission_id' => $submission->id,
+                'test_id' => $test->id,
+                'student_id' => $student->id
             ]);
 
             return Inertia::render('dashboard/studentDashboard/Tests/TestDetail', [
@@ -251,10 +324,16 @@ class StudentController extends Controller
                 'success' => 'Test submitted successfully'
             ]);
         } catch (\Exception $e) {
-            // Handle other types of errors
+            \Log::error('Test submission failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'test_id' => $id,
+                'student_id' => $request->user()->student->id ?? null
+            ]);
+
             return Inertia::render('dashboard/studentDashboard/Tests/TestDetail', [
-                'test' => $test,
-                'error' => 'An error occurred while submitting your test. Please try again.'
+                'test' => $test ?? null,
+                'error' => 'An error occurred while submitting your test: ' . $e->getMessage()
             ]);
         }
     }

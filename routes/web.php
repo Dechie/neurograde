@@ -5,6 +5,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\DashboardRedirectController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\TeacherController;
 
 Route::get('/', function () {
     return Inertia::render('landing');
@@ -41,3 +42,14 @@ require __DIR__.'/web-teachers.php';
 require __DIR__.'/web-admin.php';
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Teacher routes
+    Route::middleware(['role:teacher'])->prefix('teacher')->name('teacher.')->group(function () {
+        // Submission routes
+        Route::get('/submissions', [TeacherController::class, 'getSubmissions'])->name('submissions.index');
+        Route::get('/submissions/{submissionId}', [TeacherController::class, 'showSubmission'])->name('submissions.show');
+        Route::post('/submissions/{submissionId}/grade', [TeacherController::class, 'gradeSubmission'])->name('submissions.grade');
+        Route::post('/submissions/{submissionId}/publish', [TeacherController::class, 'publishGrade'])->name('submissions.publish');
+    });
+});

@@ -1,0 +1,209 @@
+// incorrect examples
+
+{
+  "problem_id": "p00003",
+  "submission_id": "s055155347",
+  "language": "python",
+  "code": "while True: try: s=input().split(\" \") s.sort if s[0]**2+s[1]**2=s[2]**: print(\"YES\") else: print(\"NO\")",
+  "statement_full": "input output",
+  "true_verdict_encoded": 4,
+  "true_verdict_string": "Runtime Error",
+  "predicted_verdict_id": 0,
+  "predicted_verdict_string": "Accepted",
+  "prob_Accepted": 0.6386935114860535,
+  "prob_Wrong_Answer": 0.2143927663564682,
+  "prob_Time_Limit_Exceeded": 0.0098555441945791,
+  "prob_Memory_Limit_Exceeded": 0.000335186603479,
+  "prob_Runtime_Error": 0.1353707313537597,
+  "prob_Compile_Error": 7.893760084698442e-06,
+  "prob_Presentation_Error": 0.0013443941716104
+}
+{
+  "problem_id": "p00001",
+  "submission_id": "s010953137",
+  "language": "python",
+  "code": "import sys first = 0 second = 0 third = 0 for line in open(sys.argv[1],\"r\"): if first < int(line): third = second second = first first = int(line) elif second < int(line): third = second second = int(line) elif third < int(line): third = int(line) print(first) print(second) print(third)",
+  "statement_full": "input output",
+  "true_verdict_encoded": 4,
+  "true_verdict_string": "Runtime Error",
+  "predicted_verdict_id": 0,
+  "predicted_verdict_string": "Accepted",
+  "prob_Accepted": 0.641534686088562,
+  "prob_Wrong_Answer": 0.1898874789476394,
+  "prob_Time_Limit_Exceeded": 0.0130570624023675,
+  "prob_Memory_Limit_Exceeded": 0.000697506184224,
+  "prob_Runtime_Error": 0.1519770920276641,
+  "prob_Compile_Error": 2.2353213353198956e-05,
+  "prob_Presentation_Error": 0.0028239304665476
+}
+
+{
+  "problem_id": "p00003",
+  "submission_id": "s995018046",
+  "language": "python",
+  "code": "for i in range(0, int(input())): sidelen = [int(j) for j in input().split(\" \")] sidelen.sort(reverse=True) if(sidelen[0]**2 == sidelen[1]**2+sidelen[2]**2): print(\"Yes\") else: print(\"NO\")",
+  "statement_full": "input output",
+  "true_verdict_encoded": 1,
+  "true_verdict_string": "Wrong Answer",
+  "predicted_verdict_id": 0,
+  "predicted_verdict_string": "Accepted",
+  "prob_Accepted": 0.6173776984214783,
+  "prob_Wrong_Answer": 0.2262187153100967,
+  "prob_Time_Limit_Exceeded": 0.011183594353497,
+  "prob_Memory_Limit_Exceeded": 0.000451651867479,
+  "prob_Runtime_Error": 0.1430718451738357,
+  "prob_Compile_Error": 1.2354925274848938e-05,
+  "prob_Presentation_Error": 0.0016841538017615
+}
+
+{
+  "problem_id": "p00003",
+  "submission_id": "s991096043",
+  "language": "python",
+  "code": "import fileinput if __name__ == \"__main__\": for line in fileinput.input(): a = int(line.split(\" \")[0]) b = int(line.split(\" \")[1]) c = int(line.split(\" \")[2]) if (a*a+b*b==c*c or a*a+c*c==b*b or b*b+c*c==a*a) : print(\"YES\") else : print(\"NO\") exit(0)",
+  "statement_full": "input output",
+  "true_verdict_encoded": 4,
+  "true_verdict_string": "Runtime Error",
+  "predicted_verdict_id": 0,
+  "predicted_verdict_string": "Accepted",
+  "prob_Accepted": 0.6070176959037781,
+  "prob_Wrong_Answer": 0.231547474861145,
+  "prob_Time_Limit_Exceeded": 0.0118771428242325,
+  "prob_Memory_Limit_Exceeded": 0.0005243197083473,
+  "prob_Runtime_Error": 0.1471278816461563,
+  "prob_Compile_Error": 1.5451169019797817e-05,
+  "prob_Presentation_Error": 0.0018899998394772
+}
+
+{
+  "problem_id": "p00003",
+  "submission_id": "s989602292",
+  "language": "python",
+  "code": "for i in range(int(input())): values = sorted(map(lambda x: int(x)^2, input().split(' '))) if values[2] == values[1] + values[0]: print(\"YES\") else: print(\"NO\")",
+  "statement_full": "input output",
+  "true_verdict_encoded": 1,
+  "true_verdict_string": "Wrong Answer",
+  "predicted_verdict_id": 0,
+  "predicted_verdict_string": "Accepted",
+  "prob_Accepted": 0.6114701628684998,
+  "prob_Wrong_Answer": 0.2297228127717971,
+  "prob_Time_Limit_Exceeded": 0.0115334689617156,
+  "prob_Memory_Limit_Exceeded": 0.0004848088137805,
+  "prob_Runtime_Error": 0.1450018435716629,
+  "prob_Compile_Error": 1.374679141008528e-05,
+  "prob_Presentation_Error": 0.0017732115229591
+}
+
+{
+  "problem_id": "p00003",
+  "submission_id": "s989602292",
+  "language": "python",
+  "code": "for i in range(int(input())): values = sorted(map(lambda x: int(x)^2, input().split(' '))) if values[2] == values[1] + values[0]: print(\"YES\") else: print(\"NO\")",
+  "statement_full": "input output",
+  "true_verdict_encoded": 1,
+  "true_verdict_string": "Wrong Answer",
+  "predicted_verdict_id": 0,
+  "predicted_verdict_string": "Accepted",
+  "prob_Accepted": 0.6114701628684998,
+  "prob_Wrong_Answer": 0.2297228127717971,
+  "prob_Time_Limit_Exceeded": 0.0115334689617156,
+  "prob_Memory_Limit_Exceeded": 0.0004848088137805,
+  "prob_Runtime_Error": 0.1450018435716629,
+  "prob_Compile_Error": 1.374679141008528e-05,
+  "prob_Presentation_Error": 0.0017732115229591
+}
+
+// correct examples
+{
+  "problem_id": "p00001",
+  "submission_id": "s994967626",
+  "language": "python",
+  "code": "print(*sorted([int(input()) for i in range(10)])[:6:-1], sep='\\n')",
+  "statement_full": "input output",
+  "true_verdict_encoded": 0,
+  "true_verdict_string": "Accepted",
+  "predicted_verdict_id": 0,
+  "predicted_verdict_string": "Accepted",
+  "prob_Accepted": 0.6910074949264526,
+  "prob_Wrong_Answer": 0.1653385013341903,
+  "prob_Time_Limit_Exceeded": 0.0097224237397313,
+  "prob_Memory_Limit_Exceeded": 0.0003458887804299,
+  "prob_Runtime_Error": 0.1319141983985901,
+  "prob_Compile_Error": 7.847449523978867e-06,
+  "prob_Presentation_Error": 0.0016636421205475
+}
+
+{
+  "problem_id": "p00001",
+  "submission_id": "s960838195",
+  "language": "python",
+  "code": "i=1 H=[] while i<=10: h=int(input()) H.append(h) i+=1 H.sort(reverse=True) for i in range(3): print(f'{H[i]}')",
+  "statement_full": "input output",
+  "true_verdict_encoded": 0,
+  "true_verdict_string": "Accepted",
+  "predicted_verdict_id": 0,
+  "predicted_verdict_string": "Accepted",
+  "prob_Accepted": 0.6654347777366638,
+  "prob_Wrong_Answer": 0.1782236844301223,
+  "prob_Time_Limit_Exceeded": 0.0113295512273907,
+  "prob_Memory_Limit_Exceeded": 0.00050032697618,
+  "prob_Runtime_Error": 0.1423012614250183,
+  "prob_Compile_Error": 1.3583809050032867e-05,
+  "prob_Presentation_Error": 0.0021968835499137
+}
+
+{
+  "problem_id": "p00001",
+  "submission_id": "s960838195",
+  "language": "python",
+  "code": "i=1 H=[] while i<=10: h=int(input()) H.append(h) i+=1 H.sort(reverse=True) for i in range(3): print(f'{H[i]}')",
+  "statement_full": "input output",
+  "true_verdict_encoded": 0,
+  "true_verdict_string": "Accepted",
+  "predicted_verdict_id": 0,
+  "predicted_verdict_string": "Accepted",
+  "prob_Accepted": 0.6654347777366638,
+  "prob_Wrong_Answer": 0.1782236844301223,
+  "prob_Time_Limit_Exceeded": 0.0113295512273907,
+  "prob_Memory_Limit_Exceeded": 0.00050032697618,
+  "prob_Runtime_Error": 0.1423012614250183,
+  "prob_Compile_Error": 1.3583809050032867e-05,
+  "prob_Presentation_Error": 0.0021968835499137
+}
+{
+  "problem_id": "p00001",
+  "submission_id": "s690734577",
+  "language": "python",
+  "code": "result = [0, 0, 0] for i in range(10): inp = int(raw_input()) if result[2] >= inp: continue elif result[1] >= inp > result[2]: result[2] = inp elif result[0] >= inp > result[1]: result[2] = result[1] result[1] = inp else: result[2] = result[1] result[1] = result[0] result[0] = inp for i in range(3): print result[i]",
+  "statement_full": "input output",
+  "true_verdict_encoded": 0,
+  "true_verdict_string": "Accepted",
+  "predicted_verdict_id": 0,
+  "predicted_verdict_string": "Accepted",
+  "prob_Accepted": 0.5960357785224915,
+  "prob_Wrong_Answer": 0.2105184644460678,
+  "prob_Time_Limit_Exceeded": 0.0171991847455501,
+  "prob_Memory_Limit_Exceeded": 0.0013283991720527,
+  "prob_Runtime_Error": 0.1702403277158737,
+  "prob_Compile_Error": 5.914119901717641e-05,
+  "prob_Presentation_Error": 0.0046187941916286
+}
+{
+  "problem_id": "p00001",
+  "submission_id": "s341294774",
+  "language": "python",
+  "code": "a = [] for i in range(10): a.append(int(input())) a.sort(reverse=True) for i in range(3): print(a[i])",
+  "statement_full": "input output",
+  "true_verdict_encoded": 0,
+  "true_verdict_string": "Accepted",
+  "predicted_verdict_id": 0,
+  "predicted_verdict_string": "Accepted",
+  "prob_Accepted": 0.6385763883590698,
+  "prob_Wrong_Answer": 0.1919694989919662,
+  "prob_Time_Limit_Exceeded": 0.0132088148966431,
+  "prob_Memory_Limit_Exceeded": 0.0007197596714831,
+  "prob_Runtime_Error": 0.1526268720626831,
+  "prob_Compile_Error": 2.3466471247957088e-05,
+  "prob_Presentation_Error": 0.0028752137441188
+}
+ 

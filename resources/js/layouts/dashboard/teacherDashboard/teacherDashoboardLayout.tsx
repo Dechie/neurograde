@@ -1,6 +1,7 @@
 import type { ReactNode } from "react"
 import { DashboardHeader } from "@/components/dashboard/studentDashboard/DashboardHeader"
 import { Sidebar } from "@/components/dashboard/teacherDashboard/TeacherSidebar";
+import { Toaster } from "@/components/ui/toaster";
 
 export function AppLayout({ children, title }: { children: ReactNode; title?: string }) {
   return (
@@ -10,6 +11,7 @@ export function AppLayout({ children, title }: { children: ReactNode; title?: st
         <DashboardHeader title={title} />
         <main className="flex-1 p-6 overflow-auto w-full max-w-full">{children}</main>
       </div>
+      <Toaster />
     </div>
   )
 }

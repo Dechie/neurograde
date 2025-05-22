@@ -32,51 +32,74 @@ class UsersSeeder extends Seeder
         ]);
         $admin->admin()->save($adminModel);
 
-        // Get all departments
+        // Get departments
         $departments = Department::all();
         
-        // Create teachers for each department
-        foreach ($departments as $department) {
-            for ($i = 1; $i <= 2; $i++) {
-                $user = User::create([
-                    'first_name' => "Teacher{$i}",
-                    'last_name' => $department->name,
-                    'email' => "teacher{$i}." . str_replace(' ', '.', strtolower($department->name)) . "@example.com",
-                    'password' => Hash::make('password'),
-                ]);
+        // Create teachers (1 per department)
+        $teacherNames = [
+            ['first' => 'Daniel', 'last' => 'Daniel'],
+            ['first' => 'Abel', 'last' => 'Dejene'],
+            ['first' => 'Naol', 'last' => 'Feyissa']
+        ];
 
-                $user->assignRole('teacher');
+        foreach ($departments as $index => $department) {
+            $teacher = User::create([
+                'first_name' => $teacherNames[$index]['first'],
+                'last_name' => $teacherNames[$index]['last'],
+                'email' => strtolower($teacherNames[$index]['first']) . '@example.com',
+                'password' => Hash::make('password'),
+            ]);
+            $teacher->assignRole('teacher');
 
-                $teacher = new Teacher([
-                    'user_id' => $user->id,
-                    'created_by' => $admin->id,
-                    'department_id' => $department->id,
-                ]);
-
-                $user->teacher()->save($teacher);
-            }
+            Teacher::create([
+                'user_id' => $teacher->id,
+                'department_id' => $department->id,
+                'created_by' => $admin->id
+            ]);
         }
 
-        // Create students for each class (assigned)
-        $classes = ClassRoom::all();
-        foreach ($classes as $class) {
-            for ($i = 1; $i <= 5; $i++) {
-                $user = User::create([
-                    'first_name' => "Student{$i}",
-                    'last_name' => $class->name,
-                    'email' => "student{$i}." . str_replace(' ', '.', strtolower($class->name)) . "@example.com",
+        // Create students (4 per department)
+        $studentNames = [
+            // Electrical Engineering Students
+            ['first' => 'Hana', 'last' => 'Daniel'],
+            ['first' => 'Blen', 'last' => 'Dejene'],
+            ['first' => 'Sifen', 'last' => 'Feyissa'],
+            ['first' => 'Ribka', 'last' => 'Abraham'],
+            
+            // Software Engineering Students
+            ['first' => 'Etsubdink', 'last' => 'Tewodros'],
+            ['first' => 'Helen', 'last' => 'Girma'],
+            ['first' => 'Hawi', 'last' => 'Tolossa'],
+            ['first' => 'Hayat', 'last' => 'Mohammed'],
+            
+            // Mechatronics Engineering Students
+            ['first' => 'Biniam', 'last' => 'Dagnachew'],
+            ['first' => 'Yonas', 'last' => 'Berihun'],
+            ['first' => 'Kedir', 'last' => 'Ahmed'],
+            ['first' => 'Muaz', 'last' => 'Mohammed']
+        ];
+
+        $studentIndex = 0;
+        foreach ($departments as $department) {
+            // Create 4 students for this department
+            for ($i = 0; $i < 4; $i++) {
+                $student = User::create([
+                    'first_name' => $studentNames[$studentIndex]['first'],
+                    'last_name' => $studentNames[$studentIndex]['last'],
+                    'email' => strtolower($studentNames[$studentIndex]['first']) . '@example.com',
                     'password' => Hash::make('password'),
                 ]);
-                $user->assignRole('student');
-                $student = new Student([
-                    'user_id' => $user->id,
-                    'id_number' => sprintf('S%d-%d', $class->id, $i),
-                    'academic_year' => '5th',
-                    'department_id' => $class->department_id,
-                    'status' => 'assigned',
+                $student->assignRole('student');
+
+                Student::create([
+                    'user_id' => $student->id,
+                    'department_id' => $department->id,
+                    'id_number' => 'S' . ($studentIndex + 1) . '00',
+                    'academic_year' => '2024',
+                    'status' => $i < 3 ? 'assigned' : 'pending' // First 3 students assigned, last one pending
                 ]);
-                $user->student()->save($student);
-                $class->students()->attach($student->id);
+
+                $studentIndex++;
             }
         }
 
@@ -98,39 +121,7 @@ class UsersSeeder extends Seeder
                     'status' => 'pending',
                 ]);
                 $user->student()->save($student);
-                // Not attached to any class
             }
         }
-
-        // Create students
-        $students = [
-            [
-                'first_name' => 'John',
-                'last_name' => 'Doe',
-                'email' => 'john@example.com',
-                'password' => Hash::make('password'),
-                'id_number' => '001/25',
-                'academic_year' => '5th',
-                'department_id' => 2
-            ],
-            [
-                'first_name' => 'Jane',
-                'last_name' => 'Smith',
-                'email' => 'jane@example.com',
-                'password' => Hash::make('password'),
-                'id_number' => '002/25',
-                'academic_year' => '4th',
-                'department_id' => 1
-            ],
-            [
-                'first_name' => 'Mike',
-                'last_name' => 'Johnson',
-                'email' => 'mike@example.com',
-                'password' => Hash::make('password'),
-                'id_number' => '003/25',
-                'academic_year' => '3rd',
-                'department_id' => 2
-            ]
-        ];
     }
 }

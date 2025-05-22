@@ -9,6 +9,7 @@ import { useForm } from "@inertiajs/react"; // Import useForm
 import { route } from "ziggy-js"; // Import route helper
 import { ClassRoom } from "@/types"; // Import ClassRoom type
 import { LoaderCircle } from "lucide-react"; // Import LoaderCircle icon
+import { useToast } from "@/components/ui/use-toast"; // Import useToast
 
 
 // Define the props expected by this form component
@@ -22,20 +23,19 @@ interface CreateExamFormData {
   problem_statement: string;
   due_date: string; // Send as string, backend will cast to date
   class_id: number | ''; // Store selected class ID, allow number or empty string
-  metrics: string; // Send metrics as a JSON string from frontend
-  [key: string]: any
+  [key: string]: string | number | undefined;
 }
 
 
 export const CreateExamForm = ({ classes }: CreateExamFormProps) => { // Accept classes as prop
+  const { toast } = useToast(); // Initialize toast
 
   // Use Inertia's useForm hook
   const { data, setData, post, processing, errors, reset } = useForm<CreateExamFormData>({
     title: '',
     problem_statement: '',
     due_date: '',
-    class_id: '', // Initialize class_id as empty string
-    metrics: '{"grading_criteria": "...", "weight": 100}', // Default or example JSON structure
+    class_id: '' // Initialize class_id as empty string
   });
 
   // Handle form submission using Inertia's post method
@@ -48,12 +48,21 @@ export const CreateExamForm = ({ classes }: CreateExamFormProps) => { // Accept 
       onSuccess: () => {
         console.log('Test created successfully!');
         reset(); // Reset form fields on success
-        // Flash message listener will show the success toast
+        toast({
+          title: "Success",
+          description: "Exam created successfully!",
+          variant: "default",
+        });
       },
       onError: (errors) => {
         console.error('Form submission errors:', errors);
         // Inertia automatically populates the 'errors' object
         // InputError components will display the errors
+        toast({
+          title: "Error",
+          description: "Failed to create exam. Please check the form for errors.",
+          variant: "destructive",
+        });
       },
       onFinish: () => {
         // Optional: Any cleanup after submission attempt
@@ -142,24 +151,26 @@ export const CreateExamForm = ({ classes }: CreateExamFormProps) => { // Accept 
             <InputError message={errors.class_id} /> {/* Display error */}
           </div>
 
-           {/* Metrics Input (as JSON string) */}
+          {/* Grading Criteria Info */}
           <div className="space-y-2">
-            <Label htmlFor="metrics" className="text-foreground">
-              Grading Metrics (JSON)
+            <Label className="text-foreground">
+              Grading Criteria
             </Label>
-            <Textarea
-              id="metrics"
-              className="border-border focus:ring-ring min-h-[100px] font-mono text-sm"
-              value={data.metrics} // Bind value to data.metrics
-              onChange={(e) => setData('metrics', e.target.value)} // Update data.metrics
-              placeholder='{"grading_criteria": "...", "weight": 100}'
-              required
-            />
-            <InputError message={errors.metrics} /> {/* Display error */}
+            <div className="rounded-md border p-4 bg-muted/50">
+              <p className="text-sm text-muted-foreground mb-2">
+                The following grading criteria will be used for all submissions:
+              </p>
+              <ul className="text-sm space-y-1">
+                <li>• Accepted (0) - The solution is correct and meets all requirements</li>
+                <li>• Wrong Answer (1) - The solution produces incorrect output</li>
+                <li>• Time Limit Exceeded (2) - The solution takes too long to execute</li>
+                <li>• Memory Limit Exceeded (3) - The solution uses too much memory</li>
+                <li>• Runtime Error (4) - The solution crashes during execution</li>
+                <li>• Compile Error (5) - The solution fails to compile</li>
+                <li>• Presentation Error (6) - The solution output format is incorrect</li>
+              </ul>
+            </div>
           </div>
-
-
-          {/* Additional question fields could be added here */}
 
           <Button
             type="submit"

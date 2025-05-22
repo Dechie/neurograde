@@ -4,42 +4,54 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@inertiajs/react";
 
-interface Submission {
-    id: number;
-    student: {
-        id: number;
-        user: {
-            name: string;
-            email: string;
-        };
-    };
-    code_editor_text?: string;
-    code_file_path?: string;
-    submission_type: 'editor' | 'file';
-    submission_date: string;
-    status: 'pending' | 'graded';
-    grade?: number;
-}
-
-interface Test {
+interface TestSubmission {
     id: number;
     title: string;
-    submissions: Submission[];
+    submissions: Array<{
+        id: number;
+        student: {
+            id: number;
+            user: {
+                name: string;
+                email: string;
+            };
+        };
+        code_editor_text?: string;
+        code_file_path?: string;
+        submission_type: 'editor' | 'file';
+        submission_date: string;
+        status: 'pending' | 'reviewed' | 'graded' | 'published';
+        ai_grade?: number;
+        teacher_grade?: number;
+        final_grade?: number;
+        ai_feedback?: string;
+        teacher_feedback?: string;
+        ai_metrics?: {
+            correctness: number;
+            efficiency: number;
+            style: number;
+        };
+    }>;
 }
 
 interface Props {
-    test: Test;
+    test: TestSubmission;
 }
 
 export const SubmittedExams = ({ test }: Props) => {
     const [expandedExam, setExpandedExam] = useState<boolean>(true);
+    const submissions = test.submissions || [];
 
     const getStatusBadge = (status: string) => {
         switch (status) {
+            case 'published':
+                return <Badge variant="success">Published</Badge>;
             case 'graded':
                 return <Badge variant="default">Graded</Badge>;
+            case 'reviewed':
+                return <Badge variant="secondary">AI Reviewed</Badge>;
             case 'pending':
-                return <Badge variant="secondary">Pending</Badge>;
+                return <Badge variant="outline">Pending</Badge>;
             default:
                 return <Badge variant="outline">{status}</Badge>;
         }
@@ -54,6 +66,44 @@ export const SubmittedExams = ({ test }: Props) => {
             default:
                 return null;
         }
+    };
+
+    const getGradeDisplay = (submission: TestSubmission['submissions'][0]) => {
+        if (submission.status === 'published') {
+            return (
+                <span className="text-sm font-medium text-success">
+                    Final Grade: {submission.final_grade}
+                </span>
+            );
+        }
+        
+        if (submission.status === 'graded') {
+            return (
+                <div className="flex flex-col items-end gap-1">
+                    <span className="text-sm font-medium">
+                        AI Grade: {submission.ai_grade}
+                    </span>
+                    <span className="text-sm font-medium text-primary">
+                        Teacher Grade: {submission.teacher_grade}
+                    </span>
+                </div>
+            );
+        }
+        
+        if (submission.status === 'reviewed') {
+            return (
+                <div className="flex flex-col items-end gap-1">
+                    <span className="text-sm font-medium">
+                        AI Grade: {submission.ai_grade}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                        Awaiting teacher review
+                    </span>
+                </div>
+            );
+        }
+
+        return null;
     };
 
     return (
@@ -75,7 +125,7 @@ export const SubmittedExams = ({ test }: Props) => {
                             <div className="flex items-center gap-2">
                                 <span className="text-foreground font-medium">Submissions</span>
                                 <Badge variant="outline">
-                                    {test.submissions.length} {test.submissions.length === 1 ? 'submission' : 'submissions'}
+                                    {submissions.length} {submissions.length === 1 ? 'submission' : 'submissions'}
                                 </Badge>
                             </div>
                             <span className="text-muted-foreground">
@@ -85,15 +135,15 @@ export const SubmittedExams = ({ test }: Props) => {
                         
                         {expandedExam && (
                             <CardContent className="p-4 pt-0">
-                                {test.submissions.length === 0 ? (
+                                {submissions.length === 0 ? (
                                     <p className="text-muted-foreground text-center py-4">
                                         No submissions yet
                                     </p>
                                 ) : (
                                     <ul className="space-y-2">
-                                        {test.submissions.map((submission) => (
+                                        {submissions.map((submission) => (
                                             <li key={submission.id}>
-                                                <Link href={route('teacher.submissions.show', { submission: submission.id })}>
+                                                <Link href={route('teacher.submissions.show', { submissionId: submission.id })}>
                                                     <Button
                                                         variant="ghost"
                                                         className="w-full h-auto p-4 justify-between items-center hover:bg-accent"
@@ -116,11 +166,7 @@ export const SubmittedExams = ({ test }: Props) => {
                                                         </div>
                                                         <div className="flex items-center gap-2">
                                                             {getStatusBadge(submission.status)}
-                                                            {submission.grade && (
-                                                                <span className="text-sm font-medium">
-                                                                    Grade: {submission.grade}
-                                                                </span>
-                                                            )}
+                                                            {getGradeDisplay(submission)}
                                                         </div>
                                                     </Button>
                                                 </Link>

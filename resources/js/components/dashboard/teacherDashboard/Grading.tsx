@@ -7,215 +7,298 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeft } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { router } from "@inertiajs/react";
 
 interface Student {
-  id: number;
-  name: string;
-  submitted: boolean;
-  autoGrade: number;
-  answer?: string;
+    id: number;
+    user: {
+        name: string;
+        email: string;
+    };
 }
 
-interface Exam {
-  id: number;
-  title: string;
-  students: Student[];
+interface AiMetrics {
+    correctness: number;
+    efficiency: number;
+    style: number;
 }
 
-export const GradingPage = () => {
-  const mockExams: Exam[] = [
-    {
-      id: 1,
-      title: 'Midterm Exam',
-      students: [
-        { 
-          id: 101, 
-          name: 'John Doe', 
-          submitted: true, 
-          autoGrade: 85,
-          answer: 'The student provided a detailed response to the exam questions...'
-        },
-        { 
-          id: 102, 
-          name: 'Jane Smith', 
-          submitted: true, 
-          autoGrade: 92,
-          answer: 'Excellent responses showing deep understanding of the material...'
-        },
-      ]
-    },
-    {
-      id: 2,
-      title: 'Final Exam',
-      students: [
-        { 
-          id: 101, 
-          name: 'John Doe', 
-          submitted: true, 
-          autoGrade: 78,
-          answer: 'Good effort but some answers lacked depth...'
-        },
-        { 
-          id: 103, 
-          name: 'Bob Johnson', 
-          submitted: false ,
-          autoGrade: 78,
-          answer: 'Good effort but some answers lacked depth...'
-        },
-      ]
-    }
-  ];
+interface Submission {
+    id: number;
+    student: Student;
+    status: 'pending' | 'reviewed' | 'graded' | 'published';
+    ai_grade?: number;
+    teacher_grade?: number;
+    final_grade?: number;
+    ai_feedback?: string;
+    teacher_feedback?: string;
+    code_editor_text?: string;
+    code_file_path?: string;
+    submission_date: string;
+    ai_metrics?: AiMetrics;
+}
 
-  const [exams] = useState<Exam[]>(mockExams);
-  const [expandedExam, setExpandedExam] = useState<number | null>(null);
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const [grade, setGrade] = useState<number>(0);
-  const [feedback, setFeedback] = useState<string>('');
+interface Test {
+    id: number;
+    title: string;
+    submissions: Submission[];
+}
 
-  const handleGradeSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Submitting grade:', { 
-      studentId: selectedStudent?.id, 
-      grade, 
-      feedback 
-    });
-    setSelectedStudent(null);
-  };
+interface Props {
+    tests: Test[];
+}
 
-  if (exams.length === 0) {
-    return (
-      <Alert>
-        <AlertDescription>
-          No exams available for grading.
-        </AlertDescription>
-      </Alert>
-    );
-  }
+export const GradingPage = ({ tests }: Props) => {
+    const [expandedExam, setExpandedExam] = useState<number | null>(null);
+    const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
+    const [grade, setGrade] = useState<number>(0);
+    const [feedback, setFeedback] = useState<string>('');
 
-  return (
-    <Card className="border-border">
-      <CardHeader>
-        <CardTitle className="text-foreground">Grading</CardTitle>
-        <CardDescription className="text-muted-foreground">
-          Review and grade student submissions
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {selectedStudent ? (
-          <div className="space-y-6">
-            <Button
-              variant="ghost"
-              onClick={() => setSelectedStudent(null)}
-              className="text-primary hover:text-primary/90"
-            >
-              <ChevronLeft className="h-4 w-4 mr-2" />
-              Back to list
-            </Button>
-            
-            <Card className="border-border">
-              <CardHeader>
-                <CardTitle className="text-foreground">
-                  {selectedStudent.name}'s Submission
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
+    const handleGradeSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedSubmission) return;
+
+        router.post(route('teacher.submissions.grade', { submissionId: selectedSubmission.id }), {
+            teacher_grade: grade,
+            teacher_feedback: feedback,
+        }, {
+            onSuccess: () => {
+                setSelectedSubmission(null);
+                setGrade(0);
+                setFeedback('');
+            },
+        });
+    };
+
+    const handlePublishGrade = (submissionId: number) => {
+        router.post(route('teacher.submissions.publish', { submissionId }));
+    };
+
+    const renderAiGradingSection = (submission: Submission) => {
+        if (submission.status === 'pending') {
+            return (
                 <div className="p-4 bg-muted rounded-lg">
-                  <p className="text-foreground">
-                    {selectedStudent.answer || "No answer submitted."}
-                  </p>
+                    <p className="text-muted-foreground">
+                        AI grading is in progress. Please check back later.
+                    </p>
                 </div>
-                
-                <div>
-                  <h4 className="text-foreground font-medium mb-2">Automatic Grading</h4>
-                  <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                    Score: {selectedStudent.autoGrade}/100
-                  </Badge>
+            );
+        }
+
+        if (!submission.ai_grade && !submission.ai_metrics) {
+            return (
+                <div className="p-4 bg-muted rounded-lg">
+                    <p className="text-muted-foreground">
+                        No AI grading results available yet.
+                    </p>
                 </div>
-                
-                <form onSubmit={handleGradeSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="grade" className="text-foreground">
-                      Final Grade
-                    </Label>
-                    <Input
-                      id="grade"
-                      type="number"
-                      min="0"
-                      max="100"
-                      className="w-24 border-border focus:ring-ring"
-                      value={grade}
-                      onChange={(e) => setGrade(Number(e.target.value))}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="feedback" className="text-foreground">
-                      Feedback
-                    </Label>
-                    <Textarea
-                      id="feedback"
-                      className="border-border focus:ring-ring min-h-[120px]"
-                      value={feedback}
-                      onChange={(e) => setFeedback(e.target.value)}
-                      placeholder="Provide constructive feedback..."
-                    />
-                  </div>
-                  
-                  <Button
-                    type="submit"
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                  >
-                    Submit Grade
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {exams.map((exam) => (
-              <Card key={exam.id} className="border-border overflow-hidden">
-                <Button
-                  variant="ghost"
-                  className="w-full h-auto p-4 flex justify-between items-center hover:bg-accent"
-                  onClick={() => setExpandedExam(expandedExam === exam.id ? null : exam.id)}
-                >
-                  <span className="text-foreground font-medium">{exam.title}</span>
-                  <span className="text-muted-foreground">
-                    {expandedExam === exam.id ? '−' : '+'}
-                  </span>
-                </Button>
-                
-                {expandedExam === exam.id && (
-                  <CardContent className="p-4 pt-0">
-                    <ul className="space-y-2">
-                      {exam.students.filter(s => s.submitted).map((student) => (
-                        <li key={student.id}>
-                          <Button
-                            variant="ghost"
-                            className="w-full h-auto p-2 justify-between items-center hover:bg-accent"
-                            onClick={() => {
-                              setSelectedStudent(student);
-                              setGrade(student.autoGrade);
-                              setFeedback('');
-                            }}
-                          >
-                            <span className="text-foreground">{student.name}</span>
+            );
+        }
+
+        return (
+            <div className="space-y-4">
+                <div className="p-4 bg-muted rounded-lg">
+                    <h4 className="text-foreground font-medium mb-2">AI Grading Results</h4>
+                    <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-foreground">Overall Score</span>
                             <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                              Auto-graded: {student.autoGrade}/100
+                                {submission.ai_grade}/100
                             </Badge>
-                          </Button>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
+                        </div>
+                        {submission.ai_metrics && (
+                            <div className="grid grid-cols-3 gap-4 mt-4">
+                                <div className="p-3 bg-background rounded-lg">
+                                    <span className="text-sm text-muted-foreground">Correctness</span>
+                                    <div className="text-lg font-medium">{submission.ai_metrics.correctness}%</div>
+                                </div>
+                                <div className="p-3 bg-background rounded-lg">
+                                    <span className="text-sm text-muted-foreground">Efficiency</span>
+                                    <div className="text-lg font-medium">{submission.ai_metrics.efficiency}%</div>
+                                </div>
+                                <div className="p-3 bg-background rounded-lg">
+                                    <span className="text-sm text-muted-foreground">Style</span>
+                                    <div className="text-lg font-medium">{submission.ai_metrics.style}%</div>
+                                </div>
+                            </div>
+                        )}
+                        {submission.ai_feedback && (
+                            <div className="mt-4">
+                                <h5 className="text-sm font-medium text-foreground mb-2">AI Feedback</h5>
+                                <p className="text-sm text-muted-foreground">
+                                    {submission.ai_feedback}
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    if (tests.length === 0) {
+        return (
+            <Alert>
+                <AlertDescription>
+                    No tests available for grading.
+                </AlertDescription>
+            </Alert>
+        );
+    }
+
+    return (
+        <Card className="border-border">
+            <CardHeader>
+                <CardTitle className="text-foreground">Grading</CardTitle>
+                <CardDescription className="text-muted-foreground">
+                    Review and grade student submissions
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                {selectedSubmission ? (
+                    <div className="space-y-6">
+                        <Button
+                            variant="ghost"
+                            onClick={() => setSelectedSubmission(null)}
+                            className="text-primary hover:text-primary/90"
+                        >
+                            <ChevronLeft className="h-4 w-4 mr-2" />
+                            Back to list
+                        </Button>
+                        
+                        <Card className="border-border">
+                            <CardHeader>
+                                <CardTitle className="text-foreground">
+                                    {selectedSubmission.student.user.name}'s Submission
+                                </CardTitle>
+                                <CardDescription>
+                                    Submitted on {new Date(selectedSubmission.submission_date).toLocaleString()}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                                <div className="p-4 bg-muted rounded-lg">
+                                    <h4 className="text-foreground font-medium mb-2">Submitted Code</h4>
+                                    <pre className="text-foreground whitespace-pre-wrap">
+                                        {selectedSubmission.code_editor_text || "No code submitted."}
+                                    </pre>
+                                </div>
+                                
+                                {renderAiGradingSection(selectedSubmission)}
+                                
+                                <form onSubmit={handleGradeSubmit} className="space-y-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="grade" className="text-foreground">
+                                            Final Grade
+                                        </Label>
+                                        <Input
+                                            id="grade"
+                                            type="number"
+                                            min="0"
+                                            max="100"
+                                            className="w-24 border-border focus:ring-ring"
+                                            value={grade}
+                                            onChange={(e) => setGrade(Number(e.target.value))}
+                                            required
+                                        />
+                                    </div>
+                                    
+                                    <div className="space-y-2">
+                                        <Label htmlFor="feedback" className="text-foreground">
+                                            Feedback
+                                        </Label>
+                                        <Textarea
+                                            id="feedback"
+                                            className="border-border focus:ring-ring min-h-[120px]"
+                                            value={feedback}
+                                            onChange={(e) => setFeedback(e.target.value)}
+                                            placeholder="Provide constructive feedback..."
+                                        />
+                                    </div>
+                                    
+                                    <div className="flex gap-2">
+                                        <Button
+                                            type="submit"
+                                            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                                        >
+                                            Submit Grade
+                                        </Button>
+                                        {selectedSubmission.status === 'graded' && (
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                onClick={() => handlePublishGrade(selectedSubmission.id)}
+                                            >
+                                                Publish Grade
+                                            </Button>
+                                        )}
+                                    </div>
+                                </form>
+                            </CardContent>
+                        </Card>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {tests.map((test) => (
+                            <Card key={test.id} className="border-border overflow-hidden">
+                                <Button
+                                    variant="ghost"
+                                    className="w-full h-auto p-4 flex justify-between items-center hover:bg-accent"
+                                    onClick={() => setExpandedExam(expandedExam === test.id ? null : test.id)}
+                                >
+                                    <span className="text-foreground font-medium">{test.title}</span>
+                                    <span className="text-muted-foreground">
+                                        {expandedExam === test.id ? '−' : '+'}
+                                    </span>
+                                </Button>
+                                
+                                {expandedExam === test.id && (
+                                    <CardContent className="p-4 pt-0">
+                                        <ul className="space-y-2">
+                                            {test.submissions.map((submission) => (
+                                                <li key={submission.id}>
+                                                    <Button
+                                                        variant="ghost"
+                                                        className="w-full h-auto p-2 justify-between items-center hover:bg-accent"
+                                                        onClick={() => {
+                                                            setSelectedSubmission(submission);
+                                                            setGrade(submission.teacher_grade || submission.ai_grade || 0);
+                                                            setFeedback(submission.teacher_feedback || '');
+                                                        }}
+                                                    >
+                                                        <div className="flex flex-col items-start">
+                                                            <span className="text-foreground font-medium">
+                                                                {submission.student.user.name}
+                                                            </span>
+                                                            <span className="text-sm text-muted-foreground">
+                                                                {submission.student.user.email}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <Badge variant={
+                                                                submission.status === 'published' ? 'success' :
+                                                                submission.status === 'graded' ? 'default' :
+                                                                submission.status === 'reviewed' ? 'secondary' :
+                                                                'outline'
+                                                            }>
+                                                                {submission.status}
+                                                            </Badge>
+                                                            {submission.final_grade && (
+                                                                <span className="text-sm font-medium">
+                                                                    Grade: {submission.final_grade}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </Button>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </CardContent>
+                                )}
+                            </Card>
+                        ))}
+                    </div>
                 )}
-              </Card>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
+            </CardContent>
+        </Card>
+    );
 };

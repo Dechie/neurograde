@@ -16,6 +16,8 @@ use App\Models\Grade;
 use App\Models\Feedback;
 use App\Models\Student;
 use App\Models\Teacher; // Import Teacher model
+use Illuminate\Support\Facades\Log;
+use App\Services\AiGradingService;
 
 
 class TeacherController extends Controller
@@ -50,14 +52,14 @@ class TeacherController extends Controller
             'title' => 'required|string|max:255',
             'problem_statement' => 'required|string',
             'due_date' => 'required|date|after:now',
-            'class_id' => 'required|exists:classes,id',
-            'metrics' => 'required|json'
+            'class_id' => 'required|exists:classes,id'
         ]);
 
         $teacher = auth()->user()->teacher;
         $class = ClassRoom::findOrFail($request->class_id);
 
-        if ($class->teacher_id != $teacher->id) {
+        // Check if the teacher is assigned to this class through the pivot table
+        if (!$teacher->classes()->where('class_id', $class->id)->exists()) {
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'You are not assigned to this class');
@@ -72,9 +74,12 @@ class TeacherController extends Controller
                 "title" => $request->title,
                 "problem_statement" => $request->problem_statement,
                 "due_date" => $request->due_date,
-                "metrics" => json_decode($request->metrics, true),
                 "status" => "Upcoming"
             ]);
+
+            // Get all students in the class and associate them with the test
+            $students = $class->students;
+            $test->students()->attach($students->pluck('id')->toArray());
 
             return redirect()->route('teacher.tests.index')
                 ->with('success', 'Test created successfully!');
@@ -89,8 +94,53 @@ class TeacherController extends Controller
     }
 
     // ... other teacher controller methods ...
-    public function showGradingPage() { 
-        return Inertia::render("dashboard/teacherDashboard/GradingPage");
+    public function showGradingPage()
+    {
+        $teacher = auth()->user()->teacher;
+        
+        $tests = Test::where('teacher_id', $teacher->id)
+            ->with(['submissions' => function($query) {
+                $query->with([
+                    'student.user',
+                    'aiGradingResults' => function($query) {
+                        $query->latest();
+                    }
+                ]);
+            }])
+            ->get()
+            ->map(function($test) {
+                return [
+                    'id' => $test->id,
+                    'title' => $test->title,
+                    'submissions' => $test->submissions->map(function($submission) {
+                        $latestAiResult = $submission->aiGradingResults->first();
+                        return [
+                            'id' => $submission->id,
+                            'student' => [
+                                'id' => $submission->student->id,
+                                'user' => [
+                                    'name' => $submission->student->user->first_name . ' ' . $submission->student->user->last_name,
+                                    'email' => $submission->student->user->email,
+                                ],
+                            ],
+                            'status' => $submission->status,
+                            'ai_grade' => $submission->ai_grade,
+                            'teacher_grade' => $submission->teacher_grade,
+                            'final_grade' => $submission->final_grade,
+                            'ai_feedback' => $latestAiResult?->comments,
+                            'teacher_feedback' => $submission->teacher_feedback,
+                            'code_editor_text' => $submission->code_editor_text,
+                            'code_file_path' => $submission->code_file_path,
+                            'submission_date' => $submission->submission_date,
+                            'ai_metrics' => $latestAiResult?->metrics ? json_decode($latestAiResult->metrics, true) : null,
+                        ];
+                    }),
+                ];
+            });
+
+        return Inertia::render('dashboard/teacherDashboard/GradingPage', [
+            'tests' => $tests
+        ]);
     }
     public function showSubmissionsPage() { 
         $teacher = auth()->user()->teacher;
@@ -165,52 +215,157 @@ class TeacherController extends Controller
         ]);
     }
 
+    public function getSubmissions()
+    {
+        $teacher = auth()->user()->teacher;
+        
+        $submissions = Submission::whereHas('test', function($query) use ($teacher) {
+            $query->where('teacher_id', $teacher->id);
+        })
+        ->with(['student.user', 'test', 'aiGradingResults' => function($query) {
+            $query->latest();
+        }])
+        ->latest()
+        ->get()
+        ->map(function($submission) {
+            return [
+                'id' => $submission->id,
+                'student' => [
+                    'id' => $submission->student->id,
+                    'name' => $submission->student->user->first_name . ' ' . $submission->student->user->last_name,
+                ],
+                'test' => [
+                    'id' => $submission->test->id,
+                    'title' => $submission->test->title,
+                ],
+                'status' => $submission->status,
+                'submission_date' => $submission->submission_date,
+                'ai_grade' => $submission->ai_grade,
+                'teacher_grade' => $submission->teacher_grade,
+                'final_grade' => $submission->final_grade,
+                'ai_feedback' => $submission->getLatestAiGradingResult()?->comment,
+                'teacher_feedback' => $submission->teacher_feedback,
+            ];
+        });
+
+        return Inertia::render('dashboard/teacherDashboard/Submissions/Index', [
+            'submissions' => $submissions
+        ]);
+    }
+
     public function showSubmission($submissionId)
     {
         $teacher = auth()->user()->teacher;
         
         // Get the submission with its relationships
-        $submission = Submission::with(['student.user', 'test', 'grades'])
-            ->whereHas('test', function ($query) use ($teacher) {
-                $query->where('teacher_id', $teacher->id);
-            })
-            ->findOrFail($submissionId);
+        $submission = Submission::with(['student.user', 'test', 'aiGradingResults' => function($query) {
+            $query->latest();
+        }])
+        ->whereHas('test', function ($query) use ($teacher) {
+            $query->where('teacher_id', $teacher->id);
+        })
+        ->findOrFail($submissionId);
 
         return Inertia::render('dashboard/teacherDashboard/SubmissionDetail', [
-            'submission' => $submission
+            'submission' => [
+                'id' => $submission->id,
+                'student' => [
+                    'id' => $submission->student->id,
+                    'name' => $submission->student->user->first_name . ' ' . $submission->student->user->last_name,
+                ],
+                'test' => [
+                    'id' => $submission->test->id,
+                    'title' => $submission->test->title,
+                    'problem_statement' => $submission->test->problem_statement,
+                ],
+                'status' => $submission->status,
+                'submission_date' => $submission->submission_date,
+                'code' => $submission->code_file_path 
+                    ? file_get_contents(storage_path('app/' . $submission->code_file_path))
+                    : $submission->code_editor_text,
+                'ai_grade' => $submission->ai_grade,
+                'teacher_grade' => $submission->teacher_grade,
+                'final_grade' => $submission->final_grade,
+                'ai_feedback' => $submission->getLatestAiGradingResult()?->comment,
+                'teacher_feedback' => $submission->teacher_feedback,
+                'ai_metrics' => $submission->getLatestAiGradingResult()?->metrics,
+            ]
         ]);
     }
 
     public function gradeSubmission(Request $request, $submissionId)
     {
-        $teacher = auth()->user()->teacher;
-        
-        // Verify the submission belongs to a test created by this teacher
-        $submission = Submission::whereHas('test', function ($query) use ($teacher) {
-            $query->where('teacher_id', $teacher->id);
-        })->findOrFail($submissionId);
+        $submission = Submission::with(['student.user', 'test', 'aiGradingResults'])
+            ->whereHas('test', function ($query) {
+                $query->where('teacher_id', auth()->id());
+            })
+            ->findOrFail($submissionId);
 
-        $validated = $request->validate([
-            'grade' => 'required|numeric|min:0|max:100',
-            'feedback' => 'nullable|string|max:1000'
+        $request->validate([
+            'teacher_grade' => 'required|numeric|min:0|max:100',
+            'teacher_feedback' => 'required|string|max:1000',
         ]);
 
-        // Create or update the grade
-        $grade = $submission->grades()->updateOrCreate(
-            ['teacher_id' => $teacher->id],
-            [
-                'grade' => $validated['grade'],
-                'feedback' => $validated['feedback'],
-                'status' => 'graded'
-            ]
-        );
+        try {
+            // Calculate final grade using AI grading service
+            $aiGradingService = app(AiGradingService::class);
+            $finalGrade = $aiGradingService->calculateFinalGrade($submission);
 
-        // Update submission status
-        $submission->update(['status' => 'graded']);
+            // Update submission with teacher grade and final grade
+            $submission->update([
+                'teacher_grade' => $request->teacher_grade,
+                'teacher_feedback' => $request->teacher_feedback,
+                'final_grade' => $finalGrade,
+                'status' => 'graded',
+            ]);
 
-        return response()->json([
-            'message' => 'Submission graded successfully',
-            'grade' => $grade
-        ]);
+            Log::info('Teacher graded submission', [
+                'submission_id' => $submission->id,
+                'teacher_grade' => $request->teacher_grade,
+                'final_grade' => $finalGrade,
+            ]);
+
+            return redirect()->back()->with('success', 'Submission graded successfully');
+        } catch (\Exception $e) {
+            Log::error('Error grading submission', [
+                'submission_id' => $submission->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()->back()->with('error', 'Error grading submission: ' . $e->getMessage());
+        }
+    }
+
+    public function publishGrade($submissionId)
+    {
+        $submission = Submission::with(['student.user', 'test'])
+            ->whereHas('test', function ($query) {
+                $query->where('teacher_id', auth()->id());
+            })
+            ->findOrFail($submissionId);
+
+        if ($submission->status !== 'graded') {
+            return redirect()->back()->with('error', 'Submission must be graded before publishing');
+        }
+
+        try {
+            $submission->update([
+                'status' => 'published',
+            ]);
+
+            Log::info('Grade published for submission', [
+                'submission_id' => $submission->id,
+                'final_grade' => $submission->final_grade,
+            ]);
+
+            return redirect()->back()->with('success', 'Grade published successfully');
+        } catch (\Exception $e) {
+            Log::error('Error publishing grade', [
+                'submission_id' => $submission->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()->back()->with('error', 'Error publishing grade: ' . $e->getMessage());
+        }
     }
 }

@@ -4,7 +4,7 @@ import { python } from '@codemirror/lang-python';
 import CodeMirror from '@uiw/react-codemirror';
 import { Upload, X } from 'lucide-react';
 import { useState, useRef } from 'react';
-import { useForm } from '@inertiajs/react';
+import { useForm, router } from '@inertiajs/react';
 import { useToast } from '@/components/ui/use-toast';
 import { linter, lintGutter, Diagnostic } from '@codemirror/lint';
 
@@ -127,6 +127,7 @@ export function CodeEditor({ initialCode, testId, questionId, language: initialL
         test_id: testId,
         question_id: questionId,
         code_file: null as File | null,
+        submission_date: new Date().toISOString(),
     });
 
     const onChange = (value: string) => {
@@ -144,82 +145,176 @@ export function CodeEditor({ initialCode, testId, questionId, language: initialL
         }
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        try {
+            const file = e.target.files?.[0];
+            if (!file) return;
 
-        // Check file extension based on selected language
-        const allowedExtensions = {
-            cpp: ['.cpp', '.hpp', '.h', '.c'],
-            python: ['.py']
-        };
+            // Check file extension based on selected language
+            const allowedExtensions = {
+                cpp: ['.cpp', '.hpp', '.h', '.c'],
+                python: ['.py']
+            };
 
-        const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
-        if (!allowedExtensions[selectedLanguage].includes(fileExtension)) {
-            toast({
-                title: "Invalid File Type",
-                description: `Please upload a ${selectedLanguage === 'cpp' ? 'C++' : 'Python'} file (${allowedExtensions[selectedLanguage].join(', ')})`,
-                variant: "destructive",
-            });
-            return;
-        }
-
-        setData('code_file', file);
-        setData('submission_type', 'file');
-        
-        // Read file content and update editor
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            if (event.target?.result) {
-                setData('code_editor_text', event.target.result as string);
-            }
-        };
-        reader.readAsText(file);
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSubmitting(true);
-        
-        post(route("student.tests.submit", { id: testId }), {
-            preserveScroll: true,
-            preserveState: true,
-            onSuccess: (page) => {
-                if (page.props.success) {
-                    toast({
-                        title: "Success",
-                        description: String(page.props.success),
-                    });
-                } else if (page.props.error) {
-                    toast({
-                        title: "Cannot Submit",
-                        description: String(page.props.error),
-                        variant: "destructive",
-                    });
-                }
-                setIsSubmitting(false);
-            },
-            onError: (errors) => {
-                const errorMessage = errors.submission_type || 
-                                   errors.code_editor_text || 
-                                   errors.code_file || 
-                                   "An unexpected error occurred. Please try again.";
-                
+            const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+            if (!allowedExtensions[selectedLanguage].includes(fileExtension)) {
                 toast({
-                    title: "Submission Error",
-                    description: errorMessage,
+                    title: "Invalid File Type",
+                    description: `Please upload a ${selectedLanguage === 'cpp' ? 'C++' : 'Python'} file (${allowedExtensions[selectedLanguage].join(', ')})`,
                     variant: "destructive",
                 });
-                setIsSubmitting(false);
-            },
-            onFinish: () => {
-                setIsSubmitting(false);
+                return;
             }
-        });
+
+            console.log('File Upload:', {
+                fileName: file.name,
+                fileSize: `${(file.size / 1024).toFixed(2)} KB`,
+                fileType: file.type,
+                language: selectedLanguage,
+                testId,
+                questionId
+            });
+
+            setData('code_file', file);
+            setData('submission_type', 'file');
+            
+            // Read file content and update editor
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                if (event.target?.result) {
+                    const content = event.target.result as string;
+                    console.log('File Content Preview:', {
+                        firstLine: content.split('\n')[0],
+                        totalLines: content.split('\n').length,
+                        contentLength: content.length
+                    });
+                    setData('code_editor_text', content);
+                }
+            };
+            reader.readAsText(file);
+        } catch (error) {
+            console.error('File Upload Error:', error);
+            toast({
+                title: "File Upload Error",
+                description: error instanceof Error ? error.message : "Failed to process file upload",
+                variant: "destructive",
+            });
+        }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (isSubmitting || processing) return; // Prevent multiple submissions
+        
+        try {
+            setIsSubmitting(true);
+            
+            // Update submission date before sending
+            setData('submission_date', new Date().toISOString());
+            
+            // Log submission attempt with more details
+            console.log('Submission Request:', {
+                type: data.submission_type,
+                testId,
+                questionId,
+                language: selectedLanguage,
+                codeLength: data.code_editor_text.length,
+                hasFile: !!data.code_file,
+                fileName: data.code_file?.name,
+                fileSize: data.code_file ? `${(data.code_file.size / 1024).toFixed(2)} KB` : null,
+                timestamp: new Date().toISOString()
+            });
+            
+            await post(route("student.tests.submit", { id: testId }), {
+                method: 'post',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                },
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: (page) => {
+                    // Log the complete response
+                    console.log('Submission Response:', {
+                        success: !!page.props.success,
+                        error: page.props.error,
+                        message: page.props.success || page.props.error,
+                        timestamp: new Date().toISOString(),
+                        props: page.props // Log all props for debugging
+                    });
+
+                    if (page.props.success) {
+                        toast({
+                            title: "Success",
+                            description: String(page.props.success),
+                        });
+                        // Redirect to the test detail page instead of reloading
+                        router.visit(route('student.tests.show', { id: testId }));
+                    } else if (page.props.error) {
+                        toast({
+                            title: "Cannot Submit",
+                            description: String(page.props.error),
+                            variant: "destructive",
+                        });
+                    }
+                },
+                onError: (errors) => {
+                    // Log detailed error information
+                    console.error('Submission Error Details:', {
+                        errors,
+                        timestamp: new Date().toISOString(),
+                        requestData: {
+                            type: data.submission_type,
+                            testId,
+                            questionId,
+                            language: selectedLanguage,
+                            codeLength: data.code_editor_text.length,
+                            hasFile: !!data.code_file,
+                            fileName: data.code_file?.name
+                        }
+                    });
+
+                    // Show all validation errors in the toast
+                    const errorMessages = Object.entries(errors)
+                        .map(([key, value]) => `${key}: ${value}`)
+                        .join('\n');
+                    
+                    toast({
+                        title: "Submission Error",
+                        description: errorMessages || "Failed to submit. Please try again.",
+                        variant: "destructive",
+                    });
+                },
+                onFinish: () => {
+                    setIsSubmitting(false);
+                }
+            });
+        } catch (error) {
+            // Log unexpected errors with full details
+            console.error('Unexpected Submission Error:', {
+                error,
+                timestamp: new Date().toISOString(),
+                requestData: {
+                    type: data.submission_type,
+                    testId,
+                    questionId,
+                    language: selectedLanguage,
+                    codeLength: data.code_editor_text.length,
+                    hasFile: !!data.code_file,
+                    fileName: data.code_file?.name
+                }
+            });
+
+            toast({
+                title: "Submission Error",
+                description: error instanceof Error ? error.message : "An unexpected error occurred",
+                variant: "destructive",
+            });
+            setIsSubmitting(false);
+        }
     };
 
     return (
-        <form onSubmit={handleSubmit} className="border-muted overflow-hidden rounded-xl border bg-white shadow">
+        <form onSubmit={handleSubmit} method="POST" className="border-muted overflow-hidden rounded-xl border bg-white shadow">
             <div className="border-b border-gray-200 bg-gray-50 px-4 py-2">
                 <div className="flex items-center space-x-4">
                     <span className="text-sm font-medium text-gray-700">Language:</span>

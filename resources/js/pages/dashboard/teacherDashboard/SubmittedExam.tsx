@@ -1,35 +1,51 @@
 import { SubmittedExams } from '@/components/dashboard/teacherDashboard/SubmittedExams';
 import { AppLayout } from '@/layouts/dashboard/teacherDashboard/teacherDashoboardLayout';
 import { Head } from '@inertiajs/react';
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
-interface Submission {
-    id: number;
-    student: {
-        id: number;
-        user: {
-            name: string;
-        };
-    };
-    code_editor_text?: string;
-    code_file_path?: string;
-    submission_type: 'editor' | 'file';
-    submission_date: string;
-    status: 'pending' | 'graded';
-    grade?: number;
-}
-
-interface Test {
+interface TestSubmission {
     id: number;
     title: string;
-    submissions: Submission[];
+    submissions: Array<{
+        id: number;
+        student: {
+            id: number;
+            user: {
+                name: string;
+                email: string;
+            };
+        };
+        code_editor_text?: string;
+        code_file_path?: string;
+        submission_type: 'editor' | 'file';
+        submission_date: string;
+        status: 'pending' | 'graded';
+        grade?: number;
+    }>;
 }
 
 interface Props {
-    test?: Test;
-    tests?: Test[];
+    test?: TestSubmission;
+    tests?: TestSubmission[];
 }
 
 export default function TeacherSubmittedExamPage({ test, tests }: Props) {
+    // Check if we have any data to display
+    if (!test && !tests) {
+        return (
+            <AppLayout>
+                <Head title="Test Submissions" />
+                <div className="container mx-auto py-6">
+                    <Alert>
+                        <AlertDescription>
+                            No test submissions found.
+                        </AlertDescription>
+                    </Alert>
+                </div>
+            </AppLayout>
+        );
+    }
+
     return (
         <AppLayout>
             <Head title="Test Submissions" />
@@ -42,11 +58,7 @@ export default function TeacherSubmittedExamPage({ test, tests }: Props) {
                             <SubmittedExams key={test.id} test={test} />
                         ))}
                     </div>
-                ) : (
-                    <div className="text-center py-8">
-                        <p className="text-muted-foreground">No tests found</p>
-                    </div>
-                )}
+                ) : null}
             </div>
         </AppLayout>
     );

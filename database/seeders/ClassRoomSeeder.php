@@ -10,6 +10,7 @@ use App\Models\ClassRoom;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Teacher;
+use App\Models\Student;
 
 class ClassRoomSeeder extends Seeder
 {
@@ -33,21 +34,22 @@ class ClassRoomSeeder extends Seeder
                 ]);
 
                 // Get teachers for this department
-                $teachers = \App\Models\Teacher::where('department_id', $department->id)->get();
+                $teachers = Teacher::where('department_id', $department->id)->get();
                 if ($teachers->isNotEmpty()) {
                     // Assign first teacher to this class
                     $class->teachers()->attach($teachers->first()->id);
                 }
 
-                // Get students for this department and distribute them across classes
-                $students = \App\Models\Student::where('department_id', $department->id)->get();
+                // Get assigned students for this department
+                $students = Student::where('department_id', $department->id)
+                    ->where('status', 'assigned')
+                    ->get();
+
                 if ($students->isNotEmpty()) {
-                    // Only assign 80% of students to classes
-                    $studentsToAssign = $students->take(ceil($students->count() * 0.8));
                     // Calculate how many students per class
-                    $studentsPerClass = ceil($studentsToAssign->count() / 3);
+                    $studentsPerClass = ceil($students->count() / 3);
                     // Get the chunk of students for this class
-                    $classStudents = $studentsToAssign->forPage($i, $studentsPerClass);
+                    $classStudents = $students->forPage($i, $studentsPerClass);
                     // Assign students to this class
                     $class->students()->attach($classStudents->pluck('id'));
                 }

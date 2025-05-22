@@ -22,7 +22,6 @@ return new class extends Migration
             $table->date("due_date");
             $table->timestamp('published_at')->nullable();
             $table->boolean('published')->default(false);
-            $table->json("metrics");
             $table->timestamps();
         });
     }

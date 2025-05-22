@@ -16,15 +16,12 @@ class Test extends Model
         'status',
         'teacher_id',
         'department_id',
-        'section',
         'class_id',
-        'metrics',
         'published_at',
         'published'
     ];
 
     protected $casts = [
-        'metrics' => 'array',
         'due_date' => 'date',
         'published_at' => 'datetime',
         'published' => 'boolean'
@@ -55,6 +52,11 @@ class Test extends Model
     public function class()
     {
         return $this->belongsTo(ClassRoom::class, 'class_id');
+    }
+
+    public function students()
+    {
+        return $this->belongsToMany(Student::class, 'test_student');
     }
 }
 

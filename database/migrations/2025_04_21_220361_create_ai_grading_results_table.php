@@ -13,10 +13,15 @@ return new class extends Migration
     {
         Schema::create('ai_grading_results', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("submissions_id")->constrained("submissions");
-            $table->json("metrics");
-            $table->text("comment");
-            $table->float("graded_value");
+            $table->foreignId('submission_id')->constrained()->onDelete('cascade');
+            $table->integer('predicted_verdict_id');
+            $table->string('predicted_verdict_string');
+            $table->json('verdict_probabilities');
+            $table->string('requested_language');
+            $table->text('code_submission');
+            $table->text('problem_statement');
+            $table->text('input_spec')->nullable();
+            $table->text('output_spec')->nullable();
             $table->timestamps();
         });
     }

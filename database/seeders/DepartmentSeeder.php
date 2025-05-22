@@ -14,7 +14,6 @@ class DepartmentSeeder extends Seeder
     {
         $departments = [
             ['name' => 'Software Engineering'],
-            ['name' => 'Computer Science'],
             ['name' => 'Electrical Engineering'],
             ['name' => 'Mechatronics Engineering']
         ];
