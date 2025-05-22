@@ -18,6 +18,7 @@ use Spatie\Permission\Models\Role;
 use Inertia\Response;
 use Illuminate\Validation\ValidationException;
 use App\Models\Test;
+use App\Models\ClassModel;
 
 class AdminController extends Controller
 {
@@ -354,6 +355,48 @@ class AdminController extends Controller
             ->with('success', 'Students assigned successfully!');
     } 
 
+    /**
+     * Show the admin dashboard home page.
+     */
+    public function showHomePage()
+    {
+        $students = Student::with(['user', 'classes', 'department'])->get();
+        $teachers = Teacher::with(['user', 'classes', 'department'])->get();
+        $classes = ClassRoom::with(['department', 'students', 'teachers'])->get();
+
+        // Get student count per department
+        $studentPerDept = Student::with('department')
+            ->get()
+            ->groupBy('department.name')
+            ->map(function ($students) {
+                return [
+                    'name' => $students->first()->department->name,
+                    'value' => $students->count()
+                ];
+            })
+            ->values()
+            ->toArray();
+
+        // Count assigned/unassigned teachers
+        $assignedTeacherCount = Teacher::whereHas('classes')->count();
+        $unassignedTeacherCount = Teacher::whereDoesntHave('classes')->count();
+
+        // Count assigned/unassigned students
+        $assignedStudentCount = Student::whereHas('classes')->count();
+        $unassignedStudentCount = Student::whereDoesntHave('classes')->count();
+
+        return Inertia::render('Dashboard/AdminDashboard/Home', [
+            'authUser' => auth()->user(),
+            'studentPerDept' => $studentPerDept,
+            'students' => $students,
+            'teachers' => $teachers,
+            'classes' => $classes,
+            'assignedTeacherCount' => $assignedTeacherCount,
+            'unassignedTeacherCount' => $unassignedTeacherCount,
+            'assignedStudentCount' => $assignedStudentCount,
+            'unassignedStudentCount' => $unassignedStudentCount,
+        ]);
+    }
 
     // Existing API methods are now handled by the Inertia rendering methods above
     // The data fetching logic is moved into the show*Page methods.

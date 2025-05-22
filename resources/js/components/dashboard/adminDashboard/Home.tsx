@@ -4,28 +4,9 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend
 } from 'recharts';
 import { Card, CardContent } from '@/components/ui/card';
+import type { AdminHomePageProps } from '@/types';
 
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#00C49F'];
-
-interface DepartmentData {
-  name: string;
-  value: number;
-}
-
-interface PageProps {
-  authUser: {
-    name: string;
-  };
-  studentPerDept: DepartmentData[];
-  students: any[];
-  teachers: any[];
-  classes: any[];
-  assignedTeacherCount: number;
-  unassignedTeacherCount: number;
-  assignedStudentCount: number;
-  unassignedStudentCount: number;
-  [key: string]: unknown; // Add index signature to satisfy Inertia's PageProps constraint
-}
 
 const HomePage = () => {
   const {
@@ -38,7 +19,7 @@ const HomePage = () => {
     unassignedTeacherCount,
     assignedStudentCount,
     unassignedStudentCount,
-  } = usePage<PageProps>().props;
+  } = usePage<AdminHomePageProps>().props;
 
   const totalStudents = students.length;
   const totalTeachers = teachers.length;

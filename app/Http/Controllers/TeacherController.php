@@ -93,6 +93,46 @@ class TeacherController extends Controller
         }
     }
 
+    /**
+     * Show the teacher's tests list page.
+     */
+    public function showTests(): Response
+    {
+        $teacher = auth()->user()->teacher;
+        
+        // Get all tests for this teacher with their relationships
+        $tests = Test::where('teacher_id', $teacher->id)
+            ->with(['class.department', 'submissions' => function($query) {
+                $query->with(['student.user', 'aiGradingResults' => function($query) {
+                    $query->latest();
+                }]);
+            }])
+            ->latest()
+            ->get()
+            ->map(function($test) {
+                return [
+                    'id' => $test->id,
+                    'title' => $test->title,
+                    'problem_statement' => $test->problem_statement,
+                    'due_date' => $test->due_date ? $test->due_date->format('Y-m-d H:i:s') : null,
+                    'status' => $test->status,
+                    'published' => $test->published,
+                    'class' => $test->class ? [
+                        'id' => $test->class->id,
+                        'name' => $test->class->name,
+                        'department' => $test->class->department->name,
+                    ] : null,
+                    'submissions_count' => $test->submissions->count(),
+                    'graded_count' => $test->submissions->where('status', 'graded')->count(),
+                    'published_count' => $test->submissions->where('status', 'published')->count(),
+                ];
+            });
+
+        return Inertia::render('dashboard/teacherDashboard/Tests/Index', [
+            'tests' => $tests
+        ]);
+    }
+
     // ... other teacher controller methods ...
     public function showGradingPage()
     {

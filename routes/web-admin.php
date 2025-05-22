@@ -8,6 +8,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
  
     // --- Inertia Page Routes (GET requests render components) ---
 
+    // Route for the Admin Dashboard home page
+    Route::get('/', [AdminController::class, 'showHomePage'])->name('admin.home');
+
     // Route for the Admin Dashboard landing page (e.g., Student List)
     // The DashboardRedirectController already handles the initial redirect to this page
     // when an admin logs in via the main login form.

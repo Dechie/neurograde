@@ -141,7 +141,76 @@ export interface Test {
   submissions?: Submission[];
   class_name: string;
 }
+export interface PageProps {
+  auth: {
+    user: {
+      id: number;
+      name: string;
+      email: string;
+    };
+  };
+}
 
+export interface AdminHomePageProps extends PageProps {
+  authUser: {
+    name: string;
+  };
+  studentPerDept: Array<{
+    name: string;
+    value: number;
+  }>;
+  students: Array<{
+    id: number;
+    user: {
+      first_name: string;
+      last_name: string;
+      email: string;
+    };
+    classes: Array<{
+      id: number;
+      name: string;
+    }>;
+    department: {
+      id: number;
+      name: string;
+    };
+  }>;
+  teachers: Array<{
+    id: number;
+    user: {
+      first_name: string;
+      last_name: string;
+      email: string;
+    };
+    classes: Array<{
+      id: number;
+      name: string;
+    }>;
+    department: {
+      id: number;
+      name: string;
+    };
+  }>;
+  classes: Array<{
+    id: number;
+    name: string;
+    department: {
+      id: number;
+      name: string;
+    };
+    students: Array<{
+      id: number;
+    }>;
+    teachers: Array<{
+      id: number;
+    }>;
+  }>;
+  assignedTeacherCount: number;
+  unassignedTeacherCount: number;
+  assignedStudentCount: number;
+  unassignedStudentCount: number;
+  [key: string]: any;
+} 
 export interface Submission {
   id: number;
   test_id: number;
@@ -297,4 +366,65 @@ export interface HomeProps {
     upcomingTests: Test[];
     recentResults: TestResult[];
     statistics: Statistics;
+}
+
+export interface AdminHomePageProps extends PageProps {
+  authUser: {
+    name: string;
+  };
+  studentPerDept: Array<{
+    name: string;
+    value: number;
+  }>;
+  students: Array<{
+    id: number;
+    user: {
+      first_name: string;
+      last_name: string;
+      email: string;
+    };
+    classes: Array<{
+      id: number;
+      name: string;
+    }>;
+    department: {
+      id: number;
+      name: string;
+    };
+  }>;
+  teachers: Array<{
+    id: number;
+    user: {
+      first_name: string;
+      last_name: string;
+      email: string;
+    };
+    classes: Array<{
+      id: number;
+      name: string;
+    }>;
+    department: {
+      id: number;
+      name: string;
+    };
+  }>;
+  classes: Array<{
+    id: number;
+    name: string;
+    department: {
+      id: number;
+      name: string;
+    };
+    students: Array<{
+      id: number;
+    }>;
+    teachers: Array<{
+      id: number;
+    }>;
+  }>;
+  assignedTeacherCount: number;
+  unassignedTeacherCount: number;
+  assignedStudentCount: number;
+  unassignedStudentCount: number;
+  [key: string]: any; // Add index signature
 }
