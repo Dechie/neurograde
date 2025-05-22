@@ -7,6 +7,7 @@ use App\Models\AiGradingResult;
 use App\Http\Controllers\StudentController;
 
 Route::middleware(['auth', 'role:student'])->prefix('student')->group(function () {
+    Route::get('/dashboard', [StudentController::class, 'dashboard'])->name('student.dashboard');
     Route::get('/results', [StudentController::class, 'getResults'])->name('student.results');
     Route::get('/tests', [StudentController::class, 'showTests'])->name('student.tests');
     Route::get('/tests/{id}', [StudentController::class, 'showTest'])->name('student.tests.show');

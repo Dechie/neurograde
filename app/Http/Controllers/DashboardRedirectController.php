@@ -16,16 +16,89 @@ class DashboardRedirectController extends Controller
         } elseif (auth()->user()->hasRole("teacher")){
             return Inertia::render('dashboard/teacherDashboard/CreateExam');
         } elseif (auth()->user()->hasRole('student')){
-            $user = auth()->user()->load('student.department');
+            $user = auth()->user()->load(['student.department', 'student.classes']);
             
             // Check if student is pending
             if ($user->student->status === 'pending') {
                 return redirect()->route('student.waiting');
             }
-                
-            $upcomingTests = Test::all();
+
+            // Get the student's first class
+            $class = $user->student->classes->first();
             
-            $recentResults = AiGradingResult::all();
+            if (!$class) {
+                return Inertia::render('dashboard/studentDashboard/Home', [
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->first_name . ' ' . $user->last_name,
+                        'email' => $user->email,
+                        'student' => [
+                            'id_number' => $user->student->id_number,
+                            'academic_year' => $user->student->academic_year,
+                            'department' => $user->student->department->name ?? 'Unknown',
+                            'class' => null,
+                        ]
+                    ],
+                    'upcomingTests' => [],
+                    'recentResults' => [],
+                    'statistics' => [
+                        'total_tests' => 0,
+                        'completed_tests' => 0,
+                        'pending_submissions' => 0,
+                        'average_score' => 0,
+                    ],
+                ]);
+            }
+                
+            // Get tests for student's class that are not past due date
+            $tests = Test::where('class_id', $class->id)
+                ->where('published', true)
+                ->where('due_date', '>', now())
+                ->with([
+                    'class.department',
+                    'teacher.user',
+                    'submissions' => function($query) use ($user) {
+                        $query->where('student_id', $user->student->id);
+                    }
+                ])
+                ->get();
+
+            \Log::info('Tests query', [
+                'class_id' => $class->id,
+                'count' => $tests->count(),
+                'tests' => $tests->map(function($test) {
+                    return [
+                        'id' => $test->id,
+                        'title' => $test->title,
+                        'due_date' => $test->due_date,
+                        'published' => $test->published,
+                        'submissions_count' => $test->submissions->count()
+                    ];
+                })->toArray()
+            ]);
+
+            // Filter out tests that the student has already submitted
+            $upcomingTests = $tests->filter(function($test) {
+                return $test->submissions->isEmpty();
+            })->map(function($test) {
+                return [
+                    'id' => $test->id,
+                    'title' => $test->title,
+                    'due_date' => $test->due_date->format('Y-m-d H:i:s'),
+                    'class_name' => $test->class->name,
+                ];
+            })->values();
+
+            \Log::info('Filtered upcoming tests', [
+                'count' => $upcomingTests->count(),
+                'tests' => $upcomingTests->toArray()
+            ]);
+            
+            $recentResults = AiGradingResult::whereHas('submission', function($query) use ($user) {
+                    $query->where('student_id', $user->student->id);
+                })
+                ->with(['submission.test'])
+                ->get();
                 
             // Transform the results for the frontend
             $formattedResults = $recentResults->map(function($result) {
@@ -46,6 +119,16 @@ class DashboardRedirectController extends Controller
                 ];
             });
 
+            // Calculate statistics
+            $statistics = [
+                'total_tests' => $upcomingTests->count(),
+                'completed_tests' => $recentResults->count() ?? 0,
+                'pending_submissions' => $tests->filter(function($test) {
+                    return !$test->submissions->isEmpty() && $test->submissions->first()->status === 'pending';
+                })->count() ?? 0,
+                'average_score' => round($recentResults->avg('graded_value') ?? 0, 1),
+            ];
+
             // Return the student dashboard page with necessary data
             return Inertia::render('dashboard/studentDashboard/Home', [
                     'user' => [
@@ -55,11 +138,16 @@ class DashboardRedirectController extends Controller
                         'student' => [
                             'id_number' => $user->student->id_number,
                             'academic_year' => $user->student->academic_year,
-                            'department' => $user->student->department->name ?? 'Unknown'
+                            'department' => $user->student->department->name ?? 'Unknown',
+                            'class' => $class ? [
+                                'name' => $class->name,
+                                'department' => $class->department->name,
+                            ] : null,
                         ]
                     ],
-                    'upcomingTests' => $upcomingTests->toArray(), // Ensure this is an array
-                    'recentResults' => $formattedResults->toArray(), // Ensure this is a simple array
+                    'upcomingTests' => $upcomingTests->toArray(),
+                    'recentResults' => $formattedResults->toArray(),
+                    'statistics' => $statistics,
             ]); 
         }
     }

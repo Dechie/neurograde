@@ -24,13 +24,17 @@ export interface SharedData {
 // Assuming your User model has first_name and last_name
 export interface User {
     id: number;
-    first_name: string;
-    last_name: string;
+    name: string;
     email: string;
-    email_verified_at: string | null;
-    created_at: string;
-    updated_at: string;
-    // Add any other common user attributes
+    student: {
+        id_number: string;
+        academic_year: string;
+        department: string;
+        class: {
+            name: string;
+            department: string;
+        } | null;
+    };
 }
 
 export interface Department {
@@ -135,6 +139,7 @@ export interface Test {
     name: string;
   };
   submissions?: Submission[];
+  class_name: string;
 }
 
 export interface Submission {
@@ -269,3 +274,27 @@ export interface StudentRegistrationPageProps extends PageProps {
 // export interface AdminDashboardCreateTeacherPageProps extends PageProps {
 //     departments: Department[];
 // }
+
+export interface TestResult {
+    id: number;
+    test: {
+        title: string;
+    };
+    score: number | null;
+    status: string;
+    submission_date: string;
+}
+
+export interface Statistics {
+    total_tests: number;
+    completed_tests: number;
+    pending_submissions: number;
+    average_score: number;
+}
+
+export interface HomeProps {
+    user: User;
+    upcomingTests: Test[];
+    recentResults: TestResult[];
+    statistics: Statistics;
+}

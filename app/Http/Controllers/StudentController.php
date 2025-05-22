@@ -26,38 +26,39 @@ class StudentController extends Controller
     /**
      * Show the student results page.
      */
-    public function getResults(): Response // Specify return type
+    public function getResults(): Response
     {
-        $user = auth()->user()->load('student'); // Load the student relationship
+        $user = auth()->user()->load('student');
+        $student = $user->student;
 
-        // Fetch AI grading results for submissions made by this student
-        $recentResults = AiGradingResult::whereHas('submission', function($query) use ($user) {
-            $query->where('student_id', $user->student->id); // Filter submissions by the authenticated student's ID
-        })
-        ->with(['submission.test']) // Eager load submission and its test
-        ->orderBy('created_at', 'desc')
-        ->take(5) // Limit to recent results
-        ->get();
+        // Fetch submissions with their related data
+        $submissions = Submission::where('student_id', $student->id)
+            ->with([
+                'test',
+                'aiGradingResults' => function($query) {
+                    $query->latest();
+                }
+            ])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         // Format the results for the frontend
-        $formattedResults = $recentResults->map(function($result) {
-             // Ensure relationships are loaded if needed here (e.g., $result->submission->load('test'))
-             // if not already loaded by default or in the initial query
+        $formattedResults = $submissions->map(function($submission) {
+            $latestAiResult = $submission->aiGradingResults->first();
+            
             return [
-                'id' => $result->id,
+                'id' => $submission->id,
                 'test' => [
-                    'id' => $result->submission->test->id ?? null, // Use null coalescing for safety
-                    'title' => (string)($result->submission->test->title ?? 'N/A'),
+                    'id' => $submission->test->id,
+                    'title' => $submission->test->title,
                 ],
-                'score' => (float)($result->graded_value ?? 0),
-                'comment' => (string)($result->comment ?? ''),
-                // Convert metrics to a simple array if it's not already
-                'metrics' => is_string($result->metrics) ? json_decode($result->metrics, true) : (array)($result->metrics ?? []),
-                // Assuming submission_date is a Carbon instance or similar
-                'submission_date' => $result->submission->created_at ? $result->submission->created_at->format('Y-m-d H:i:s') : 'N/A', // Use created_at or a dedicated submission_date field
-                'status' => (string)($result->submission->status ?? 'Unknown'),
+                'score' => $submission->status === 'published' ? $submission->final_grade : null,
+                'comment' => $submission->status === 'published' ? $submission->teacher_feedback : null,
+                'metrics' => $latestAiResult ? json_decode($latestAiResult->metrics, true) : null,
+                'submission_date' => $submission->created_at->format('Y-m-d H:i:s'),
+                'status' => $submission->status,
             ];
-        })->toArray(); // Convert to array
+        })->toArray();
 
         return Inertia::render('dashboard/studentDashboard/Results', [
             'results' => $formattedResults
@@ -359,57 +360,123 @@ class StudentController extends Controller
     {
         $student = auth()->user()->student;
         
-        // Get tests for the student's class
+        \Log::info('Student data', [
+            'student_id' => $student->id,
+            'class_id' => $student->class_id,
+            'department_id' => $student->department_id
+        ]);
+
+        // Get tests for student's class that are not past due date
         $tests = Test::where('class_id', $student->class_id)
             ->where('published', true)
-            ->with(['class.department', 'teacher.user'])
-            ->get()
-            ->map(function ($test) use ($student) {
-                $submission = $test->submissions()
-                    ->where('student_id', $student->id)
-                    ->first();
+            ->where('due_date', '>', now())
+            ->with([
+                'class.department',
+                'teacher.user',
+                'submissions' => function($query) use ($student) {
+                    $query->where('student_id', $student->id);
+                }
+            ])
+            ->get();
 
+        \Log::info('Initial tests query', [
+            'count' => $tests->count(),
+            'tests' => $tests->map(function($test) {
                 return [
                     'id' => $test->id,
                     'title' => $test->title,
-                    'dueDate' => $test->due_date ? $test->due_date->format('Y-m-d H:i:s') : null,
-                    'status' => $test->status,
-                    'class' => $test->class ? [
-                        'id' => $test->class->id,
-                        'name' => $test->class->name,
-                        'department' => $test->class->department->name ?? 'N/A'
-                    ] : null,
-                    'teacher' => $test->teacher ? [
-                        'id' => $test->teacher->id,
-                        'name' => $test->teacher->user->first_name . ' ' . $test->teacher->user->last_name
-                    ] : null,
-                    'submission' => $submission ? [
-                        'id' => $submission->id,
-                        'status' => $submission->status,
-                        'created_at' => $submission->created_at ? $submission->created_at->format('Y-m-d H:i:s') : null,
-                        'grade' => $submission->grade ? [
-                            'graded_value' => $submission->grade->graded_value,
-                            'adjusted_grade' => $submission->grade->adjusted_grade,
-                            'comments' => $submission->grade->comments
-                        ] : null,
-                        'feedback' => $submission->feedback ? [
-                            'feedback_text' => $submission->feedback->feedback_text
-                        ] : null,
-                    ] : null,
+                    'class_id' => $test->class_id,
+                    'due_date' => $test->due_date,
+                    'published' => $test->published,
+                    'submissions_count' => $test->submissions->count()
                 ];
-            });
+            })->toArray()
+        ]);
 
-        return Inertia::render('dashboard/studentDashboard/StudentDashboard', [
-            'tests' => $tests,
-            'student' => [
+        // Filter out tests that the student has already submitted
+        $upcomingTests = $tests->filter(function($test) {
+            $isEmpty = $test->submissions->isEmpty();
+            \Log::info('Test submission check', [
+                'test_id' => $test->id,
+                'has_submissions' => !$isEmpty,
+                'submissions_count' => $test->submissions->count()
+            ]);
+            return $isEmpty;
+        })->map(function($test) {
+            return [
+                'id' => $test->id,
+                'title' => $test->title,
+                'due_date' => $test->due_date->format('Y-m-d H:i:s'),
+                'class_name' => $test->class->name,
+            ];
+        })->values();
+
+        \Log::info('Filtered upcoming tests', [
+            'count' => $upcomingTests->count(),
+            'tests' => $upcomingTests->toArray()
+        ]);
+
+        // Get all submissions for this student
+        $submissions = Submission::where('student_id', $student->id)
+            ->with(['test', 'aiGradingResults'])
+            ->get();
+
+        \Log::info('Student submissions', [
+            'count' => $submissions->count(),
+            'submissions' => $submissions->map(function($submission) {
+                return [
+                    'id' => $submission->id,
+                    'test_id' => $submission->test_id,
+                    'status' => $submission->status
+                ];
+            })->toArray()
+        ]);
+
+        // Calculate statistics with default values
+        $statistics = [
+            'total_tests' => $tests->count() ?? 0,
+            'completed_tests' => $submissions->where('status', '!=', 'pending')->count() ?? 0,
+            'pending_submissions' => $submissions->where('status', 'pending')->count() ?? 0,
+            'average_score' => round($submissions
+                ->where('status', 'published')
+                ->avg('final_grade') ?? 0, 1),
+        ];
+
+        // Get recent results (last 5 submissions)
+        $recentResults = $submissions
+            ->sortByDesc('created_at')
+            ->take(5)
+            ->map(function($submission) {
+                return [
+                    'id' => $submission->id,
+                    'test' => [
+                        'title' => $submission->test->title,
+                    ],
+                    'score' => $submission->final_grade,
+                    'status' => $submission->status,
+                    'submission_date' => $submission->created_at->format('Y-m-d H:i:s'),
+                ];
+            })
+            ->values();
+
+        return Inertia::render('dashboard/studentDashboard/Home', [
+            'user' => [
                 'id' => $student->id,
                 'name' => $student->user->first_name . ' ' . $student->user->last_name,
-                'class' => $student->class ? [
-                    'id' => $student->class->id,
-                    'name' => $student->class->name,
-                    'department' => $student->class->department->name ?? 'N/A'
-                ] : null,
-            ]
+                'email' => $student->user->email,
+                'student' => [
+                    'id_number' => $student->id_number,
+                    'academic_year' => $student->academic_year,
+                    'department' => $student->department->name,
+                    'class' => $student->class ? [
+                        'name' => $student->class->name,
+                        'department' => $student->class->department->name,
+                    ] : null,
+                ],
+            ],
+            'upcomingTests' => $upcomingTests,
+            'recentResults' => $recentResults,
+            'statistics' => $statistics,
         ]);
     }
 
