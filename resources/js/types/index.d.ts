@@ -54,6 +54,17 @@ export interface ClassRoom {
     students?: Student[]; // Assuming students relationship on ClassRoom
 }
 
+export type LoginForm = {
+    email?: string;
+    name?: string;
+    password: string;
+    remember: boolean;
+};
+
+export interface LoginProps {
+    status?: string;
+    canResetPassword: boolean;
+}
 export interface Student {
     id: number;
     user: {

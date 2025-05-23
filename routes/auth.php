@@ -23,7 +23,7 @@ Route::post('login', [AuthenticatedSessionController::class, 'store'])->name('lo
 
 // these two separately for admin login
 Route::prefix('admin')->group(function() {
-    Route::get('login', [AdminController::class, 'showLogin'])->name('admin-login');
+    Route::get('authorize', [AdminController::class, 'showLogin'])->name('admin-login');
     Route::post('store', [AdminController::class, 'login'])->name('admin-store');
 });
 

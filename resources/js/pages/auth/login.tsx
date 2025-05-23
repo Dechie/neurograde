@@ -11,7 +11,7 @@ import { EyeIcon, EyeOffIcon, LoaderCircle } from 'lucide-react';
 import { FormEventHandler, useState, useEffect } from 'react'; // Import useEffect
 import { type LoginForm, LoginProps } from '@/types'; // Assuming LoginForm from types file
 
-// Define the specific type for the form data
+// Define the specific type for the form data 
 // It includes email, password, remember, and the 'role' field
 type LoginFormWithRole = {
     email: string; // Assuming email is always required based on your backend rules
@@ -263,3 +263,4 @@ export default function Login({ status, canResetPassword }: LoginProps) {
         </div>
     );
 }
+
