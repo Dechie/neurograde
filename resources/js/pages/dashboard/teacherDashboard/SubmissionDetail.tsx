@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { AppLayout } from '@/layouts/dashboard/teacherDashboard/teacherDashoboardLayout';
 import { Head } from '@inertiajs/react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useForm } from '@inertiajs/react';
+import { AppLayout } from '@/layouts/dashboard/teacherDashboard/teacherDashboardLayout';
 
 interface Grade {
     id: number;

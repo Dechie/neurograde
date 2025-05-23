@@ -1,5 +1,5 @@
 import { GradingPage } from '@/components/dashboard/teacherDashboard/Grading';
-import { AppLayout } from "@/layouts/dashboard/teacherDashboard/teacherDashoboardLayout";
+import { AppLayout } from '@/layouts/dashboard/teacherDashboard/teacherDashboardLayout';
 import { PageProps } from '@/types';
 
 interface Test {
