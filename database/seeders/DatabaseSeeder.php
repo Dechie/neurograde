@@ -23,7 +23,7 @@ class DatabaseSeeder extends Seeder
             DepartmentSeeder::class,
             AdminSeeder::class,
             UsersSeeder::class,
-            ClassRoomSeeder::class,
+            //ClassRoomSeeder::class,
             TestAndSubmissionSeeder::class,
             DepartmentStructureSeeder::class,
         ]);

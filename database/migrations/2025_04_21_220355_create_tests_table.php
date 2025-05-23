@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId("department_id")->after('teacher_id')->constrained()->onDelete('cascade');
             $table->foreignId("class_id")->constrained("classes");
             $table->string("title");
-            $table->text("problem_statement");
+            $table->longtext("problem_statement");
             $table->enum("status", ['Upcoming', 'Done']);
             $table->date("due_date");
             $table->timestamp('published_at')->nullable();

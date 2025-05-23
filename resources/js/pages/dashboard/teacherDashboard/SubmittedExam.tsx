@@ -1,5 +1,5 @@
 import { SubmittedExams } from '@/components/dashboard/teacherDashboard/SubmittedExams';
-import { AppLayout } from '@/layouts/dashboard/teacherDashboard/teacherDashoboardLayout';
+import { AppLayout } from '@/layouts/dashboard/teacherDashboard/teacherDashboardLayout';
 import { Head } from '@inertiajs/react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 

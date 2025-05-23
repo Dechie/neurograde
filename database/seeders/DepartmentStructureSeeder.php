@@ -40,6 +40,9 @@ class DepartmentStructureSeeder extends Seeder
                     'max_students' => 30,
                     'created_by' => 1
                 ]);
+                for ($i = 0; $i<=4; $i++) {
+                     
+                }
             }
         }
     }
