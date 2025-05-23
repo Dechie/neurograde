@@ -1,8 +1,9 @@
 import { CreateExamForm } from "@/components/dashboard/teacherDashboard/CreateExamForm"; // Ensure path is correct
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AppLayout } from "@/layouts/dashboard/teacherDashboard/teacherDashoboardLayout"; // Ensure path is correct
+
 import { usePage } from "@inertiajs/react"; // Import usePage
 import {  PageProps, ClassRoom, Teacher, CreateExamPageProps } from "@/types/index"; // Import necessary types
+import { AppLayout } from "@/layouts/dashboard/teacherDashboard/teacherDashboardLayout";
 
 export default function CreateExamPage() {
   // Access the classes prop passed from the controller using usePage

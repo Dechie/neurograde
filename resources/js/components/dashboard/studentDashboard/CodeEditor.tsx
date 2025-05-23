@@ -113,9 +113,10 @@ interface CodeEditorProps {
     testId: number;
     questionId: number;
     language?: 'cpp' | 'python';
+    className?: string;
 }
 
-export function CodeEditor({ initialCode, testId, questionId, language: initialLanguage = 'cpp' }: CodeEditorProps) {
+export function CodeEditor({ initialCode, testId, questionId, language: initialLanguage = 'cpp' ,className = '' }: CodeEditorProps) {
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedLanguage, setSelectedLanguage] = useState<'cpp' | 'python'>(initialLanguage);
@@ -314,7 +315,7 @@ export function CodeEditor({ initialCode, testId, questionId, language: initialL
     };
 
     return (
-        <form onSubmit={handleSubmit} method="POST" className="border-muted overflow-hidden rounded-xl border bg-white shadow">
+        <form onSubmit={handleSubmit} method="POST" className={`border-muted overflow-hidden rounded-xl border bg-white shadow ${className}`}>
             <div className="border-b border-gray-200 bg-gray-50 px-4 py-2">
                 <div className="flex items-center space-x-4">
                     <span className="text-sm font-medium text-gray-700">Language:</span>

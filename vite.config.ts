@@ -22,4 +22,12 @@ export default defineConfig({
             'ziggy-js': resolve(__dirname, 'vendor/tightenco/ziggy'),
         },
     },
+    optimizeDeps: {
+    include: [
+      'react-markdown',
+      'react-syntax-highlighter',
+      'react-syntax-highlighter/dist/cjs/styles/prism'
+    ],
+    force: true
+  }
 });
