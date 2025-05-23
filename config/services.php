@@ -36,7 +36,8 @@ return [
     ],
 
     'ml' => [
-        'base_url' => env('ML_API_URL', 'http://localhost:5000'),
+        //'base_url' => env('ML_API_URL', 'http://localhost:5000'),
+        'base_url' => env('ML_API_URL', 'https://eulmelk-neurograde-ml-module.hf.space/'),
     ],
 
 ];
