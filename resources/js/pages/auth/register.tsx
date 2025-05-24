@@ -42,38 +42,21 @@ export default function SignupForm() {
 
     return (
         <div className="from-background to-muted fixed inset-0 overflow-y-auto bg-gradient-to-br">
-            <div className="flex min-h-screen w-full items-center justify-center p-2 sm:p-4">
-                <Card className="flex w-full max-w-[90%] flex-col items-center justify-center overflow-hidden shadow-xl sm:max-w-3xl md:max-w-4xl md:flex-row">
-                    <div className="flex w-full md:w-1/2">
-                        <img
-                            src={studentImage}
-                            className={`h-60 w-full rounded-lg object-contain transition-opacity md:h-full ${
-                                imageLoaded ? 'opacity-100' : 'opacity-0'
-                            }`}
-                            onLoad={() => {
-                                setImageLoaded(true);
-                                console.log(`Loaded image: ${studentImage}`);
-                            }}
-                            onError={(e) => {
-                                console.error(`Failed to load image: ${studentImage}`);
-                                e.currentTarget.src = 'https://via.placeholder.com/1350x900?text=Student+Image+Not+Found';
-                                setImageLoaded(true);
-                            }}
-                            alt="Student illustration"
-                        />
-                    </div>
-                    <div className="flex w-full flex-col md:w-1/2">
-                        <CardHeader className="space-y-2 px-6 pt-6 text-center sm:px-8 sm:pt-8">
+            {/* <div className="h-screen w-full p-4 sm:p-6 md:p-10"> */}
+                <Card className="h-screen  my-4 mx-auto w-full max-w-2xl overflow-hidden bg-white shadow-xl">
+                    <div className="flex w-full flex-col px-6 py-2 sm:px-10 md:px-16">
+                        <CardHeader className="mb-3 space-y-2">
                             <CardTitle className="text-primary text-2xl font-bold sm:text-3xl">Create a Student Account</CardTitle>
                             <CardDescription className="text-muted-foreground text-sm sm:text-base">
                                 Enter your details to sign up as a student
                             </CardDescription>
                         </CardHeader>
-                        <form onSubmit={handleSubmit}>
-                            <CardContent className="flex-1 space-y-6 px-6 py-6 sm:space-y-8 sm:px-8 sm:py-8">
-                                <div className="space-y-3 sm:space-y-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="first_name">First Name</Label>
+
+                        <form onSubmit={handleSubmit} className="w-full">
+                            <CardContent className="space-y-8">
+                                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                    <div className="flex flex-col">
+                                        <Label htmlFor="first_name" className="mb-2">First Name</Label>
                                         <Input
                                             id="first_name"
                                             name="first_name"
@@ -82,10 +65,11 @@ export default function SignupForm() {
                                             type="text"
                                             required
                                         />
-                                        {errors.first_name && <div> {errors.first_name} </div>}
+                                        {errors.first_name && <div>{errors.first_name}</div>}
                                     </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="last name">Last Name</Label>
+
+                                    <div className="flex flex-col">
+                                        <Label htmlFor="last_name" className="mb-2">Last Name</Label>
                                         <Input
                                             id="last_name"
                                             name="last_name"
@@ -96,94 +80,29 @@ export default function SignupForm() {
                                         />
                                         {errors.last_name && <div>{errors.last_name}</div>}
                                     </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="email">Email</Label>
+
+                                    <div className="flex flex-col">
+                                        <Label htmlFor="email" className="mb-2">Email</Label>
                                         <Input
                                             id="email"
                                             name="email"
                                             value={data.email}
                                             onChange={(e) => setData('email', e.target.value)}
-                                            type="text"
+                                            type="email"
                                             required
                                         />
                                         {errors.email && <div>{errors.email}</div>}
                                     </div>
-                                    <div className="space-y-3">
-                                        <Label htmlFor="password">Password</Label>
-                                        <div className="relative">
-                                            <Input
-                                                id="password"
-                                                name="password"
-                                                type={showPassword ? 'text' : 'password'}
-                                                value={data.password}
-                                                onChange={(e) => setData('password', e.target.value)}
-                                                required
-                                                className="pr-10"
-                                            />
-                                            <button
-                                                type="button"
-                                                className="text-muted-foreground absolute top-1/2 right-3 -translate-y-1/2"
-                                                onClick={() => setShowPassword(!showPassword)}
-                                            >
-                                                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
-                                            </button>
-                                            {errors.password && <div>{errors.password}</div>}
-                                        </div>
-                                    </div>
-                                    <div className="space-y-3">
-                                        <div className="relative">
-                                            <Label htmlFor="password_confirmation">Confirm Password</Label>
-                                            <Input
-                                                id="password_confirmation"
-                                                name="password_confirmation"
-                                                value={data.password_confirmation}
-                                                onChange={(e) => setData('password_confirmation', e.target.value)}
-                                                type={showConfirmPassword ? 'text' : 'password'}
-                                                required
-                                            />
-                                            <button
-                                                type="button"
-                                                className="text-muted-foreground absolute top-2/3 right-3 -translate-y-1/2"
-                                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                            >
-                                                {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
-                                            </button>
-                                            {errors.password_confirmation && <div>{errors.password_confirmation}</div>}
-                                        </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="id_number">ID Number</Label>
-                                        <Input
-                                            id="id_number"
-                                            name="id_number"
-                                            value={data.id_number}
-                                            onChange={(e) => setData('id_number', e.target.value)}
-                                            type="text"
-                                            required
-                                        />
-                                        {errors.id_number && <div>{errors.id_number}</div>}
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="academic_year">Academic Year</Label>
-                                        <Input
-                                            id="academic_year"
-                                            name="academic_year"
-                                            value={data.academic_year}
-                                            onChange={(e) => setData('academic_year', e.target.value)}
-                                            type="text"
-                                            required
-                                        />
-                                        {errors.academic_year && <div>{errors.academic_year}</div>}
-                                    </div>
-                                    <div className="space-y-w">
-                                        <Label htmlFor="department_id">Department</Label>
+
+                                    <div className="flex flex-col">
+                                        <Label htmlFor="department_id" className="mb-2">Department</Label>
                                         <select
                                             id="department_id"
-                                            name="department_id"
+                                            name="department"
                                             value={data.department}
                                             required
                                             onChange={(e) => setData('department', e.target.value)}
-                                            className="bordr w-full rounded bg-white px-3 py-2 text-sm"
+                                            className="w-full rounded border px-3 py-2 text-sm"
                                         >
                                             <option value="">Select Department</option>
                                             {departments?.map((dept) => (
@@ -194,30 +113,94 @@ export default function SignupForm() {
                                         </select>
                                         {errors.department && <div>{errors.department}</div>}
                                     </div>
+
+                                    <div className="flex flex-col">
+                                        <Label htmlFor="id_number" className="mb-2">ID Number</Label>
+                                        <Input
+                                            id="id_number"
+                                            name="id_number"
+                                            value={data.id_number}
+                                            onChange={(e) => setData('id_number', e.target.value)}
+                                            type="text"
+                                            required
+                                        />
+                                        {errors.id_number && <div>{errors.id_number}</div>}
+                                    </div>
+
+                                    <div className="flex flex-col">
+                                        <Label htmlFor="academic_year" className="mb-2">Academic Year</Label>
+                                        <Input
+                                            id="academic_year"
+                                            name="academic_year"
+                                            value={data.academic_year}
+                                            onChange={(e) => setData('academic_year', e.target.value)}
+                                            type="text"
+                                            required
+                                        />
+                                        {errors.academic_year && <div>{errors.academic_year}</div>}
+                                    </div>
+
+                                    <div className="relative flex flex-col">
+                                        <Label htmlFor="password" className="mb-2">Password</Label>
+                                        <Input
+                                            id="password"
+                                            name="password"
+                                            type={showPassword ? 'text' : 'password'}
+                                            value={data.password}
+                                            onChange={(e) => setData('password', e.target.value)}
+                                            required
+                                        />
+                                        <button
+                                            type="button"
+                                            className="text-muted-foreground absolute top-7 right-3"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                        >
+                                            {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                                        </button>
+                                        {errors.password && <div>{errors.password}</div>}
+                                    </div>
+
+                                    <div className="relative flex flex-col">
+                                        <Label htmlFor="password_confirmation" className='mb-2'>Confirm Password</Label>
+                                        <Input
+                                            id="password_confirmation"
+                                            name="password_confirmation"
+                                            type={showConfirmPassword ? 'text' : 'password'}
+                                            value={data.password_confirmation}
+                                            onChange={(e) => setData('password_confirmation', e.target.value)}
+                                            required
+                                        />
+                                        <button
+                                            type="button"
+                                            className="text-muted-foreground absolute top-7 right-3"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        >
+                                            {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
+                                        </button>
+                                        {errors.password_confirmation && <div>{errors.password_confirmation}</div>}
+                                    </div>
                                 </div>
-                                <div className="flex items-center space-x-2 pt-4">
+
+                                <div className="flex items-center space-x-2 pt-1">
                                     <Checkbox id="terms" required />
                                     <label htmlFor="terms" className="text-muted-foreground text-sm leading-none">
                                         I agree to the{' '}
-                                        <Link href="/terms" className="text-primary underline">
-                                            Terms of Service
-                                        </Link>{' '}
+                                        <Link href="/terms" className="text-primary underline">Terms of Service</Link>{' '}
                                         and{' '}
-                                        <Link href="/privacy" className="text-primary underline">
-                                            Privacy Policy
-                                        </Link>
+                                        <Link href="/privacy" className="text-primary underline">Privacy Policy</Link>
                                     </label>
                                 </div>
                             </CardContent>
-                            <CardFooter className="flex flex-col space-y-4 px-6 pb-6 sm:px-8 sm:pb-8">
+
+                            <CardFooter className="mt-4 flex flex-col space-y-4">
                                 <Button
                                     type="submit"
                                     disabled={processing}
-                                    className="!bg-primary hover:!bg-secondary !text-primary-foreground h-11 w-full font-medium"
+                                    className="bg-primary hover:bg-secondary h-11 w-full font-medium text-white"
                                 >
                                     Create Account
                                 </Button>
-                                <div className="text-muted-foreground pt-2 text-center text-sm">
+                                <div className="text-muted-foreground text-center text-sm">
                                     Already have an account?{' '}
                                     <Link
                                         href={route('login')}
@@ -231,6 +214,6 @@ export default function SignupForm() {
                     </div>
                 </Card>
             </div>
-        </div>
+        // </div>
     );
 }
