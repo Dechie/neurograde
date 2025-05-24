@@ -25,7 +25,7 @@ class AdminController extends Controller
     // --- Admin Login/Logout (Remain as is, handled separately) ---
     public function showAdminHome(): Response
     {
-        return Inertia::render('dashboard/studentDashboard/Home');
+        return Inertia::render('dashboard/adminDashboard/Home');
     }
 
     public function showLogin(Request $request): Response
