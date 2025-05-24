@@ -35,16 +35,14 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Mobile Button (Menu / Close) */}
       {isMobile && (
-        <div className={`fixed z-50 md:hidden ${isMobileOpen ? 'top-2 left-52' : 'top-2 left-2'}`}>
+        <div className={`fixed z-50 md:hidden ${isMobileOpen ? 'top-2 left-52' : 'top-2 left-2 h-screen'}`}>
           <Button variant="outline" size="icon" onClick={toggleMobile}>
             {isMobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
         </div>
       )}
 
-      {/* Sidebar */}
       <aside
         className={`transition-all duration-300 ease-in-out border-r bg-white flex flex-col
         ${isMobile ? 'fixed top-0 left-0 z-40 h-full w-full' : 'sticky top-0'}
@@ -56,7 +54,6 @@ export function Sidebar() {
             ? 'w-16'
             : 'w-64'}`}
       >
-        {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center gap-2">
             <div className="bg-primary text-primary-foreground flex h-8 w-8 items-center justify-center rounded">
@@ -71,9 +68,10 @@ export function Sidebar() {
           )}
         </div>
 
-        {/* Navigation */}
         <TooltipProvider>
-          <nav className="flex-1 overflow-y-auto p-2 space-y-1">
+          <nav className="flex-1 p-2">
+            <div className="flex h-full flex-col">
+                            <div className="space-y-1">
             {MENU_ITEMS.map((item) => (
               <Tooltip key={item.path} delayDuration={300}>
                 <TooltipTrigger asChild>
@@ -91,10 +89,12 @@ export function Sidebar() {
                 {isCollapsed && !isMobile && <TooltipContent side="right">{item.label}</TooltipContent>}
               </Tooltip>
             ))}
+            </div>
+            </div>
           </nav>
 
           {/* Footer items at bottom */}
-          <div className="p-2 mt-auto space-y-1">
+          {/* <div className="p-2 mt-auto space-y-1">
             {FOOTER_ITEMS.map((item) => (
               <Tooltip key={item.path} delayDuration={300}>
                 <TooltipTrigger asChild>
@@ -112,7 +112,7 @@ export function Sidebar() {
                 {isCollapsed && !isMobile && <TooltipContent side="right">{item.label}</TooltipContent>}
               </Tooltip>
             ))}
-          </div>
+          </div> */}
         </TooltipProvider>
       </aside>
     </>

@@ -7,7 +7,7 @@ import {
     ChevronLeft,
     ChevronRight,
     FileText,
-    LayoutList, // Added relevant icons
+    LayoutList, 
     LifeBuoy,
     Menu,
     Settings,
@@ -15,29 +15,22 @@ import {
     UserX,
     Users,
     X,
-} from 'lucide-react'; // Import necessary icons
+} from 'lucide-react';
 import { route } from 'ziggy-js';
 
-// Updated MENU_ITEMS based on admin routes
 const MENU_ITEMS = [
-    // You might want a main admin dashboard home route, but if not,
-    // the first item could be a key list page, e.g., Student List
     { path: route('admin.students.index'), label: 'Student List', icon: Users },
-    { path: route('admin.teachers.index'), label: 'Teacher List', icon: LayoutList }, // Using LayoutList for a list view
-    { path: route('admin.teachers.create'), label: 'Register Teacher', icon: UserPlus }, // Using UserPlus for adding a user
-    { path: route('admin.classes.create'), label: 'Create Class', icon: BookOpen }, // Using BookOpen for creating something educational
-    // Include Unassigned Students if it's a distinct page in the sidebar
-    { path: route('admin.students.unassigned'), label: 'Unassigned Students', icon: UserX }, // Using UserX for unassigned users
-    // Add a general Admin Dashboard Home if you have one, e.g.:
-    // { path: route('admin.dashboard.home'), label: 'Admin Home', icon: Home },
+    { path: route('admin.teachers.index'), label: 'Teacher List', icon: LayoutList }, 
+    { path: route('admin.teachers.create'), label: 'Register Teacher', icon: UserPlus },
+    { path: route('admin.classes.create'), label: 'Create Class', icon: BookOpen }, 
+    { path: route('admin.students.unassigned'), label: 'Unassigned Students', icon: UserX }, 
 ];
 
 const FOOTER_ITEMS = [
-    { path: '/help', label: 'Help & Center', icon: LifeBuoy }, // Assuming '/help' is a valid route
-    { path: '/settings', label: 'Settings', icon: Settings }, // Assuming '/settings' is a valid route
+    { path: '/help', label: 'Help & Center', icon: LifeBuoy },
+    { path: '/settings', label: 'Settings', icon: Settings }, 
 ];
 
-// Renamed the component to AdminSidebar
 export function Sidebar() {
     const { url } = usePage();
     const { isCollapsed, isMobile, isMobileOpen, toggleCollapse, toggleMobile, closeMobile } = useSidebar();
@@ -45,14 +38,11 @@ export function Sidebar() {
     const isActive = (path: string) => {
         const current = new URL(path, window.location.origin).pathname;
         const currentUrlPath = new URL(url, window.location.origin).pathname;
-        // --- FIX: Check for exact pathname match ---
         return currentUrlPath === current;
-        // --- End FIX ---
     };
 
     return (
         <>
-            {/* Mobile Button (Menu / Close) */}
             {isMobile && (
                 <div className={`fixed z-50 md:hidden ${isMobileOpen ? 'top-2 left-52' : 'top-2 left-2'}`}>
                     <Button variant="outline" size="icon" onClick={toggleMobile}>
@@ -61,17 +51,15 @@ export function Sidebar() {
                 </div>
             )}
 
-            {/* Sidebar */}
             <aside
-                className={`flex flex-col border-r bg-white transition-all duration-300 ease-in-out ${isMobile ? 'fixed top-0 left-0 z-40 h-full w-full' : 'sticky top-0'} ${
+                className={`flex flex-col border-r bg-white transition-all duration-300 ease-in-out ${isMobile ? 'fixed top-0 left-0 z-40 h-full w-full' : 'sticky top-0 h-screen'} ${
                     isMobile ? (isMobileOpen ? 'translate-x-0' : '-translate-x-full') : isCollapsed ? 'w-16' : 'w-64'
                 }`}
             >
-                {/* Header */}
                 <div className="flex items-center justify-between border-b p-2">
                     <div className="flex items-center gap-2">
                         <div className="bg-primary text-primary-foreground flex h-8 w-8 items-center justify-center rounded">
-                            <FileText className="h-4 w-4" /> {/* Adjust icon if needed */}
+                            <FileText className="h-4 w-4" /> 
                         </div>
                         {/* Admin specific title */}
                         {(!isCollapsed || isMobile) && <span className="text-lg font-semibold">SmartGrade (Admin)</span>}
@@ -83,9 +71,10 @@ export function Sidebar() {
                     )}
                 </div>
 
-                {/* Navigation (Admin Menu Items) */}
                 <TooltipProvider>
-                    <nav className="flex-1 space-y-1 overflow-y-auto p-2">
+                    <nav className="flex-1 p-2">
+                        <div className="flex h-full flex-col">
+                            <div className="space-y-1">
                         {MENU_ITEMS.map((item) => (
                             <Tooltip key={item.path} delayDuration={300}>
                                 <TooltipTrigger asChild>
@@ -101,10 +90,12 @@ export function Sidebar() {
                                 {isCollapsed && !isMobile && <TooltipContent side="right">{item.label}</TooltipContent>}
                             </Tooltip>
                         ))}
+                        </div>
+                        </div>
                     </nav>
 
                     {/* Footer items at bottom */}
-                    <div className="mt-auto space-y-1 p-2">
+                    {/* <div className="mt-auto space-y-1 p-2">
                         {FOOTER_ITEMS.map((item) => (
                             <Tooltip key={item.path} delayDuration={300}>
                                 <TooltipTrigger asChild>
@@ -120,7 +111,7 @@ export function Sidebar() {
                                 {isCollapsed && !isMobile && <TooltipContent side="right">{item.label}</TooltipContent>}
                             </Tooltip>
                         ))}
-                    </div>
+                    </div> */}
                 </TooltipProvider>
             </aside>
         </>
