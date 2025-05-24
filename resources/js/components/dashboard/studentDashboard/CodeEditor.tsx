@@ -4,13 +4,14 @@ import { python } from '@codemirror/lang-python';
 import CodeMirror from '@uiw/react-codemirror';
 import { Upload, X } from 'lucide-react';
 import { useState, useRef } from 'react';
-import { useForm, router } from '@inertiajs/react';
+import { useForm, router, usePage } from '@inertiajs/react';
 import { useToast } from '@/components/ui/use-toast';
 import { linter, lintGutter, Diagnostic } from '@codemirror/lint';
 
 // Import your custom theme and highlight style
 import { myEditorTheme, myHighlightStyle } from '@/components/editor-theme/editor-theme';
 import { syntaxHighlighting } from '@codemirror/language';
+import { PageProps, User } from '@/types';
 
 const STARTER_CODE = {
     cpp: `#include <iostream>
@@ -37,7 +38,7 @@ const cppLinter = linter(view => {
     // Check for missing semicolons
     const lines = content.split('\n');
     lines.forEach((line, i) => {
-        if (line.trim() && !line.trim().startsWith('//') && !line.trim().startsWith('/*') && 
+        if (line.trim() && !line.trim().startsWith('//') && !line.startsWith('#include') && !line.startsWith('#define') && !line.startsWith('#pragma') && !line.startsWith('#ifndef') && !line.trim().startsWith('/*') && 
             !line.trim().endsWith(';') && !line.trim().endsWith('{') && !line.trim().endsWith('}') &&
             !line.includes('if') && !line.includes('for') && !line.includes('while') && 
             !line.includes('namespace') && !line.includes('using')) {
@@ -114,13 +115,20 @@ interface CodeEditorProps {
     questionId: number;
     language?: 'cpp' | 'python';
     className?: string;
+    test: {
+        id: number;
+        class_id: number;
+        department_id: number;
+    };
 }
 
-export function CodeEditor({ initialCode, testId, questionId, language: initialLanguage = 'cpp' ,className = '' }: CodeEditorProps) {
+export function CodeEditor({ initialCode, testId, questionId, language: initialLanguage = 'cpp', className = '', test }: CodeEditorProps) {
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedLanguage, setSelectedLanguage] = useState<'cpp' | 'python'>(initialLanguage);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const { auth } = usePage<PageProps>().props;
+    const user = auth.user as User;
 
     const { data, setData, post, processing } = useForm({
         submission_type: 'editor',
@@ -129,6 +137,7 @@ export function CodeEditor({ initialCode, testId, questionId, language: initialL
         question_id: questionId,
         code_file: null as File | null,
         submission_date: new Date().toISOString(),
+        language: initialLanguage,
     });
 
     const onChange = (value: string) => {
@@ -137,6 +146,7 @@ export function CodeEditor({ initialCode, testId, questionId, language: initialL
 
     const handleLanguageChange = (lang: 'cpp' | 'python') => {
         setSelectedLanguage(lang);
+        setData('language', selectedLanguage);
         setData('code_editor_text', STARTER_CODE[lang]);
     };
 
@@ -224,6 +234,17 @@ export function CodeEditor({ initialCode, testId, questionId, language: initialL
                 fileName: data.code_file?.name,
                 fileSize: data.code_file ? `${(data.code_file.size / 1024).toFixed(2)} KB` : null,
                 timestamp: new Date().toISOString()
+            });
+
+            // Log student and test details
+            console.log('Student and Test Details:', {
+                testId,
+                user: user,
+                test: test,
+                studentClass: user.student?.class,
+                testClassId: test?.class_id,
+                studentDepartment: user.student?.department,
+                testDepartmentId: test?.department_id
             });
             
             await post(route("student.tests.submit", { id: testId }), {

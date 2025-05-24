@@ -23,6 +23,10 @@ use App\Models\ClassModel;
 class AdminController extends Controller
 {
     // --- Admin Login/Logout (Remain as is, handled separately) ---
+    public function showAdminHome(): Response
+    {
+        return Inertia::render('dashboard/studentDashboard/Home');
+    }
 
     public function showLogin(Request $request): Response
     {
@@ -159,6 +163,7 @@ class AdminController extends Controller
         ]);
     } 
 
+    
     public function showUnassignedStudents()
     {
         $students = Student::with('user')

@@ -1,0 +1,19 @@
+{
+    "custom_scores": {
+        "correctness_score": 0.5852,
+        "efficiency_score": 0.8683
+    },
+    "llm_review": "The predicted \"Wrong Answer\" verdict, coupled with a Correctness Score of 0.59, suggests the student's code has logical errors, likely producing incorrect outputs for some test cases despite being syntactically correct and relatively efficient. The student should carefully review the problem statement and test their code with various edge cases to identify the source of the incorrect answers.",
+    "predicted_verdict_id": 1,
+    "predicted_verdict_string": "Wrong Answer",
+    "requested_language": "python",
+    "verdict_probabilities": {
+        "Accepted": 0.4446582496166229,
+        "Compile Error": 2.1755648049293086e-05,
+        "Memory Limit Exceeded": 0.00043590422137640417,
+        "Presentation Error": 6.332942575681955e-05,
+        "Runtime Error": 0.07401664555072784,
+        "Time Limit Exceeded": 0.012371119111776352,
+        "Wrong Answer": 0.4684329926967621
+    }
+}

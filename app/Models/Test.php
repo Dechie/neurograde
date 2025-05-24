@@ -12,6 +12,8 @@ class Test extends Model
     protected $fillable = [
         'title',
         'problem_statement',
+        'input_spec',
+        'output_spec',
         'due_date',
         'status',
         'teacher_id',
@@ -52,11 +54,6 @@ class Test extends Model
     public function class()
     {
         return $this->belongsTo(ClassRoom::class, 'class_id');
-    }
-
-    public function students()
-    {
-        return $this->belongsToMany(Student::class, 'test_student');
     }
 }
 

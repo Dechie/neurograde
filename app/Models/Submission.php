@@ -23,6 +23,7 @@ class Submission extends Model
         'status',
         'grade',
         'feedback',
+        'language',
         'submission_date',
         'ai_grade',
         'teacher_grade',

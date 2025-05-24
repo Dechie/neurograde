@@ -1,0 +1,50 @@
+[2025-05-23 21:03:47] local.INFO: Authenticated user role check {"user_id":6,"expected_role":"student","user_roles":{"Illuminate\\Support\\Collection":["student"]}} 
+[2025-05-23 21:03:47] local.INFO: Auth::attempt and role check succeeded {"user_id":6,"role":"student"} 
+[2025-05-23 21:03:47] local.INFO: User authenticated successfully {"user_id":6,"roles":{"Illuminate\\Support\\Collection":["student"]}} 
+[2025-05-23 21:03:47] local.INFO: Intended redirect URL: http://127.0.0.1:8000/dashboard  
+[2025-05-23 21:03:47] local.INFO: Student data {"student_id":1,"class_id":null,"department_id":1} 
+[2025-05-23 21:03:47] local.INFO: Initial tests query {"count":0,"tests":[]} 
+[2025-05-23 21:03:47] local.INFO: Filtered upcoming tests {"count":0,"tests":[]} 
+[2025-05-23 21:03:47] local.INFO: Student submissions {"count":1,"submissions":[{"id":1,"test_id":13,"status":"pending"}]} 
+[2025-05-23 21:04:46] local.INFO: Student and Test Details {"student_classes":{"Illuminate\\Support\\Collection":[1]},"test_class_id":1,"student_department_id":1,"test_department_id":1,"student_id":1,"test_id":14} 
+[2025-05-23 21:04:46] local.INFO: AI grading job dispatched for submission {"submission_id":2,"queue":"grading","status":"pending"} 
+[2025-05-23 21:04:48] local.ERROR: App\Services\AiGradingService::callMlService(): Argument #1 ($statement) must be of type string, null given, called in /home/dechasa/Dev/Work/Laravel/neuro-grade/app/Services/AiGradingService.php on line 40 {"exception":"[object] (TypeError(code: 0): App\\Services\\AiGradingService::callMlService(): Argument #1 ($statement) must be of type string, null given, called in /home/dechasa/Dev/Work/Laravel/neuro-grade/app/Services/AiGradingService.php on line 40 at /home/dechasa/Dev/Work/Laravel/neuro-grade/app/Services/AiGradingService.php:120)
+[stacktrace]
+#0 /home/dechasa/Dev/Work/Laravel/neuro-grade/app/Services/AiGradingService.php(40): App\\Services\\AiGradingService->callMlService(NULL, NULL, NULL, '#include <iostr...', NULL)
+#1 /home/dechasa/Dev/Work/Laravel/neuro-grade/app/Jobs/GradeSubmission.php(44): App\\Services\\AiGradingService->gradeSubmission(Object(App\\Models\\Submission))
+#2 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(36): App\\Jobs\\GradeSubmission->handle(Object(App\\Services\\AiGradingService))
+#3 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Container/Util.php(43): Illuminate\\Container\\BoundMethod::{closure:Illuminate\\Container\\BoundMethod::call():35}()
+#4 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(96): Illuminate\\Container\\Util::unwrapIfClosure(Object(Closure))
+#5 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(35): Illuminate\\Container\\BoundMethod::callBoundMethod(Object(Illuminate\\Foundation\\Application), Array, Object(Closure))
+#6 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Container/Container.php(754): Illuminate\\Container\\BoundMethod::call(Object(Illuminate\\Foundation\\Application), Array, Array, NULL)
+#7 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Bus/Dispatcher.php(125): Illuminate\\Container\\Container->call(Array)
+#8 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(169): Illuminate\\Bus\\Dispatcher->{closure:Illuminate\\Bus\\Dispatcher::dispatchNow():122}(Object(App\\Jobs\\GradeSubmission))
+#9 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->{closure:Illuminate\\Pipeline\\Pipeline::prepareDestination():167}(Object(App\\Jobs\\GradeSubmission))
+#10 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Bus/Dispatcher.php(129): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#11 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Queue/CallQueuedHandler.php(125): Illuminate\\Bus\\Dispatcher->dispatchNow(Object(App\\Jobs\\GradeSubmission), false)
+#12 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(169): Illuminate\\Queue\\CallQueuedHandler->{closure:Illuminate\\Queue\\CallQueuedHandler::dispatchThroughMiddleware():120}(Object(App\\Jobs\\GradeSubmission))
+#13 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(126): Illuminate\\Pipeline\\Pipeline->{closure:Illuminate\\Pipeline\\Pipeline::prepareDestination():167}(Object(App\\Jobs\\GradeSubmission))
+#14 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Queue/CallQueuedHandler.php(120): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#15 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Queue/CallQueuedHandler.php(68): Illuminate\\Queue\\CallQueuedHandler->dispatchThroughMiddleware(Object(Illuminate\\Queue\\Jobs\\DatabaseJob), Object(App\\Jobs\\GradeSubmission))
+#16 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Queue/Jobs/Job.php(102): Illuminate\\Queue\\CallQueuedHandler->call(Object(Illuminate\\Queue\\Jobs\\DatabaseJob), Array)
+#17 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Queue/Worker.php(441): Illuminate\\Queue\\Jobs\\Job->fire()
+#18 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Queue/Worker.php(391): Illuminate\\Queue\\Worker->process('database', Object(Illuminate\\Queue\\Jobs\\DatabaseJob), Object(Illuminate\\Queue\\WorkerOptions))
+#19 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Queue/Worker.php(334): Illuminate\\Queue\\Worker->runJob(Object(Illuminate\\Queue\\Jobs\\DatabaseJob), 'database', Object(Illuminate\\Queue\\WorkerOptions))
+#20 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Queue/Console/WorkCommand.php(148): Illuminate\\Queue\\Worker->runNextJob('database', 'grading', Object(Illuminate\\Queue\\WorkerOptions))
+#21 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Queue/Console/WorkCommand.php(131): Illuminate\\Queue\\Console\\WorkCommand->runWorker('database', 'grading')
+#22 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(36): Illuminate\\Queue\\Console\\WorkCommand->handle()
+#23 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Container/Util.php(43): Illuminate\\Container\\BoundMethod::{closure:Illuminate\\Container\\BoundMethod::call():35}()
+#24 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(96): Illuminate\\Container\\Util::unwrapIfClosure(Object(Closure))
+#25 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Container/BoundMethod.php(35): Illuminate\\Container\\BoundMethod::callBoundMethod(Object(Illuminate\\Foundation\\Application), Array, Object(Closure))
+#26 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Container/Container.php(754): Illuminate\\Container\\BoundMethod::call(Object(Illuminate\\Foundation\\Application), Array, Array, NULL)
+#27 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Console/Command.php(211): Illuminate\\Container\\Container->call(Array)
+#28 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/symfony/console/Command/Command.php(279): Illuminate\\Console\\Command->execute(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#29 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Console/Command.php(180): Symfony\\Component\\Console\\Command\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#30 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/symfony/console/Application.php(1094): Illuminate\\Console\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#31 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/symfony/console/Application.php(342): Symfony\\Component\\Console\\Application->doRunCommand(Object(Illuminate\\Queue\\Console\\WorkCommand), Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#32 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/symfony/console/Application.php(193): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#33 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(197): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#34 /home/dechasa/Dev/Work/Laravel/neuro-grade/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1234): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#35 /home/dechasa/Dev/Work/Laravel/neuro-grade/artisan(16): Illuminate\\Foundation\\Application->handleCommand(Object(Symfony\\Component\\Console\\Input\\ArgvInput))
+#36 {main}
+"} 

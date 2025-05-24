@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\Submission;
 use App\Models\AiGradingResult;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Http; 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -15,7 +15,8 @@ class AiGradingService
     public function __construct()
     {
         // Use the base_url from config/services.php for the ML service
-        $this->baseUrl = config('services.ml.base_url', 'http://localhost:5000');
+
+        $this->baseUrl = config('services.ml.base_url', 'https://eulmelk-neurograde-ml-module.hf.space/');
     }
 
     /**
@@ -31,18 +32,47 @@ class AiGradingService
             // Get code content from the submission
             $codeContent = $this->getCodeContent($submission);
 
+            // Log the submission details
+            Log::info('Starting AI grading for submission', [
+                'submission_id' => $submission->id,
+                'test_id' => $submission->test->id,
+                'has_test' => !is_null($submission->test),
+                'test_fields' => [
+                    'problem_statement' => !empty($submission->test->problem_statement),
+                    'input_spec' => !empty($submission->test->input_spec),
+                    'output_spec' => !empty($submission->test->output_spec),
+                ],
+                'field_lengths' => [
+                    'problem_statement' => strlen($submission->test->problem_statement ?? ''),
+                    'input_spec' => strlen($submission->test->input_spec ?? ''),
+                    'output_spec' => strlen($submission->test->output_spec ?? ''),
+                ],
+                'submission_language' => $submission->language
+            ]);
+
             // Ensure the submission has a related 'test' and its necessary attributes
             if (!$submission->test) {
                 throw new \Exception('Submission is not linked to a test.');
             }
 
+            // Validate required test fields
+            if (empty($submission->test->problem_statement)) {
+                throw new \Exception('Test problem statement is missing.');
+            }
+            if (empty($submission->test->input_spec)) {
+                throw new \Exception('Test input specification is missing.');
+            }
+            if (empty($submission->test->output_spec)) {
+                throw new \Exception('Test output specification is missing.');
+            }
+
             // Call the ML service to get grading results
             $gradingResults = $this->callMlService(
-                $submission->test->statement,
+                $submission->test->problem_statement,
                 $submission->test->input_spec,
                 $submission->test->output_spec,
                 $codeContent,
-                $submission->language
+                $submission->language // Use the submission's language
             );
 
             // Handle cases where the ML service might return null (e.g., API error)
@@ -53,10 +83,14 @@ class AiGradingService
             // Create an AI grading result record
             $aiGradingResult = AiGradingResult::create([
                 'submission_id' => $submission->id,
-                'predicted_verdict_id' => $gradingResults['ml_verdict_id'] ?? null,
-                'predicted_verdict_string' => $gradingResults['ml_verdict_string'] ?? 'unknown',
-                'verdict_probabilities' => json_encode($gradingResults['ml_verdict_probabilities'] ?? []), // Store as JSON string
-                'requested_language' => $submission->language,
+                'predicted_verdict_id' => $gradingResults['predicted_verdict_id'] ?? null,
+                'predicted_verdict_string' => $gradingResults['predicted_verdict_string'] ?? 'unknown',
+                'problem_statement' => $submission->test->problem_statement,
+                'input_spec' => $submission->test->input_spec,
+                'output_spec' => $submission->test->output_spec,
+                'code_submission' => $codeContent,
+                'verdict_probabilities' => json_encode($gradingResults['verdict_probabilities'] ?? []), // Store as JSON string
+                'requested_language' => $gradingResults['requested_language'], // Use the submission's language
             ]);
 
             // Update the submission with the AI grading results
@@ -70,6 +104,8 @@ class AiGradingService
             Log::info('AI grading completed for submission', [
                 'submission_id' => $submission->id,
                 'ml_verdict' => $gradingResults['ml_verdict_string'] ?? 'unknown',
+                'verdict_id' => $gradingResults['ml_verdict_id'] ?? null,
+                'language' => $submission->language
             ]);
 
             return $aiGradingResult;
@@ -77,7 +113,14 @@ class AiGradingService
             Log::error('Error in AI grading', [
                 'submission_id' => $submission->id,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(), // Include trace for better debugging
+                'trace' => $e->getTraceAsString(),
+                'test_data' => [
+                    'test_id' => $submission->test->id ?? null,
+                    'has_problem_statement' => !empty($submission->test->problem_statement ?? ''),
+                    'has_input_spec' => !empty($submission->test->input_spec ?? ''),
+                    'has_output_spec' => !empty($submission->test->output_spec ?? ''),
+                ],
+                'submission_language' => $submission->language
             ]);
             throw $e; // Re-throw the exception to be handled upstream
         }
@@ -118,7 +161,7 @@ class AiGradingService
      * @return array|null The JSON response from the ML service, or null on failure.
      */
     private function callMlService(
-        string $statement,
+        string $problem_statement,
         string $inputSpec,
         string $outputSpec,
         string $code,
@@ -126,7 +169,7 @@ class AiGradingService
     ): ?array {
         try {
             $response = Http::timeout(60)->post("{$this->baseUrl}/predict", [ // Added timeout for robustness
-                'statement' => $statement,
+                'statement' => $problem_statement,
                 'input_spec' => $inputSpec,
                 'output_spec' => $outputSpec,
                 'code_submission' => $code,

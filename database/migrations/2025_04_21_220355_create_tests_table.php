@@ -13,13 +13,15 @@ return new class extends Migration
     {
         Schema::create('tests', function (Blueprint $table) {
             $table->id();
+            $table->string('title');
+            $table->longtext('problem_statement');
+            $table->text('input_spec');
+            $table->text('output_spec');
+            $table->date("due_date");
+            $table->enum("status", ['Upcoming', 'Done']);
             $table->foreignId("teacher_id")->constrained("teachers");
             $table->foreignId("department_id")->after('teacher_id')->constrained()->onDelete('cascade');
             $table->foreignId("class_id")->constrained("classes");
-            $table->string("title");
-            $table->longtext("problem_statement");
-            $table->enum("status", ['Upcoming', 'Done']);
-            $table->date("due_date");
             $table->timestamp('published_at')->nullable();
             $table->boolean('published')->default(false);
             $table->timestamps();

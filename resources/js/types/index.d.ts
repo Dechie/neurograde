@@ -125,6 +125,8 @@ export interface Test {
   id: number;
   title: string;
   problem_statement: string;
+  input_spec: string | null;
+  output_spec: string | null;
   due_date: string;
   status: 'Upcoming' | 'Done' | string;
   teacher_id: number;
@@ -246,7 +248,7 @@ export interface Submission {
   } | null;
   created_at: string;
   updated_at: string;
-  test?: Test;
+  test: Test;
   student: {
     id: number;
     user: {

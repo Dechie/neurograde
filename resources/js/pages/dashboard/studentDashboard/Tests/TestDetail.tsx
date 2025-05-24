@@ -114,9 +114,16 @@ interface TestDetailProps {
         status: string;
         questionId: number;
         initialCode: string;
+        class_id: number;
+        department_id: number;
         class?: {
+            id: number;
             name: string;
             department: string;
+        };
+        department?: {
+            id: number;
+            name: string;
         };
         teacher?: {
             name: string;
@@ -184,6 +191,11 @@ export default function TestDetail({ test, submission, submissionWarning }: Test
                   questionId={test.questionId} 
                   initialCode={test.initialCode} 
                   className="h-[500px] border rounded-lg overflow-hidden"
+                  test={{
+                    id: test.id,
+                    class_id: test.class_id,
+                    department_id: test.department_id
+                  }}
                 />
               </>
             )}

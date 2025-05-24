@@ -19,6 +19,7 @@ return new class extends Migration
             $table->foreignId('test_id')->constrained('tests')->cascadeOnDelete();
             // Column to store the submission type (file or editor)
             $table->enum('submission_type', ['file', 'editor']);
+            $table->enum('language', ['cpp', 'python'])->nullable();
             // Column to store the file path if a file is uploaded
             $table->string('code_file_path')->nullable();
             // Column to store submitted code directly (if text submission is allowed)

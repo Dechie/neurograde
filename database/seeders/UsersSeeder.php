@@ -37,7 +37,7 @@ class UsersSeeder extends Seeder
         
         // Create teachers (1 per department)
         $teacherNames = [
-            ['first' => 'Daniel', 'last' => 'Daniel'],
+            ['first' => 'Daniel', 'last' => 'Abate'],
             ['first' => 'Abel', 'last' => 'Dejene'],
             ['first' => 'Naol', 'last' => 'Feyissa']
         ];

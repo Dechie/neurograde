@@ -43,6 +43,7 @@ export default function SubmissionShow({ submission }: SubmissionShowProps) {
     <AppLayout title={`Review Submission - ${submission.test.title}`}>
       <div className="space-y-6">
         {/* ML Grading Results */}
+       //$formatted_problem_statement = str_replace('#', '##', $formatted_problem_statement);
         <Card>
           <CardHeader>
             <CardTitle>ML Grading Results</CardTitle>

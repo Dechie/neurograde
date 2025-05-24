@@ -51,6 +51,8 @@ class TeacherController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'problem_statement' => 'required|string',
+            'input_spec' => 'required|string',
+            'output_spec' => 'required|string',
             'due_date' => 'required|date|after:now',
             'class_id' => 'required|exists:classes,id'
         ]);
@@ -66,26 +68,42 @@ class TeacherController extends Controller
         }
 
         try {
+            // Format the text fields to handle newlines properly
+            $formatted_problem_statement = str_replace('\n', "\n", $request->problem_statement);
+            $formatted_input_spec = str_replace('\n', "\n", $request->input_spec);
+            $formatted_output_spec = str_replace('\n', "\n", $request->output_spec);
+
             // Create the Test record
             $test = Test::create([
                 "teacher_id" => $teacher->id,
                 "department_id" => $teacher->department_id,
                 "class_id" => $request->class_id,
                 "title" => $request->title,
-                "problem_statement" => $request->problem_statement,
+                'input_spec' => $formatted_input_spec,
+                'output_spec' => $formatted_output_spec,
+                "problem_statement" => $formatted_problem_statement,
                 "due_date" => $request->due_date,
                 "status" => "Upcoming"
             ]);
 
-            // Get all students in the class and associate them with the test
-            $students = $class->students;
-            $test->students()->attach($students->pluck('id')->toArray());
+            // Log the created test for debugging
+            Log::info('Test created successfully', [
+                'test_id' => $test->id,
+                'has_input_spec' => !empty($test->input_spec),
+                'has_output_spec' => !empty($test->output_spec),
+                'input_spec_length' => strlen($test->input_spec),
+                'output_spec_length' => strlen($test->output_spec)
+            ]);
 
             return redirect()->route('teacher.tests.index')
                 ->with('success', 'Test created successfully!');
 
         } catch (\Exception $e) {
-            \Log::error('Failed to create test', ['error' => $e->getMessage(), 'request' => $request->all()]);
+            Log::error('Failed to create test', [
+                'error' => $e->getMessage(),
+                'request' => $request->all(),
+                'trace' => $e->getTraceAsString()
+            ]);
 
             return redirect()->back()
                 ->withInput()
