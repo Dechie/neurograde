@@ -281,7 +281,7 @@ class TeacherController extends Controller
             'test' => $test
         ]);
     }
-
+    
     public function getSubmissions()
     {
         $teacher = auth()->user()->teacher;

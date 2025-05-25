@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: neuro-grade
+    env: php
+    buildCommand: composer install --no-dev --optimize-autoloader
+    startCommand: vendor/bin/heroku-php-apache2 public/
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_KEY
+        generateValue: true
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        fromDatabase:
+          name: neuro-grade-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: neuro-grade-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: neuro-grade-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: neuro-grade-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: neuro-grade-db
+          property: password
+
+databases:
+  - name: neuro-grade-db
+    databaseName: neuro_grade
+    user: neuro_grade_user 
