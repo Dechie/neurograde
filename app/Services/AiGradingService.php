@@ -91,6 +91,8 @@ class AiGradingService
                 'code_submission' => $codeContent,
                 'verdict_probabilities' => json_encode($gradingResults['verdict_probabilities'] ?? []), // Store as JSON string
                 'requested_language' => $gradingResults['requested_language'], // Use the submission's language
+                'llm_review' => $gradingResults['llm_review'] ?? 'No review available', // Ensure llm_review is never null
+                'metrics' => json_encode($gradingResults['metrics'] ?? []), // Add metrics
             ]);
 
             // Update the submission with the AI grading results
@@ -135,16 +137,17 @@ class AiGradingService
      */
     private function getCodeContent(Submission $submission): string
     {
-        if ($submission->code_editor_text) {
-            return $submission->code_editor_text;
-        }
-
-        if ($submission->code_file_path) {
-            // Ensure the file exists before attempting to read
+        // If submission is from file, read from storage
+        if ($submission->submission_type === 'file' && $submission->code_file_path) {
             if (Storage::exists($submission->code_file_path)) {
                 return Storage::get($submission->code_file_path);
             }
             throw new \Exception("Code file not found at path: {$submission->code_file_path}");
+        }
+
+        // If submission is from editor, use the text content
+        if ($submission->code_editor_text) {
+            return $submission->code_editor_text;
         }
 
         throw new \Exception('No code content found for submission');

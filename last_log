@@ -17,12 +17,12 @@
 #50 /home/dechasa/Dev/Work/Laravel/neuro-grade/artisan(16): Illuminate\\Foundation\\Application->handleCommand(Object(Symfony\\Component\\Console\\Input\\ArgvInput))
 #51 {main}
 "} 
-[2025-05-23 22:45:48] local.INFO: Attempting authentication {"credentials":{"email":"daniel@example.com","password":"password"},"remember":false} 
+[2025-05-23 22:45:48] local.INFO: Attempting authentication {"credentials":{"email":"daniel@email.com","password":"password"},"remember":false} 
 [2025-05-23 22:45:48] local.INFO: Authenticated user role check {"user_id":3,"expected_role":"teacher","user_roles":{"Illuminate\\Support\\Collection":["teacher"]}} 
 [2025-05-23 22:45:48] local.INFO: Auth::attempt and role check succeeded {"user_id":3,"role":"teacher"} 
 [2025-05-23 22:45:48] local.INFO: User authenticated successfully {"user_id":3,"roles":{"Illuminate\\Support\\Collection":["teacher"]}} 
 [2025-05-23 22:45:48] local.INFO: Intended redirect URL: http://127.0.0.1:8001/dashboard  
-[2025-05-23 22:46:19] local.INFO: Attempting authentication {"credentials":{"email":"hana@example.com","password":"password"},"remember":false} 
+[2025-05-23 22:46:19] local.INFO: Attempting authentication {"credentials":{"email":"hana@email.com","password":"password"},"remember":false} 
 [2025-05-23 22:46:19] local.INFO: Authenticated user role check {"user_id":6,"expected_role":"student","user_roles":{"Illuminate\\Support\\Collection":["student"]}} 
 [2025-05-23 22:46:19] local.INFO: Auth::attempt and role check succeeded {"user_id":6,"role":"student"} 
 [2025-05-23 22:46:19] local.INFO: User authenticated successfully {"user_id":6,"roles":{"Illuminate\\Support\\Collection":["student"]}} 
@@ -31,7 +31,7 @@
 [2025-05-23 22:46:20] local.INFO: Initial tests query {"count":0,"tests":[]} 
 [2025-05-23 22:46:20] local.INFO: Filtered upcoming tests {"count":0,"tests":[]} 
 [2025-05-23 22:46:20] local.INFO: Student submissions {"count":0,"submissions":[]} 
-[2025-05-23 22:46:56] local.INFO: Attempting authentication {"credentials":{"email":"hana@example.com","password":"password"},"remember":false} 
+[2025-05-23 22:46:56] local.INFO: Attempting authentication {"credentials":{"email":"hana@email.com","password":"password"},"remember":false} 
 [2025-05-23 22:46:56] local.INFO: Authenticated user role check {"user_id":6,"expected_role":"student","user_roles":{"Illuminate\\Support\\Collection":["student"]}} 
 [2025-05-23 22:46:56] local.INFO: Auth::attempt and role check succeeded {"user_id":6,"role":"student"} 
 [2025-05-23 22:46:56] local.INFO: User authenticated successfully {"user_id":6,"roles":{"Illuminate\\Support\\Collection":["student"]}} 
@@ -40,7 +40,7 @@
 [2025-05-23 22:46:57] local.INFO: Initial tests query {"count":0,"tests":[]} 
 [2025-05-23 22:46:57] local.INFO: Filtered upcoming tests {"count":0,"tests":[]} 
 [2025-05-23 22:46:57] local.INFO: Student submissions {"count":0,"submissions":[]} 
-[2025-05-23 22:47:25] local.INFO: Attempting authentication {"credentials":{"email":"daniel@example.com","password":"password"},"remember":false} 
+[2025-05-23 22:47:25] local.INFO: Attempting authentication {"credentials":{"email":"daniel@email.com","password":"password"},"remember":false} 
 [2025-05-23 22:47:25] local.INFO: Authenticated user role check {"user_id":3,"expected_role":"teacher","user_roles":{"Illuminate\\Support\\Collection":["teacher"]}} 
 [2025-05-23 22:47:25] local.INFO: Auth::attempt and role check succeeded {"user_id":3,"role":"teacher"} 
 [2025-05-23 22:47:25] local.INFO: User authenticated successfully {"user_id":3,"roles":{"Illuminate\\Support\\Collection":["teacher"]}} 
@@ -52,7 +52,7 @@ LINE 1: insert into \"test_student\" (\"student_id\", \"test_id\") values ...
                     ^ (Connection: pgsql, SQL: insert into \"test_student\" (\"student_id\", \"test_id\") values (1, 13))","request":{"title":"exam for section 1 software","problem_statement":"Problem Statement\\n\\nThere are N Reversi pieces arranged in a row. (A Reversi piece is a disc with a black side and a white side.)\\nThe state of each piece is represented by a string S of length N.\\nIf S_i=B, the i-th piece from the left is showing black;\\nIf S_i=W, the i-th piece from the left is showing white.\\nConsider performing the following operation:\\n\\nChoose i (1 \\\\leq i < N) such that the i-th piece from the left is showing black and the (i+1)-th piece from the left is showing white, then flip both of those pieces. That is, the i-th piece from the left is now showing white and the (i+1)-th piece from the left is now showing black.\\n\\nFind the maximum possible number of times this operation can be performed.","input_spec":"example input spec","output_spec":"example output spec","due_date":"2025-05-31T10:10","class_id":1}} 
 [2025-05-23 22:47:57] local.INFO: Authenticated Teacher ID: 1  
 [2025-05-23 22:47:57] local.INFO: Classes loaded for teacher: [{"id":1,"name":"Section 1 - Software Engineering","department_id":1,"admin_id":1,"max_students":30,"created_by":1,"created_at":"2025-05-23T22:44:47.000000Z","updated_at":"2025-05-23T22:44:47.000000Z","pivot":{"teacher_id":1,"class_id":1},"department":{"id":1,"name":"Software Engineering","created_at":"2025-05-23T22:44:42.000000Z","updated_at":"2025-05-23T22:44:42.000000Z"}},{"id":2,"name":"Section 2 - Software Engineering","department_id":1,"admin_id":1,"max_students":30,"created_by":1,"created_at":"2025-05-23T22:44:47.000000Z","updated_at":"2025-05-23T22:44:47.000000Z","pivot":{"teacher_id":1,"class_id":2},"department":{"id":1,"name":"Software Engineering","created_at":"2025-05-23T22:44:42.000000Z","updated_at":"2025-05-23T22:44:42.000000Z"}},{"id":3,"name":"Section 3 - Software Engineering","department_id":1,"admin_id":1,"max_students":30,"created_by":1,"created_at":"2025-05-23T22:44:47.000000Z","updated_at":"2025-05-23T22:44:47.000000Z","pivot":{"teacher_id":1,"class_id":3},"department":{"id":1,"name":"Software Engineering","created_at":"2025-05-23T22:44:42.000000Z","updated_at":"2025-05-23T22:44:42.000000Z"}}]  
-[2025-05-23 22:48:10] local.INFO: Attempting authentication {"credentials":{"email":"hana@example.com","password":"password"},"remember":false} 
+[2025-05-23 22:48:10] local.INFO: Attempting authentication {"credentials":{"email":"hana@email.com","password":"password"},"remember":false} 
 [2025-05-23 22:48:10] local.INFO: Authenticated user role check {"user_id":6,"expected_role":"student","user_roles":{"Illuminate\\Support\\Collection":["student"]}} 
 [2025-05-23 22:48:10] local.INFO: Auth::attempt and role check succeeded {"user_id":6,"role":"student"} 
 [2025-05-23 22:48:10] local.INFO: User authenticated successfully {"user_id":6,"roles":{"Illuminate\\Support\\Collection":["student"]}} 
@@ -61,7 +61,7 @@ LINE 1: insert into \"test_student\" (\"student_id\", \"test_id\") values ...
 [2025-05-23 22:48:11] local.INFO: Initial tests query {"count":0,"tests":[]} 
 [2025-05-23 22:48:11] local.INFO: Filtered upcoming tests {"count":0,"tests":[]} 
 [2025-05-23 22:48:11] local.INFO: Student submissions {"count":0,"submissions":[]} 
-[2025-05-23 23:03:48] local.INFO: Attempting authentication {"credentials":{"email":"daniel@example.com","password":"password"},"remember":false} 
+[2025-05-23 23:03:48] local.INFO: Attempting authentication {"credentials":{"email":"daniel@email.com","password":"password"},"remember":false} 
 [2025-05-23 23:03:48] local.INFO: Authenticated user role check {"user_id":3,"expected_role":"teacher","user_roles":{"Illuminate\\Support\\Collection":["teacher"]}} 
 [2025-05-23 23:03:48] local.INFO: Auth::attempt and role check succeeded {"user_id":3,"role":"teacher"} 
 [2025-05-23 23:03:48] local.INFO: User authenticated successfully {"user_id":3,"roles":{"Illuminate\\Support\\Collection":["teacher"]}} 
@@ -139,7 +139,7 @@ LINE 1: insert into \"test_student\" (\"student_id\", \"test_id\") values ...
 #65 {main}"} 
 [2025-05-23 23:04:32] local.INFO: Authenticated Teacher ID: 1  
 [2025-05-23 23:04:32] local.INFO: Classes loaded for teacher: [{"id":1,"name":"Section 1 - Software Engineering","department_id":1,"admin_id":1,"max_students":30,"created_by":1,"created_at":"2025-05-23T23:02:52.000000Z","updated_at":"2025-05-23T23:02:52.000000Z","pivot":{"teacher_id":1,"class_id":1},"department":{"id":1,"name":"Software Engineering","created_at":"2025-05-23T23:02:48.000000Z","updated_at":"2025-05-23T23:02:48.000000Z"}},{"id":2,"name":"Section 2 - Software Engineering","department_id":1,"admin_id":1,"max_students":30,"created_by":1,"created_at":"2025-05-23T23:02:52.000000Z","updated_at":"2025-05-23T23:02:52.000000Z","pivot":{"teacher_id":1,"class_id":2},"department":{"id":1,"name":"Software Engineering","created_at":"2025-05-23T23:02:48.000000Z","updated_at":"2025-05-23T23:02:48.000000Z"}},{"id":3,"name":"Section 3 - Software Engineering","department_id":1,"admin_id":1,"max_students":30,"created_by":1,"created_at":"2025-05-23T23:02:52.000000Z","updated_at":"2025-05-23T23:02:52.000000Z","pivot":{"teacher_id":1,"class_id":3},"department":{"id":1,"name":"Software Engineering","created_at":"2025-05-23T23:02:48.000000Z","updated_at":"2025-05-23T23:02:48.000000Z"}}]  
-[2025-05-23 23:04:46] local.INFO: Attempting authentication {"credentials":{"email":"hana@example.com","password":"password"},"remember":false} 
+[2025-05-23 23:04:46] local.INFO: Attempting authentication {"credentials":{"email":"hana@email.com","password":"password"},"remember":false} 
 [2025-05-23 23:04:46] local.INFO: Authenticated user role check {"user_id":6,"expected_role":"student","user_roles":{"Illuminate\\Support\\Collection":["student"]}} 
 [2025-05-23 23:04:46] local.INFO: Auth::attempt and role check succeeded {"user_id":6,"role":"student"} 
 [2025-05-23 23:04:46] local.INFO: User authenticated successfully {"user_id":6,"roles":{"Illuminate\\Support\\Collection":["student"]}} 

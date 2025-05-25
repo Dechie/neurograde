@@ -41,7 +41,7 @@ class CreateTeacherTest extends TestCase // Or whatever you name your test file/
         $response = $this->actingAs($adminUser, 'web')->postJson('/api/admin/teachers', [ // Adjust URI and guard if using 'api' guard
             'first_name' => 'New',
             'last_name' => 'Teacher',
-            'email' => 'teacher@example.com',
+            'email' => 'teacher@email.com',
             'password' => 'password',
             'password_confirmation' => 'password',
             'department_id' => $department->id,
@@ -52,13 +52,13 @@ class CreateTeacherTest extends TestCase // Or whatever you name your test file/
 
         // Assert the user was created in the database
         $this->assertDatabaseHas('users', [
-            'email' => 'teacher@example.com',
+            'email' => 'teacher@email.com',
             'first_name' => 'New',
             'last_name' => 'Teacher',
         ]);
 
         // Assert the user has the 'teacher' role
-        $user = User::where('email', 'teacher@example.com')->first();
+        $user = User::where('email', 'teacher@email.com')->first();
         $this->assertTrue($user->hasRole('teacher'));
 
         // Assert the related teacher record was created
@@ -76,7 +76,7 @@ class CreateTeacherTest extends TestCase // Or whatever you name your test file/
             'message' => 'Teacher created successfully',
             'teacher' => [
                 'user' => [
-                    'email' => 'teacher@example.com',
+                    'email' => 'teacher@email.com',
                     'first_name' => 'New',
                     'last_name' => 'Teacher',
                 ],
@@ -111,7 +111,7 @@ class CreateTeacherTest extends TestCase // Or whatever you name your test file/
         $response = $this->postJson('/api/admin/teachers', [ // Adjust URI
             'first_name' => 'Guest',
             'last_name' => 'Attempt',
-            'email' => 'guest@example.com',
+            'email' => 'guest@email.com',
             'password' => 'password',
             'password_confirmation' => 'password',
             'department_id' => $department->id,
@@ -121,7 +121,7 @@ class CreateTeacherTest extends TestCase // Or whatever you name your test file/
         $response->assertStatus(401); // Or 403 if using middleware that returns 403
 
         // Assert the user was NOT created
-        $this->assertDatabaseMissing('users', ['email' => 'guest@example.com']);
+        $this->assertDatabaseMissing('users', ['email' => 'guest@email.com']);
     }
 
 }

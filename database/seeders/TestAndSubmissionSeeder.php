@@ -60,16 +60,16 @@ class TestAndSubmissionSeeder extends Seeder
 
         // Get or create teachers for each department
         $seTeacher = Teacher::firstOrCreate(
-            ['user_id' => User::where('email', 'daniel@example.com')->first()->id],
+            ['user_id' => User::where('email', 'daniel@email.com')->first()->id],
             ['department_id' => $seDepartment->id]
         );
         $eeTeacher = Teacher::firstOrCreate(
-            ['user_id' => User::where('email', 'naol@example.com')->first()->id],
+            ['user_id' => User::where('email', 'naol@email.com')->first()->id],
             ['department_id' => $eeDepartment->id]
         );
 
         $mechatronicsTeacher = Teacher::firstOrCreate(
-            ['user_id' => User::where('email', 'abel@example.com')->first()->id],
+            ['user_id' => User::where('email', 'abel@email.com')->first()->id],
             ['department_id' => $mechatronicsDepartment->id]
         );
 

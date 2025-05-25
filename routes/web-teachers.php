@@ -16,8 +16,8 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->group(function()
     // Routes for Submissions
     Route::get('/submissions', [TeacherController::class, 'showSubmissions'])->name('teacher.submissions.index');
     Route::get('/tests/{test}/submissions', [TeacherController::class, 'showTestSubmissions'])->name('teacher.tests.submissions');
-    Route::get('/submissions/{submission}', [TeacherController::class, 'showSubmission'])->name('teacher.submissions.show');
-    Route::post('/submissions/{submission}/grade', [TeacherController::class, 'gradeSubmission'])->name('teacher.submissions.grade');
+    Route::get('/submissions/{submissionId}', [TeacherController::class, 'showSubmission'])->name('teacher.submissions.show');
+    Route::post('/submissions/{submissionId}/grade', [TeacherController::class, 'gradeSubmission'])->name('teacher.submissions.grade');
 
     // Routes for Submissions and Grading (will need conversion later)
     Route::get('/show-grading', [TeacherController::class, 'showGradingPage'])->name('teacher.show-grading'); // Renders grading page (needs data fetch)

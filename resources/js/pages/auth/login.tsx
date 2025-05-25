@@ -6,12 +6,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { LoginProps } from '@/types'; // Assuming LoginForm from types file
 import { useForm } from '@inertiajs/react';
 import { EyeIcon, EyeOffIcon, LoaderCircle } from 'lucide-react';
-import { FormEventHandler, useState, useEffect } from 'react'; // Import useEffect
-import { type LoginForm, LoginProps } from '@/types'; // Assuming LoginForm from types file
+import { FormEventHandler, useEffect, useState } from 'react'; // Import useEffect
 
-// Define the specific type for the form data 
+// Define the specific type for the form data
 // It includes email, password, remember, and the 'role' field
 type LoginFormWithRole = {
     email: string; // Assuming email is always required based on your backend rules
@@ -43,7 +43,6 @@ export default function Login({ status, canResetPassword }: LoginProps) {
     useEffect(() => {
         setData('role', selectedRole);
     }, [selectedRole, setData]);
-
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
@@ -127,7 +126,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                                 autoComplete="email"
                                                 value={data.email} // Assuming email is always string now
                                                 onChange={(e) => setData('email', e.target.value)}
-                                                placeholder="email@example.com"
+                                                placeholder="email@email.com"
                                             />
                                             <InputError message={errors.email} /> {/* Error message display */}
                                         </div>
@@ -263,4 +262,3 @@ export default function Login({ status, canResetPassword }: LoginProps) {
         </div>
     );
 }
-
