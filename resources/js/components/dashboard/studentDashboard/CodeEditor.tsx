@@ -146,7 +146,7 @@ export function CodeEditor({ initialCode, testId, questionId, language: initialL
 
     const handleLanguageChange = (lang: 'cpp' | 'python') => {
         setSelectedLanguage(lang);
-        setData('language', selectedLanguage);
+        setData('language', lang);
         setData('code_editor_text', STARTER_CODE[lang]);
     };
 
@@ -269,8 +269,10 @@ export function CodeEditor({ initialCode, testId, questionId, language: initialL
                             title: "Success",
                             description: String(page.props.success),
                         });
-                        // Redirect to the test detail page instead of reloading
-                        router.visit(route('student.tests.show', { id: testId }));
+                        // Add a small delay before redirecting to ensure the toast is shown
+                        setTimeout(() => {
+                            router.visit(route('student.tests.show', { id: testId }));
+                        }, 1000);
                     } else if (page.props.error) {
                         toast({
                             title: "Cannot Submit",

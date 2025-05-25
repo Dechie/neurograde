@@ -1,0 +1,74 @@
+[
+  {
+    "class_id": 1,
+    "class_name": "Section 1 - Software Engineering",
+    "teacher": { "id": 1, "first_name": "Daniel", "last_name": "Abate" },
+    "students": [
+      { "id": 1, "first_name": "Hana", "last_name": "Daniel" }
+    ]
+  },
+  {
+    "class_id": 2,
+    "class_name": "Section 2 - Software Engineering",
+    "teacher": { "id": 1, "first_name": "Daniel", "last_name": "Abate" },
+    "students": [
+      { "id": 2, "first_name": "Blen", "last_name": "Dejene" }
+    ]
+  },
+  {
+    "class_id": 3,
+    "class_name": "Section 3 - Software Engineering",
+    "teacher": { "id": 1, "first_name": "Daniel", "last_name": "Abate" },
+    "students": [
+      { "id": 3, "first_name": "Sifen", "last_name": "Feyissa" }
+    ]
+  },
+  {
+    "class_id": 4,
+    "class_name": "Section 1 - Electrical Engineering",
+    "teacher": { "id": 2, "first_name": "Abel", "last_name": "Dejene" },
+    "students": [
+      { "id": 5, "first_name": "Etsubdink", "last_name": "Tewodros" }
+    ]
+  },
+  {
+    "class_id": 5,
+    "class_name": "Section 2 - Electrical Engineering",
+    "teacher": { "id": 2, "first_name": "Abel", "last_name": "Dejene" },
+    "students": [
+      { "id": 6, "first_name": "Helen", "last_name": "Girma" }
+    ]
+  },
+  {
+    "class_id": 6,
+    "class_name": "Section 3 - Electrical Engineering",
+    "teacher": { "id": 2, "first_name": "Abel", "last_name": "Dejene" },
+    "students": [
+      { "id": 7, "first_name": "Hawi", "last_name": "Tolossa" }
+    ]
+  },
+  {
+    "class_id": 7,
+    "class_name": "Section 1 - Mechatronics Engineering",
+    "teacher": { "id": 3, "first_name": "Naol", "last_name": "Feyissa" },
+    "students": [
+      { "id": 9, "first_name": "Biniam", "last_name": "Dagnachew" }
+    ]
+  },
+  {
+    "class_id": 8,
+    "class_name": "Section 2 - Mechatronics Engineering",
+    "teacher": { "id": 3, "first_name": "Naol", "last_name": "Feyissa" },
+    "students": [
+      { "id": 10, "first_name": "Yonas", "last_name": "Berihun" }
+    ]
+  },
+  {
+    "class_id": 9,
+    "class_name": "Section 3 - Mechatronics Engineering",
+    "teacher": { "id": 3, "first_name": "Naol", "last_name": "Feyissa" },
+    "students": [
+      { "id": 11, "first_name": "Kedir", "last_name": "Ahmed" }
+    ]
+  }
+]

@@ -20,7 +20,7 @@ class LoginTest extends TestCase
         Role::findOrCreate($roleName);
 
         $user = User::factory()->create([
-            'email' => "test{$roleName}@example.com",
+            'email' => "test{$roleName}@email.com",
             'password' => Hash::make('password'), // Use a known password
             'first_name' => ucfirst($roleName), // Assuming 'name' for teachers
             'last_name' => ucfirst($roleName), // Assuming 'name' for teachers
@@ -106,7 +106,7 @@ class LoginTest extends TestCase
     public function test_users_cannot_authenticate_with_non_existent_email(): void
     {
         $response = $this->post('/login', [
-            'email' => 'nonexistent@example.com',
+            'email' => 'nonexistent@email.com',
             'password' => 'password',
         ]);
 

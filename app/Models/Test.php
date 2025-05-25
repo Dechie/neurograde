@@ -55,5 +55,10 @@ class Test extends Model
     {
         return $this->belongsTo(ClassRoom::class, 'class_id');
     }
+
+    public function students()
+    {
+        return $this->belongsToMany(Student::class, 'test_student', 'test_id', 'student_id');
+    }
 }
 

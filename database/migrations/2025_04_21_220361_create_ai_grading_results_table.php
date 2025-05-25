@@ -22,6 +22,8 @@ return new class extends Migration
             $table->text('problem_statement');
             $table->text('input_spec')->nullable();
             $table->text('output_spec')->nullable();
+            $table->text('llm_review')->nullable();
+            $table->json('metrics')->nullable();
             $table->timestamps();
         });
     }

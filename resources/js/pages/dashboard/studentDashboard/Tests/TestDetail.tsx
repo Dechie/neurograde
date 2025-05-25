@@ -3,9 +3,12 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription }
 import { AppLayout } from '@/layouts/dashboard/studentDashboard/studentDashboardLayout';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { MarkdownRenderer } from '@/components/shared/MarkdownRenderer';
 import ReactMarkdown from 'react-markdown';
 import { PrismAsync } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
+import { InlineMath, BlockMath } from 'react-katex';
+import 'katex/dist/katex.min.css';
 
 // Type-safe code block renderer
 const CodeBlock = ({
@@ -36,7 +39,7 @@ const CodeBlock = ({
       {String(children).replace(/\n$/, '')}
     </PrismAsync>
   ) : (
-    <code className="bg-gray-100 px-1 rounded" {...props}>
+    <code className="bg-muted px-1 py-0.5 rounded text-sm font-mono" {...props}>
       {children}
     </code>
   );
@@ -53,9 +56,28 @@ const MarkdownComponents = {
   h3: ({ node, ...props }: { node?: any; [key: string]: any }) => (
     <h3 className="text-xl font-semibold my-2" {...props} />
   ),
-  p: ({ node, ...props }: { node?: any; [key: string]: any }) => (
-    <p className="my-3 leading-relaxed" {...props} />
-  ),
+  p: ({ node, children, ...props }: { node?: any; children?: React.ReactNode; [key: string]: any }) => {
+    if (typeof children === 'string') {
+      // Replace inline math
+      const parts = children.split(/(\$\$[\s\S]*?\$\$|\$[^\$]*?\$)/g);
+      return (
+        <p className="my-3 leading-relaxed whitespace-pre-wrap" {...props}>
+          {parts.map((part, i) => {
+            if (part.startsWith('$$') && part.endsWith('$$')) {
+              const math = part.slice(2, -2);
+              return <BlockMath key={i} math={math} />;
+            }
+            if (part.startsWith('$') && part.endsWith('$')) {
+              const math = part.slice(1, -1);
+              return <InlineMath key={i} math={math} />;
+            }
+            return part;
+          })}
+        </p>
+      );
+    }
+    return <p className="my-3 leading-relaxed whitespace-pre-wrap" {...props}>{children}</p>;
+  },
   ul: ({ node, ...props }: { node?: any; [key: string]: any }) => (
     <ul className="list-disc pl-6 my-3" {...props} />
   ),
@@ -72,6 +94,11 @@ const MarkdownComponents = {
     <em className="italic" {...props} />
   ),
   code: CodeBlock,
+  pre: ({ children, ...props }: { children?: React.ReactNode; [key: string]: any }) => (
+    <pre className="bg-muted p-4 rounded-lg my-4 overflow-x-auto whitespace-pre-wrap" {...props}>
+      {children}
+    </pre>
+  ),
 };
 
 const GRADING_CRITERIA = {
@@ -158,10 +185,11 @@ export default function TestDetail({ test, submission, submissionWarning }: Test
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="prose prose-headings:font-semibold prose-h2:text-xl prose-h2:mt-6 prose-h2:mb-3 prose-p:my-3 max-w-none">
-              <ReactMarkdown components={MarkdownComponents}>
-                {test.problemStatement}
-              </ReactMarkdown>
+            <CardContent>
+              <MarkdownRenderer 
+                content={test.problemStatement}
+                variant="default"
+              />
             </CardContent>
           </Card>
 

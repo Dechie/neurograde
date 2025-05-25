@@ -1,8 +1,4 @@
 {
-    "custom_scores": {
-        "correctness_score": 0.5852,
-        "efficiency_score": 0.8683
-    },
     "llm_review": "The predicted \"Wrong Answer\" verdict, coupled with a Correctness Score of 0.59, suggests the student's code has logical errors, likely producing incorrect outputs for some test cases despite being syntactically correct and relatively efficient. The student should carefully review the problem statement and test their code with various edge cases to identify the source of the incorrect answers.",
     "predicted_verdict_id": 1,
     "predicted_verdict_string": "Wrong Answer",

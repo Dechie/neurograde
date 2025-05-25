@@ -23,7 +23,7 @@ class UsersSeeder extends Seeder
         $admin = User::create([
             'first_name' => 'Admin',
             'last_name' => 'User',
-            'email' => 'admin@example.com',
+            'email' => 'admin@email.com',
             'password' => Hash::make('password'),
         ]);
         $admin->assignRole('admin');
@@ -46,7 +46,7 @@ class UsersSeeder extends Seeder
             $teacher = User::create([
                 'first_name' => $teacherNames[$index]['first'],
                 'last_name' => $teacherNames[$index]['last'],
-                'email' => strtolower($teacherNames[$index]['first']) . '@example.com',
+                'email' => strtolower($teacherNames[$index]['first']) . '@email.com',
                 'password' => Hash::make('password'),
             ]);
             $teacher->assignRole('teacher');
@@ -86,7 +86,7 @@ class UsersSeeder extends Seeder
                 $student = User::create([
                     'first_name' => $studentNames[$studentIndex]['first'],
                     'last_name' => $studentNames[$studentIndex]['last'],
-                    'email' => strtolower($studentNames[$studentIndex]['first']) . '@example.com',
+                    'email' => strtolower($studentNames[$studentIndex]['first']) . '@email.com',
                     'password' => Hash::make('password'),
                 ]);
                 $student->assignRole('student');
@@ -109,7 +109,7 @@ class UsersSeeder extends Seeder
                 $user = User::create([
                     'first_name' => "Unassigned{$i}",
                     'last_name' => $department->name,
-                    'email' => "unassigned{$i}." . str_replace(' ', '.', strtolower($department->name)) . "@example.com",
+                    'email' => "unassigned{$i}." . str_replace(' ', '.', strtolower($department->name)) . "@email.com",
                     'password' => Hash::make('password'),
                 ]);
                 $user->assignRole('student');

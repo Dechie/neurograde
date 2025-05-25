@@ -20,7 +20,7 @@ class RoleBasedLoginTest extends TestCase
         Role::findOrCreate($roleName);
 
         $user = User::factory()->create([
-            'email' => "test{$roleName}@example.com",
+            'email' => "test{$roleName}@email.com",
             'password' => Hash::make('password'), // Use a known password for testing
             'first_name' => 'Test', // Assuming first_name and last_name based on your User model
             'last_name' => ucfirst($roleName),
@@ -128,7 +128,7 @@ class RoleBasedLoginTest extends TestCase
     {
          // No user exists with this email
         $response = $this->post('/login', [
-            'email' => 'nonexistent@example.com',
+            'email' => 'nonexistent@email.com',
             'password' => 'password',
             'role' => 'student', // Send a role (could be any valid role)
         ]);

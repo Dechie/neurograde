@@ -23,7 +23,7 @@ class StudentRegistrationTest extends TestCase // Or whatever you name your test
         $response = $this->post('/student-register', [ // Use the actual student registration URI
             'first_name' => 'Test',
             'last_name' => 'Student',
-            'email' => 'student@example.com',
+            'email' => 'student@email.com',
             'password' => 'password',
             'password_confirmation' => 'password',
             'id_number' => 'STU12345', // Student-specific field
@@ -33,14 +33,14 @@ class StudentRegistrationTest extends TestCase // Or whatever you name your test
 
         // Assert the user was created in the database
         $this->assertDatabaseHas('users', [
-            'email' => 'student@example.com',
+            'email' => 'student@email.com',
             'first_name' => 'Test',
             'last_name' => 'Student',
             // Don't assert password directly as it's hashed
         ]);
 
          // Assert the user has the 'student' role
-        $user = User::where('email', 'student@example.com')->first();
+        $user = User::where('email', 'student@email.com')->first();
         $this->assertTrue($user->hasRole('student'));
 
         // Assert the related student record was created

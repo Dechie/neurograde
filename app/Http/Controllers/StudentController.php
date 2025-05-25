@@ -15,9 +15,13 @@ use App\Models\Submission;
 use App\Services\AiGradingService;
 use App\Jobs\GradeSubmission;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use App\Traits\SanitizesMarkdown;
 
 class StudentController extends Controller
 {
+    use SanitizesMarkdown;
+
     protected $aiGradingService;
 
     public function __construct(AiGradingService $aiGradingService)
@@ -70,22 +74,39 @@ class StudentController extends Controller
     /**
      * Show the student tests list page.
      */
-    public function getTests(): Response // Specify return type
+    public function getTests(): Response
     {
-        $user = auth()->user()->load('student'); // Load the student relationship
-
-        // Get the authenticated student model
+        $user = auth()->user()->load('student');
         $student = $user->student;
 
-        // --- Fetch tests assigned to this student via the many-to-many relationship ---
-        // Use the 'tests' relationship defined on the Student model
-        // Eager load the class and its department for potential future use on the frontend
-        $tests = $student->tests()->with(['class.department'])->get();
-        // --- End Fetch ---
+        // Get tests assigned to this student that are published
+        $tests = $student->tests()
+            ->where('published', true)
+            ->where('due_date', '>', now())
+            ->with(['class.department', 'teacher.user'])
+            ->orderBy('due_date', 'asc')
+            ->get()
+            ->map(function($test) {
+                return [
+                    'id' => $test->id,
+                    'title' => $test->title,
+                    'problemStatement' => $test->problem_statement,
+                    'dueDate' => $test->due_date ? $test->due_date->format('Y-m-d H:i:s') : null,
+                    'status' => $test->status,
+                    'class' => $test->class ? [
+                        'id' => $test->class->id,
+                        'name' => $test->class->name,
+                        'department' => $test->class->department->name
+                    ] : null,
+                    'teacher' => $test->teacher ? [
+                        'id' => $test->teacher->id,
+                        'name' => $test->teacher->user->first_name . ' ' . $test->teacher->user->last_name
+                    ] : null
+                ];
+            });
 
-        // Return the Inertia page with the student's tests
         return Inertia::render('dashboard/studentDashboard/Tests/Index', [
-            'tests' => $tests->toArray(), // Pass the tests as an array
+            'tests' => $tests
         ]);
     }
 
@@ -210,98 +231,102 @@ class StudentController extends Controller
 
     public function submitTest(Request $request, $id)
     {
-        // First, find the test and ensure it exists
-        $test = Test::findOrFail($id);
-        
-        // Load the test's relationships
-        $test->load(['class', 'department']);
-
-        $validator = Validator::make($request->all(), [
-            "submission_type" => "required|in:file,editor",
-            "code_file" => "required_if:submission_type,file|nullable|file|mimetypes:text/plain,text/x-python,application/octet-stream|mimes:txt,py,java,cpp,js,cs,php",
-            "code_editor_text" => "required_if:submission_type,editor|string",
-            "language" => "required|string|in:cpp,python"
-        ]);
-
-        if ($validator->fails()) {
-            return Inertia::render('dashboard/studentDashboard/Tests/TestDetail', [
-                'test' => $test,
-                'error' => $validator->errors()->first()
-            ]);
-        }
-
-        // Load the student with their classes relationship
-        $student = $request->user()->load('student.classes')->student;
-
-        // Add logging to debug the values
-        \Log::info('Student and Test Details', [
-            'student_classes' => $student->classes->pluck('id'),
-            'test_class_id' => $test->class_id,
-            'student_department_id' => $student->department_id,
-            'test_department_id' => $test->department_id,
-            'student_id' => $student->id,
-            'test_id' => $test->id
-        ]);
-
-        // Check if student's department matches and if they are enrolled in the test's class
-        if ($student->department_id != $test->department_id || !$student->classes->contains('id', $test->class_id)) {
-            \Log::warning('Class/Department mismatch', [
-                'student_classes' => $student->classes->pluck('id'),
-                'test_class_id' => $test->class_id,
-                'student_department_id' => $student->department_id,
-                'test_department_id' => $test->department_id
-            ]);
-            
-            return Inertia::render('dashboard/studentDashboard/Tests/TestDetail', [
-                'test' => $test,
-                'error' => 'You are not enrolled in the class or department for this test'
-            ]);
-        }
-
         try {
-            $filePath = null;
-            if ($request->submission_type === "file" && $request->hasFile("code_file")) {
-                $originalName = $request->file("code_file")->getClientOriginalName();
-                $timestamp = now()->format('Ymd_His');
-                $newFileName = $timestamp . '_' . $originalName;
-                $filePath = $request->file("code_file")->storeAs("submissions", $newFileName);
+            $student = auth()->user()->student;
+            
+            // Load the student's class and department relationships
+            $student->load(['classes', 'department']);
+            
+            // Get the test
+            $test = Test::findOrFail($id);
+            
+            // Validate student's access to the test
+            if (!$student->classes->contains('id', $test->class_id)) {
+                return back()->with('error', 'You are not enrolled in the class for this test.');
+            }
+            
+            if ($student->department_id !== $test->department_id) {
+                return back()->with('error', 'You are not in the department for this test.');
             }
 
-            $submission = Submission::create([
-                "test_id" => $test->id,
-                "student_id" => $student->id,
-                "submission_type" => $request->submission_type,
-                "code_file_path" => $filePath,
-                "language" => $request->language,
-                "code_editor_text" => $request->code_editor_text,
-                "submission_date" => now(),
-                "status" => "pending" // Initial status, AI grading will update it
+            // Check if student has already submitted
+            $existingSubmission = Submission::where('student_id', $student->id)
+                ->where('test_id', $test->id)
+                ->first();
+
+            if ($existingSubmission) {
+                return back()->with('error', 'You have already submitted this test.');
+            }
+
+            // Validate the submission based on type
+            $validator = Validator::make($request->all(), [
+                'submission_type' => 'required|in:file,editor',
+                'code_editor_text' => 'required_if:submission_type,editor|string',
+                'code_file' => 'required_if:submission_type,file|nullable|file|mimes:cpp,h,hpp,c,py|max:1024',
+                'language' => 'required|in:cpp,python',
             ]);
 
-            // --- ASYNCHRONOUS AI GRADING INTEGRATION START ---
-            // Dispatch the job to grade the submission in the background
-            \App\Jobs\GradeSubmission::dispatch($submission);
-            Log::info('AI grading job dispatched for submission', [
-                'submission_id' => $submission->id,
-                'queue' => 'grading',
+            if ($validator->fails()) {
+                Log::error('Validation failed', [
+                    'errors' => $validator->errors()->toArray(),
+                    'request_data' => $request->all()
+                ]);
+                return back()->withErrors($validator->errors());
+            }
+
+            // Create the submission
+            $submission = Submission::create([
+                'student_id' => $student->id,
+                'test_id' => $test->id,
+                'submission_type' => $request->submission_type,
+                'code_editor_text' => null,
+                'code_file_path' => null,
+                'language' => $request->language,
+                'submission_date' => now(),
                 'status' => 'pending'
             ]);
-            // --- ASYNCHRONOUS AI GRADING INTEGRATION END ---
 
-            return Inertia::render('dashboard/studentDashboard/Tests/TestDetail', [
-                'test' => $test,
-                'submission' => [
-                    'id' => $submission->id,
-                    'status' => 'pending',
-                    'created_at' => $submission->created_at->format('Y-m-d H:i:s')
-                ],
-                'success' => 'Test submitted successfully. AI grading is being processed in the background. You can check the status on your submissions page.'
+            // Handle the submission based on type
+            if ($request->submission_type === 'editor') {
+                $submission->update([
+                    'code_editor_text' => $this->sanitizeMarkdown($request->code_editor_text)
+                ]);
+            } else if ($request->submission_type === 'file') {
+                if (!$request->hasFile('code_file')) {
+                    return back()->with('error', 'Please upload a code file for file submission.');
+                }
+                $file = $request->file('code_file');
+                $path = $file->store('submissions/' . $submission->id);
+                $submission->update([
+                    'code_file_path' => $path,
+                    'code_editor_text' => $this->sanitizeMarkdown(file_get_contents($file->getRealPath()))
+                ]);
+            }
+
+            // Dispatch the grading job
+            GradeSubmission::dispatch($submission);
+
+            Log::info('Test submitted successfully', [
+                'submission_id' => $submission->id,
+                'test_id' => $test->id,
+                'student_id' => $student->id,
+                'submission_type' => $request->submission_type,
+                'language' => $request->language,
+                'has_file' => $request->hasFile('code_file'),
+                'has_editor_text' => !empty($request->code_editor_text)
             ]);
+
+            return back()->with('success', 'Test submitted successfully! Your submission is being graded.');
+
         } catch (\Exception $e) {
-            return Inertia::render('dashboard/studentDashboard/Tests/TestDetail', [
-                'test' => $test,
-                'error' => 'Failed to submit test: ' . $e->getMessage()
+            Log::error('Failed to submit test', [
+                'error' => $e->getMessage(),
+                'test_id' => $id,
+                'student_id' => auth()->user()->student->id,
+                'trace' => $e->getTraceAsString()
             ]);
+
+            return back()->with('error', 'Failed to submit test. Please try again.');
         }
     }
 
