@@ -36,7 +36,7 @@ export function Sidebar() {
   return (
     <>
       {isMobile && (
-        <div className={`fixed z-50 md:hidden ${isMobileOpen ? 'top-2 left-52' : 'top-2 left-2 h-screen'}`}>
+        <div className={`fixed z-50 md:hidden ${isMobileOpen ? 'top-2 left-52' : 'top-2 left-2 '}`}>
           <Button variant="outline" size="icon" onClick={toggleMobile}>
             {isMobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
@@ -45,7 +45,7 @@ export function Sidebar() {
 
       <aside
         className={`transition-all duration-300 ease-in-out border-r bg-white flex flex-col
-        ${isMobile ? 'fixed top-0 left-0 z-40 h-full w-full' : 'sticky top-0'}
+        ${isMobile ? 'fixed top-0 left-0 z-40 h-full w-full' : 'sticky top-0 h-screen'}
         ${isMobile
           ? isMobileOpen
             ? 'translate-x-0'
