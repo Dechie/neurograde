@@ -13,6 +13,7 @@ import { LoaderCircle } from 'lucide-react';
 
 interface CreateClassFormProps {
     departments: Department[]; 
+    onSuccess?: () => void;
 }
 
 interface CreateClassFormData {
@@ -22,8 +23,7 @@ interface CreateClassFormData {
     [key: string]: any
 }
 
-// Modify the component function signature to accept props
-export function CreateClassForm({ departments }: CreateClassFormProps) { // Accept only departments as prop
+export function CreateClassForm({ departments, onSuccess }: CreateClassFormProps) { // Accept only departments as prop
     const [imageLoaded, setImageLoaded] = useState(false);
 
     const { data, setData, post, processing, errors, reset } = useForm<CreateClassFormData>({
@@ -51,88 +51,90 @@ export function CreateClassForm({ departments }: CreateClassFormProps) { // Acce
 
     const classImage = `/classroom.jpg?t=${Date.now()}`;
 
-    return (
-        <div className="flex min-h-screen w-full items-center justify-center sm:p-4">
-            <Card className="flex w-full max-w-[90%] flex-col items-center justify-center overflow-hidden shadow-xl sm:max-w-3xl md:max-w-4xl md:flex-row">
-                <div className="flex w-full md:w-1/2">
-                    <img
-                        src={classImage}
-                        className={`m-4 h-60 w-full rounded-lg object-contain transition-opacity md:h-full ${
-                            imageLoaded ? 'opacity-100' : 'opacity-0'
-                        }`}
-                        onLoad={() => setImageLoaded(true)}
-                        onError={(e) => {
-                            e.currentTarget.src = 'https://via.placeholder.com/1350x900?text=Classroom+Image+Not+Found';
-                            setImageLoaded(true);
-                        }}
-                        alt="Classroom illustration"
-                    />
-                </div>
-                <div className="flex w-full flex-col md:w-1/2">
-                    <CardHeader className="space-y-2 px-6 pt-6 text-center sm:px-8 sm:pt-8">
-                        <CardTitle className="text-primary text-2xl font-bold sm:text-3xl">Create New Class</CardTitle>
-                        <CardDescription className="text-muted-foreground text-sm sm:text-base">
-                            Enter class details to create a new class
-                        </CardDescription>
-                    </CardHeader>
+   return (
+  <div className="flex  items-center justify-center bg-background p-4">
+    <Card className="w-full max-w-md overflow-hidden rounded-2xl shadow-2xl border-0">
 
-                    <form onSubmit={handleSubmit}>
-                        <CardContent className="flex-1 space-y-6 px-6 py-6 sm:space-y-8 sm:px-8 sm:py-8">
-                            {/* Class Name Input */}
-                            <div className="space-y-2">
-                                <Label htmlFor="name">Class Name</Label>
-                                <Input id="name" placeholder="Section A" value={data.name} onChange={(e) => setData('name', e.target.value)} />
-                                <InputError message={errors.name} />
-                            </div>
+      <form onSubmit={handleSubmit} className="p-6">
+        <div className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="name" className="text-sm font-medium ">
+              Class Name
+            </Label>
+            <Input
+              id="name"
+              placeholder="Section A, Grade 10-B"
+              className="h-12 rounded-lg"
+              value={data.name}
+              onChange={(e) => setData('name', e.target.value)}
+            />
+            <InputError message={errors.name} className="text-sm text-rose-600" />
+          </div>
 
-                            {/* Department Select */}
-                            <div className="space-y-2">
-                                <Label htmlFor="department_id">Department</Label>
-                                <Select value={data.department_id?.toString()} onValueChange={(value) => setData('department_id', Number(value))}>
-                                    <SelectTrigger id="department_id">
-                                        <SelectValue placeholder="Select a department" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {/* Use imported Department interface in map */}
-                                        {departments?.map((dept: Department) => (
-                                            <SelectItem key={dept.id} value={dept.id.toString()}>
-                                                {dept.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <InputError message={errors.department_id} />
-                            </div>
+          <div className="space-y-2">
+            <Label htmlFor="department_id" className="text-sm font-medium ">
+              Department
+            </Label>
+            <Select
+              value={data.department_id?.toString()}
+              onValueChange={(value) => setData('department_id', Number(value))}
+            >
+              <SelectTrigger 
+                id="department_id" 
+                className="h-12 rounded-lg "
+              >
+                <SelectValue placeholder="Select department" />
+              </SelectTrigger>
+              <SelectContent className="rounded-lg shadow-lg border ">
+                {departments?.map((dept) => (
+                  <SelectItem 
+                    key={dept.id} 
+                    value={dept.id.toString()}
+                    className="hover:bg-primary/10 focus:bg-primary/10"
+                  >
+                    {dept.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <InputError message={errors.department_id} className="text-sm text-rose-600" />
+          </div>
 
-                            {/* Maximum Students Input */}
-                            <div className="space-y-2">
-                                <Label htmlFor="max_students">Maximum Students</Label>
-                                <Input
-                                    id="max_students"
-                                    type="number"
-                                    min="1"
-                                    placeholder="30"
-                                    value={data.max_students}
-                                    onChange={(e) => setData('max_students', Number(e.target.value))}
-                                />
-                                <InputError message={errors.max_students} />
-                            </div>
-                        </CardContent>
-                        <CardFooter className="flex flex-col space-y-4 px-6 pb-6 sm:px-8 sm:pb-8">
-                            <Button type="submit" className="w-full" disabled={processing}>
-                                {processing ? (
-                                    <>
-                                        <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
-                                        Creating...
-                                    </>
-                                ) : (
-                                    'Create Class'
-                                )}
-                            </Button>
-                        </CardFooter>
-                    </form>
-                </div>
-            </Card>
+          <div className="space-y-2">
+            <Label htmlFor="max_students" className="text-sm font-medium">
+              Maximum Students
+            </Label>
+            <Input
+              id="max_students"
+              type="number"
+              min="1"
+              placeholder="30"
+              className="h-12 rounded-lg"
+              value={data.max_students}
+              onChange={(e) => setData('max_students', Number(e.target.value))}
+            />
+            <InputError message={errors.max_students} className="text-sm text-rose-600" />
+          </div>
         </div>
-    );
+
+        <div className="mt-8">
+          <Button
+            type="submit"
+            disabled={processing}
+            className="w-full h-12 rounded-lg"
+          >
+            {processing ? (
+              <>
+                <LoaderCircle className="mr-2 h-5 w-5 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              'Create Class'
+            )}
+          </Button>
+        </div>
+      </form>
+    </Card>
+  </div>
+);
 }
