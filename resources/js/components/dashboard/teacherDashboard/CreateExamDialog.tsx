@@ -1,0 +1,48 @@
+'use client';
+
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { CreateExamForm } from './CreateExamForm';
+import type { ClassRoom } from '@/types/index';
+import { useToast } from '@/components/ui/use-toast';
+
+interface CreateExamDialogProps {
+  classes: ClassRoom[];
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onExamCreated?: () => void;
+}
+
+export function CreateExamDialog({ 
+  classes, 
+  open, 
+  onOpenChange,
+  onExamCreated 
+}: CreateExamDialogProps) {
+  const { toast } = useToast();
+
+  const handleSuccess = () => {
+    onOpenChange(false);
+    toast({
+      title: "Success",
+      description: "Exam created successfully!",
+      variant: "default"
+    });
+    onExamCreated?.();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[625px]">
+        <DialogHeader>
+          <DialogTitle className="text-xl">Create New Exam</DialogTitle>
+        </DialogHeader>
+        <div className="max-h-[80vh] overflow-y-auto p-1">
+          <CreateExamForm 
+            classes={classes} 
+            onSuccess={handleSuccess}
+          />
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
