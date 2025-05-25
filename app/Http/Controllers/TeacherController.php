@@ -34,8 +34,8 @@ class TeacherController extends Controller
         $teacher = Auth::user()->teacher()->with('classes.department')->first();
 
           // Add logging here
-    \Log::info('Authenticated Teacher ID: ' . $teacher->id);
-    \Log::info('Classes loaded for teacher: ' . $teacher->classes->toJson()); // Log the collection as JSON
+            \Log::info('Authenticated Teacher ID: ' . $teacher->id);
+            \Log::info('Classes loaded for teacher: ' . $teacher->classes->toJson()); // Log the collection as JSON
         // Fetch the classes taught by this teacher
         $classes = $teacher->classes; // Access the eager loaded classes
 

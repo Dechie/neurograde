@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Test;
 use App\Traits\SanitizesMarkdown;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
 
 class TestController extends Controller
 {
@@ -18,23 +18,50 @@ class TestController extends Controller
             'problem_statement' => 'required|string',
             'input_spec' => 'required|string',
             'output_spec' => 'required|string',
-            'due_date' => 'required|date',
+            'due_date' => 'required|date|after:now',
             'class_id' => 'required|exists:classes,id',
         ]);
 
-        // Sanitize markdown content
-        $validated['problem_statement'] = $this->sanitizeMarkdown($validated['problem_statement']);
-        $validated['input_spec'] = $this->sanitizeMarkdown($validated['input_spec']);
-        $validated['output_spec'] = $this->sanitizeMarkdown($validated['output_spec']);
+        try {
+            // Sanitize markdown content
+            $validated['problem_statement'] = $this->sanitizeMarkdown($validated['problem_statement']);
+            $validated['input_spec'] = $this->sanitizeMarkdown($validated['input_spec']);
+            $validated['output_spec'] = $this->sanitizeMarkdown($validated['output_spec']);
 
-        // Add teacher_id from authenticated user
-        $validated['teacher_id'] = auth()->user()->teacher->id;
-        $validated['department_id'] = auth()->user()->teacher->department_id;
-        $validated['status'] = 'Upcoming';
+            $teacher = Auth::user()->teacher;
+            
+            $test = Test::create([
+                "teacher_id" => $teacher->id,
+                "department_id" => $teacher->department_id,
+                "class_id" => $validated['class_id'],
+                "title" => $validated['title'],
+                "due_date" => $validated['due_date'],
+                "published" => true,
+                "problem_statement" => $validated['problem_statement'],
+                "input_spec" => $validated['input_spec'],
+                "output_spec" => $validated['output_spec'],
+            ]);
 
-        $test = Test::create($validated);
+            // Get all students in the class and associate them with the test
+            $studentIds = $test->class->students()->pluck('students.id');
+            $test->students()->sync($studentIds);
 
-        return redirect()->route('teacher.tests.show', $test->id);
+            return response()->json([
+                'message' => 'Test created successfully',
+                'test' => $test
+            ], 201);
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to create test', [
+                'error' => $e->getMessage(),
+                'request' => $request->all()
+            ]);
+            
+            return response()->json([
+                'message' => 'Failed to create test',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     // ... rest of the controller methods ...
