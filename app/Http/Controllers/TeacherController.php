@@ -46,6 +46,8 @@ class TeacherController extends Controller
         ]);
     }
 
+
+
     /**
      * Handle storing a newly created test.
      */
@@ -281,7 +283,7 @@ class TeacherController extends Controller
             'test' => $test
         ]);
     }
-    
+
     public function getSubmissions()
     {
         $teacher = auth()->user()->teacher;
@@ -317,6 +319,44 @@ class TeacherController extends Controller
 
         return Inertia::render('dashboard/teacherDashboard/Submissions/Index', [
             'submissions' => $submissions
+        ]);
+    }
+    
+    public function showTest($testId) {
+        $teacher = auth()->user()->teacher;
+        $test = Test::with([
+            'class',
+            'department',
+            'teacher'
+        ]);
+        return Inertia::render('dashboard/teacherDashboard/Tests/Show', [
+            'test' => [
+                'id' => $test->id,
+                'title' => $test->title,
+                'problemStatement' => $test->problem_statement,
+                'dueDate' => $test->due_date,
+                'status' => $test->status,
+                'questionId' => $test->questionId,
+                'class_id' => $test->class->id,
+                'department_id' => $test->department->id,
+                'class' => [
+                    'id' => $test->class->id,
+                    'name' => $test->class->name,
+                    'department' -> $test->department->name,
+                ],
+                'department' => [
+                    'id' => $test->department->id,
+                    'name' => $test->department->name,
+                ],
+                'teacher' => [
+                    'name' => $test->teacher->name,
+                ],
+                'submission' => [
+                    'id' => $test->submission->id,
+                    'status' => $test->submission->status,
+                    'created_at' => $test->submission->created_at,
+                ]
+            ]
         ]);
     }
 
@@ -385,6 +425,8 @@ class TeacherController extends Controller
             ]
         ]);
     }
+
+    
 
     public function gradeSubmission(Request $request, $submissionId)
     {

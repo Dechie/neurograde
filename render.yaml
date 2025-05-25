@@ -1,40 +1,60 @@
 services:
   - type: web
     name: neuro-grade
-    env: php
+    runtime: php
     buildCommand: composer install --no-dev --optimize-autoloader
     startCommand: vendor/bin/heroku-php-apache2 public/
     envVars:
       - key: APP_ENV
         value: production
       - key: APP_DEBUG
-        value: false
+        value: "true"
       - key: APP_KEY
         generateValue: true
       - key: DB_CONNECTION
-        value: mysql
+        value: pgsql
       - key: DB_HOST
-        fromDatabase:
-          name: neuro-grade-db
-          property: host
+        value: dpg-d0phueruibrs73fsdo9g-a
       - key: DB_PORT
-        fromDatabase:
-          name: neuro-grade-db
-          property: port
+        value: 5432
       - key: DB_DATABASE
-        fromDatabase:
-          name: neuro-grade-db
-          property: database
+        value: neurograde_db
       - key: DB_USERNAME
-        fromDatabase:
-          name: neuro-grade-db
-          property: user
+        value: neurograde_db_user
       - key: DB_PASSWORD
-        fromDatabase:
-          name: neuro-grade-db
-          property: password
+        value: xo63rd6FnBqihnjbHQPK4SV0l6IIKHAF
+      - key: QUEUE_CONNECTION
+        value: database
+
+  - type: worker
+    name: neuro-grade-worker
+    runtime: php
+    buildCommand: composer install --no-dev --optimize-autoloader
+    startCommand: php artisan queue:work --tries=3 --timeout=90
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "true"
+      - key: APP_KEY
+        generateValue: true
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        value: dpg-d0phueruibrs73fsdo9g-a
+      - key: DB_PORT
+        value: 5432
+      - key: DB_DATABASE
+        value: neurograde_db
+      - key: DB_USERNAME
+        value: neurograde_db_user
+      - key: DB_PASSWORD
+        value: xo63rd6FnBqihnjbHQPK4SV0l6IIKHAF
+      - key: QUEUE_CONNECTION
+        value: database
 
 databases:
-  - name: neuro-grade-db
-    databaseName: neuro_grade
-    user: neuro_grade_user 
+  - name: neurograde-db
+    databaseName: neurograde_db
+    user: neurograde_db_user
+    plan: free 

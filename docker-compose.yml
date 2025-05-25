@@ -10,14 +10,14 @@ services:
     ports:
       - '8000:80'
     environment:
-      - APP_ENV=local
+      - APP_ENV=production
       - APP_KEY=base64:iIhFhZgfGy6AB5B9LI3mVeM3gAbCY3uOLqhhWsJo4lc=
       - DB_CONNECTION=pgsql
-      - DB_HOST=db
+      - DB_HOST=dpg-d0phueruibrs73fsdo9g-a
       - DB_PORT=5432
-      - DB_DATABASE=code_review_system
-      - DB_USERNAME=root
-      - DB_PASSWORD=12345678
+      - DB_DATABASE=neurograde_db
+      - DB_USERNAME=neurograde_db_user
+      - DB_PASSWORD=xo63rd6FnBqihnjbHQPK4SV0l6IIKHAF
     depends_on:
       - db
 
@@ -26,9 +26,9 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: code_review_system
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: 12345678
+      POSTGRES_DB: neurograde_db
+      POSTGRES_USER: neurograde_db_user
+      POSTGRES_PASSWORD: xo63rd6FnBqihnjbHQPK4SV0l6IIKHAF
 
 volumes:
   db_data:
