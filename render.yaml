@@ -2,8 +2,16 @@ services:
   - type: web
     name: neuro-grade
     runtime: php
-    buildCommand: composer install --no-dev --optimize-autoloader
-    startCommand: vendor/bin/heroku-php-apache2 public/
+    buildCommand: |
+      composer install --no-dev --optimize-autoloader
+      npm install
+      npm run build
+    startCommand: |
+      php artisan config:clear
+      php artisan cache:clear
+      php artisan view:clear
+      php artisan route:clear
+      vendor/bin/heroku-php-apache2 public/
     envVars:
       - key: APP_ENV
         value: production
@@ -25,12 +33,14 @@ services:
         value: xo63rd6FnBqihnjbHQPK4SV0l6IIKHAF
       - key: QUEUE_CONNECTION
         value: database
+      - key: LOG_LEVEL
+        value: debug
 
   - type: worker
-    name: neuro-grade-worker
+    name: neuro-grade-grading-worker
     runtime: php
     buildCommand: composer install --no-dev --optimize-autoloader
-    startCommand: php artisan queue:work --tries=3 --timeout=90
+    startCommand: php artisan queue:listen --queue=grading --tries=1
     envVars:
       - key: APP_ENV
         value: production
@@ -52,6 +62,8 @@ services:
         value: xo63rd6FnBqihnjbHQPK4SV0l6IIKHAF
       - key: QUEUE_CONNECTION
         value: database
+      - key: LOG_LEVEL
+        value: debug
 
 databases:
   - name: neurograde-db
