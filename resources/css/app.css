@@ -89,9 +89,14 @@
   --popover-foreground: oklch(0.32 0.15 260);
 
   --primary: oklch(0.45 0.15 260); /* Matches #323a92 */
-  --primary-foreground: oklch(0.98 0 0); /* White text */
+  --primary-foreground: oklch(1 0 0); /* White text */
+  --primary-hover: oklch(0.55 0.15 260);
 
-  --secondary: oklch(0.65 0.18 265); /* Matches #5463FF */
+  
+
+  --secondary: oklch(0.6 0.13 260); /* Matches #5463FF */
+    /* --secondary: oklch(0.65 0.18 265); Matches #5463FF */
+
   --secondary-foreground: oklch(0.98 0 0);
 
   --muted: oklch(0.94 0 0);

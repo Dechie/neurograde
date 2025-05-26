@@ -20,6 +20,7 @@ const config: Config = {
         primary: {
           DEFAULT: "oklch(var(--primary))",
           foreground: "oklch(var(--primary-foreground))",
+          hover: "oklch(var(--primary-hover))",
         },
         secondary: {
           DEFAULT: "oklch(var(--secondary))",
@@ -80,6 +81,7 @@ const config: Config = {
     },
   },
   plugins: [require("tailwindcss-animate")],
+  
 };
 
 export default config;

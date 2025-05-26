@@ -79,7 +79,7 @@ export function Sidebar() {
                     href={item.path}
                     onClick={() => isMobile && closeMobile()}
                     className={`flex items-center gap-3 px-3 py-2 rounded
-                    ${isActive(item.path) ? 'bg-primary text-muted' : 'hover:bg-primary hover:text-muted'}
+                    ${isActive(item.path) ? 'bg-primary text-muted' : 'hover:bg-secondary hover:text-primary-foreground'}
                     ${isCollapsed && !isMobile ? 'justify-center' : 'w-full'}`}
                   >
                     <item.icon className="h-5 w-5" />
