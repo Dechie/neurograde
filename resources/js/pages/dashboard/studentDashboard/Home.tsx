@@ -15,11 +15,13 @@ export default function Home({ user, upcomingTests, recentResults, statistics = 
     return (
         <AppLayout title="Dashboard">
             <div className="space-y-6">
-                {/* Welcome Section */}
-                <div>
-                    <h1 className="text-3xl font-bold">Welcome, {user.name}!</h1>
-                    <p className="text-muted-foreground">Student ID: {user.student.id_number}</p>
-                </div>
+                
+                <div className="bg-primary text-primary-foreground rounded-lg p-6">
+                <h1 className="text-2xl font-bold">Welcome back, {user.name}</h1>
+                                    <p className="text-muted-foreground">Student ID: {user.student.id_number}</p>
+
+                <p>Here's an overview of your academic progress and upcoming tests.</p>
+            </div>
 
                 {/* Statistics Overview */}
                 <div className="grid gap-4 md:grid-cols-4">
@@ -57,65 +59,67 @@ export default function Home({ user, upcomingTests, recentResults, statistics = 
                     </Card>
                 </div>
 
-                {/* Upcoming Tests */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Upcoming Tests</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {upcomingTests.length > 0 ? (
-                            <div className="space-y-4">
-                                {upcomingTests.map((test) => (
-                                    <div key={test.id} className="flex items-center justify-between">
-                                        <div>
-                                            <h3 className="font-medium">{test.title}</h3>
-                                            <p className="text-sm text-muted-foreground">
-                                                {test.class_name} • Due {new Date(test.due_date).toLocaleDateString()}
-                                            </p>
-                                        </div>
-                                    </div>
-                                ))}
+               <div className="flex flex-row gap-4">
+    {/* Upcoming Tests */}
+    <Card className="flex-1">
+        <CardHeader>
+            <CardTitle>Upcoming Tests</CardTitle>
+        </CardHeader>
+        <CardContent>
+            {upcomingTests.length > 0 ? (
+                <div className="space-y-4">
+                    {upcomingTests.map((test) => (
+                        <div key={test.id} className="flex items-center justify-between">
+                            <div>
+                                <h3 className="font-medium">{test.title}</h3>
+                                <p className="text-sm text-muted-foreground">
+                                    {test.class_name} • Due {new Date(test.due_date).toLocaleDateString()}
+                                </p>
                             </div>
-                        ) : (
-                            <Alert>
-                                <AlertCircle className="h-4 w-4" />
-                                <AlertDescription>No upcoming tests</AlertDescription>
-                            </Alert>
-                        )}
-                    </CardContent>
-                </Card>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>No upcoming tests</AlertDescription>
+                </Alert>
+            )}
+        </CardContent>
+    </Card>
 
-                {/* Recent Results */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Recent Results</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {recentResults.length > 0 ? (
-                            <div className="space-y-4">
-                                {recentResults.map((result) => (
-                                    <div key={result.id} className="flex items-center justify-between">
-                                        <div>
-                                            <h3 className="font-medium">{result.test.title}</h3>
-                                            <p className="text-sm text-muted-foreground">
-                                                Submitted {new Date(result.submission_date).toLocaleDateString()}
-                                            </p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="font-medium">{result.score ?? 'Pending'}</p>
-                                            <p className="text-sm text-muted-foreground">{result.status}</p>
-                                        </div>
-                                    </div>
-                                ))}
+    {/* Recent Results */}
+    <Card className="flex-1">
+        <CardHeader>
+            <CardTitle>Recent Results</CardTitle>
+        </CardHeader>
+        <CardContent>
+            {recentResults.length > 0 ? (
+                <div className="space-y-4">
+                    {recentResults.map((result) => (
+                        <div key={result.id} className="flex items-center justify-between">
+                            <div>
+                                <h3 className="font-medium">{result.test.title}</h3>
+                                <p className="text-sm text-muted-foreground">
+                                    Submitted {new Date(result.submission_date).toLocaleDateString()}
+                                </p>
                             </div>
-                        ) : (
-                            <Alert>
-                                <AlertCircle className="h-4 w-4" />
-                                <AlertDescription>No recent results</AlertDescription>
-                            </Alert>
-                        )}
-                    </CardContent>
-                </Card>
+                            <div className="text-right">
+                                <p className="font-medium">{result.score ?? 'Pending'}</p>
+                                <p className="text-sm text-muted-foreground">{result.status}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>No recent results</AlertDescription>
+                </Alert>
+            )}
+        </CardContent>
+    </Card>
+</div>
             </div>
         </AppLayout>
     );
