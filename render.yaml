@@ -1,7 +1,7 @@
 services:
   - type: web
     name: neuro-grade
-    runtime: php
+    runtime: docker 
     buildCommand: |
       composer install --no-dev --optimize-autoloader
       npm install
@@ -38,7 +38,7 @@ services:
 
   - type: worker
     name: neuro-grade-grading-worker
-    runtime: php
+    runtime: docker 
     buildCommand: composer install --no-dev --optimize-autoloader
     startCommand: php artisan queue:listen --queue=grading --tries=1
     envVars:

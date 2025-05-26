@@ -1,4 +1,4 @@
-FROM php:8.2-apache
+FROM richarvey/nginx-php-fpm:latest
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -25,25 +25,34 @@ RUN docker-php-ext-install pdo_pgsql mbstring exif pcntl bcmath gd zip
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Set working directory
-WORKDIR /var/www
+WORKDIR /var/www/html
 
 # Copy existing application directory
 COPY . .
 
-# Install dependencies
-RUN composer install --no-dev --optimize-autoloader
-RUN npm install
-RUN npm run build
+# Image config
+ENV SKIP_COMPOSER 1
+ENV WEBROOT /var/www/html/public
+ENV PHP_ERRORS_STDERR 1
+ENV RUN_SCRIPTS 1
+ENV REAL_IP_HEADER 1
+
+# Laravel config
+ENV APP_ENV staging
+ENV APP_DEBUG true
+ENV LOG_CHANNEL stderr
+
+# Allow composer to run as root
+ENV COMPOSER_ALLOW_SUPERUSER 1
 
 # Set permissions
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Configure Apache
-RUN a2enmod rewrite
-COPY docker/apache/000-default.conf /etc/apache2/sites-available/000-default.conf
+# Copy deployment script
+COPY scripts/00-laravel-deploy.sh /docker-entrypoint-initdb.d/
 
 # Expose port 80
 EXPOSE 80
 
-# Start Apache
-CMD ["apache2-foreground"]
+# Start nginx
+CMD ["/start.sh"]
