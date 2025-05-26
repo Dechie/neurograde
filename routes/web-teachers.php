@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\TeacherController;
 
-
 Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->group(function(){
      // teacher homepage
     Route::get('/teacher/dashboard', [TeacherController::class, 'showDashboard'])
@@ -17,8 +16,8 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->group(function()
     Route::get('/tests/{test}', [TeacherController::class, 'showTest'])->name('teacher.tests.show');
 
     // In your routes file (web.php or api.php)
-Route::put('/tests/{test}', [TeacherController::class, 'updateTest'])->name('teacher.tests.update');
-Route::delete('/tests/{test}', [TeacherController::class, 'destroyTest'])->name('teacher.tests.destroy');
+    Route::put('/tests/{test}', [TeacherController::class, 'updateTest'])->name('teacher.tests.update');
+    Route::delete('/tests/{test}', [TeacherController::class, 'destroyTest'])->name('teacher.tests.destroy');
 
     // Routes for Submissions
     Route::get('/submissions', [TeacherController::class, 'showSubmissions'])->name('teacher.submissions.index');
@@ -38,3 +37,4 @@ Route::delete('/tests/{test}', [TeacherController::class, 'destroyTest'])->name(
     Route::post('/tests/{test}/publish', [TeacherController::class, 'publishGrades'])->name('teacher.tests.publish');
     Route::post('/grades/{grade}/override', [TeacherController::class, 'overrideGrade'])->name('teacher.grades.override');
 });
+
