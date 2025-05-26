@@ -24,26 +24,177 @@ use App\Traits\SanitizesMarkdown;
 class TeacherController extends Controller
 {
     use SanitizesMarkdown;
+    /**
+ * Show the teacher dashboard home page.
+ */
+public function showDashboard(): Response
+{
+    $teacher = Auth::user()->teacher;
+    
+    // Get recent tests with basic stats
+    $recentTests = Test::where('teacher_id', $teacher->id)
+        ->with(['class', 'submissions'])
+        ->orderBy('created_at', 'desc')
+        ->take(5)
+        ->get()
+        ->map(function($test) {
+            return [
+                'id' => $test->id,
+                'title' => $test->title,
+                'class' => $test->class ? $test->class->name : 'N/A',
+                'due_date' => $test->due_date->format('M j, Y'),
+                'submissions_count' => $test->submissions->count(),
+                'graded_count' => $test->submissions->where('status', 'graded')->count(),
+                'published_count' => $test->submissions->where('status', 'published')->count(),
+            ];
+        });
+
+    // Get statistics
+    $stats = [
+        'total_tests' => Test::where('teacher_id', $teacher->id)->count(),
+        'total_submissions' => Submission::whereHas('test', function($query) use ($teacher) {
+            $query->where('teacher_id', $teacher->id);
+        })->count(),
+        'pending_grading' => Submission::whereHas('test', function($query) use ($teacher) {
+            $query->where('teacher_id', $teacher->id);
+        })->where('status', 'submitted')->count(),
+        'classes' => $teacher->classes()->count(),
+    ];
+
+    return Inertia::render('dashboard/teacherDashboard/Home', [
+        'user' => [
+            'name' => Auth::user()->name,
+            'email' => Auth::user()->email,
+            'teacher' => [
+                'id' => $teacher->id,
+            ],
+        ],
+        'recentTests' => $recentTests,
+        'stats' => $stats,
+    ]);
+}
 
     /**
      * Show the create exam page for a teacher.
      */
+    // public function showCreateExam(): Response
+    // {
+    //     // Get the authenticated teacher model, eager load their classes and department
+    //     $teacher = Auth::user()->teacher()->with('classes.department')->first();
+
+    //       // Add logging here
+    //         \Log::info('Authenticated Teacher ID: ' . $teacher->id);
+    //         \Log::info('Classes loaded for teacher: ' . $teacher->classes->toJson()); // Log the collection as JSON
+    //     // Fetch the classes taught by this teacher
+    //     $classes = $teacher->classes; // Access the eager loaded classes
+
+    //     // Render the Inertia page and pass the classes as props
+    //     return Inertia::render('dashboard/teacherDashboard/CreateExam', [
+    //         // 'classes' => $classes->toArray(), // Pass classes data to the frontend
+    //         // You might pass other data here if needed for the form, e.g., default metrics structure
+            
+    //     ]);
+    // }
     public function showCreateExam(): Response
-    {
-        // Get the authenticated teacher model, eager load their classes and department
-        $teacher = Auth::user()->teacher()->with('classes.department')->first();
+{
+    $teacher = Auth::user()->teacher()->with('classes.department')->first();
+    $classes = $teacher->classes;
+    
+    // Also fetch tests for this teacher
+    $tests = Test::where('teacher_id', $teacher->id)
+        ->with(['class', 'submissions'])
+        ->latest()
+        ->get()
+        ->map(function($test) {
+            return [
+                'id' => $test->id,
+                'title' => $test->title,
+                'problem_statement' => $test->problem_statement,
+                'due_date' => $test->due_date ? $test->due_date->format('Y-m-d H:i:s') : null,
+                'status' => $test->status,
+                'published' => $test->published,
+                'class' => $test->class ? [
+                    'id' => $test->class->id,
+                    'name' => $test->class->name,
+                    'department' => $test->class->department->name,
+                ] : null,
+                'submissions_count' => $test->submissions->count(),
+                'graded_count' => $test->submissions->where('status', 'graded')->count(),
+                'published_count' => $test->submissions->where('status', 'published')->count(),
+            ];
+        });
 
-          // Add logging here
-            \Log::info('Authenticated Teacher ID: ' . $teacher->id);
-            \Log::info('Classes loaded for teacher: ' . $teacher->classes->toJson()); // Log the collection as JSON
-        // Fetch the classes taught by this teacher
-        $classes = $teacher->classes; // Access the eager loaded classes
+    return Inertia::render('dashboard/teacherDashboard/CreateExam', [
+        'classes' => $classes->toArray(),
+        'tests' => $tests->toArray()
+    ]);
+}
 
-        // Render the Inertia page and pass the classes as props
-        return Inertia::render('dashboard/teacherDashboard/CreateExam', [
-            'classes' => $classes->toArray(), // Pass classes data to the frontend
-            // You might pass other data here if needed for the form, e.g., default metrics structure
+public function updateTest(Request $request, Test $test)
+{
+    // Ensure the teacher owns this test
+    if ($test->teacher_id !== auth()->user()->teacher->id) {
+        return redirect()->back()
+            ->with('error', 'Unauthorized access to this test');
+    }
+
+    $validated = $request->validate([
+        'title' => 'required|string|max:255',
+        'problem_statement' => 'required|string',
+        'input_spec' => 'required|string',
+        'output_spec' => 'required|string',
+        'due_date' => 'required|date|after:now',
+        'class_id' => 'required|exists:classes,id',
+        'published' => 'required|boolean'
+    ]);
+
+    try {
+        // Sanitize markdown content
+        $validated['problem_statement'] = $this->sanitizeMarkdown($validated['problem_statement']);
+        $validated['input_spec'] = $this->sanitizeMarkdown($validated['input_spec']);
+        $validated['output_spec'] = $this->sanitizeMarkdown($validated['output_spec']);
+
+        // Update the test
+        $test->update($validated);
+
+        return redirect()->back()
+            ->with('success', 'Test updated successfully!');
+
+    } catch (\Exception $e) {
+        Log::error('Failed to update test', [
+            'error' => $e->getMessage(),
+            'test_id' => $test->id,
+            'trace' => $e->getTraceAsString()
         ]);
+
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Failed to update test. Please try again.');
+    }
+}
+
+
+    public function destroy(Test $test): RedirectResponse
+    {
+        if ($test->teacher_id !== auth()->user()->teacher->id) {
+            return redirect()->back()->with('error', 'Unauthorized');
+        }
+
+        try {
+            $test->submissions()->delete();
+            $test->grades()->delete();
+            $test->delete();
+
+            return redirect()->route('teacher.tests.index')->with('success', 'Test deleted successfully');
+        } catch (\Exception $e) {
+            Log::error('Failed to delete test', [
+                'error' => $e->getMessage(),
+                'test_id' => $test->id,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->back()->with('error', 'Failed to delete test');
+        }
     }
 
 
@@ -105,8 +256,8 @@ class TeacherController extends Controller
                 'input_spec_length' => strlen($test->input_spec),
                 'output_spec_length' => strlen($test->output_spec)
             ]);
-
-            return redirect()->route('teacher.tests.index')
+             return redirect()->route('teacher.tests.create')          
+               // return redirect()->route('teacher.tests.index')
                 ->with('success', 'Test created successfully!');
 
         } catch (\Exception $e) {
@@ -157,7 +308,9 @@ class TeacherController extends Controller
                 ];
             });
 
-        return Inertia::render('dashboard/teacherDashboard/Tests/Index', [
+        // return Inertia::render('dashboard/teacherDashboard/CreateExam', [
+                   return Inertia::render('dashboard/teacherDashboard/Tests/Index', [
+
             'tests' => $tests
         ]);
     }

@@ -6,12 +6,19 @@ use App\Http\Controllers\TeacherController;
 
 
 Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->group(function(){
+     // teacher homepage
+    Route::get('/teacher/dashboard', [TeacherController::class, 'showDashboard'])
+         ->name('teacher.dashboard');
 
     // Routes for Test Management
     Route::get('/tests/create', [TeacherController::class, 'showCreateExam'])->name('teacher.tests.create'); // Renders the create test form
     Route::post('/tests', [TeacherController::class, 'createTest'])->name('teacher.tests.store'); // Handles storing the test
     Route::get('/tests', [TeacherController::class, 'showTests'])->name('teacher.tests.index');
     Route::get('/tests/{test}', [TeacherController::class, 'showTest'])->name('teacher.tests.show');
+
+    // In your routes file (web.php or api.php)
+Route::put('/tests/{test}', [TeacherController::class, 'updateTest'])->name('teacher.tests.update');
+Route::delete('/tests/{test}', [TeacherController::class, 'destroyTest'])->name('teacher.tests.destroy');
 
     // Routes for Submissions
     Route::get('/submissions', [TeacherController::class, 'showSubmissions'])->name('teacher.submissions.index');
