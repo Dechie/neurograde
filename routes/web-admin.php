@@ -9,8 +9,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // --- Inertia Page Routes (GET requests render components) ---
 
     // Route for the Admin Dashboard home page
-    Route::get('/', [AdminController::class, 'showAdminHome'])->name('admin.home');
-
+    // Route::get('/', [AdminController::class, 'showAdminHome'])->name('admin.home');
+ Route::get('/', [AdminController::class, 'showHomePage'])->name('admin.home');
     // Route for the Admin Dashboard landing page (e.g., Student List)
     // The DashboardRedirectController already handles the initial redirect to this page
     // when an admin logs in via the main login form.
@@ -27,7 +27,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/classes/create', [AdminController::class, 'showCreateClassPage'])->name('admin.classes.create');
 
     // Route for the Class List page
-     Route::get('/classes', [AdminController::class, 'showClassListPage'])->name('admin.classes.index');
+     Route::get('/classes/create', [AdminController::class, 'showClassListPage'])->name('admin.classes.create');
 
     // Route for viewing unassigned students (if it's a dedicated page)
     // If unassigned students are just a section on the StudentListPage, you might not need a separate route
