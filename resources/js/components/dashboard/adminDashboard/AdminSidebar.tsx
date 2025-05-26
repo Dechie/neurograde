@@ -70,7 +70,7 @@ export function Sidebar() {
                                             <Link
                                                 href={item.path}
                                                 onClick={() => isMobile && closeMobile()}
-                                                className={`flex items-center gap-3 rounded px-3 py-2 ${isActive(item.path) ? 'bg-primary text-muted' : 'hover:bg-primary hover:text-muted'} ${isCollapsed && !isMobile ? 'justify-center' : 'w-full'}`}
+                                                className={`flex items-center gap-3 rounded px-3 py-2 ${isActive(item.path) ? 'bg-primary text-muted' : 'hover:bg-secondary hover:text-primary-foreground'} ${isCollapsed && !isMobile ? 'justify-center' : 'w-full'}`}
                                             >
                                                 <item.icon className="h-5 w-5" />
                                                 {(!isCollapsed || isMobile) && <span className="text-sm">{item.label}</span>}
