@@ -163,6 +163,37 @@ export interface PageProps {
     };
   };
 }
+export interface TeacherHomeProps {
+  user: {
+    name: string;
+    email: string;
+    teacher: {
+      id: number;
+      // Add other teacher-specific fields if needed
+    };
+  };
+  recentTests: Array<{
+    id: number;
+    title: string;
+    class: string;
+    due_date: string;
+    submissions_count: number;
+    graded_count: number;
+    published_count: number;
+  }>;
+  pendingSubmissions: Array<{
+    id: number;
+    test_title: string;
+    student_name: string;
+    submission_date: string;
+  }>;
+  stats: {
+    total_tests: number;
+    total_submissions: number;
+    pending_grading: number;
+    classes: number;
+  };
+}
 
 export interface AdminHomePageProps extends PageProps {
   authUser: {
