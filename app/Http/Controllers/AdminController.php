@@ -140,12 +140,58 @@ class AdminController extends Controller
         // Fetch all departments for filtering/display if needed on the class list page
         $departments = Department::all();
 
-        return Inertia::render('dashboard/adminDashboard/ClassListPage', [ // Assuming you have a ClassListPage.tsx
+        return Inertia::render('dashboard/adminDashboard/CreateClassPage', [ // Assuming you have a ClassListPage.tsx
             'classes' => $classes->toArray(), // Pass classes data
              // Pass departments for filtering/display
             'departments' => $departments->toArray(),
         ]);
     } 
+//     public function showCreateClassPage(): Response
+// {
+//     // Fetch all classes with their relationships
+//     $classes = ClassRoom::with(['department', 'teachers.user', 'students.user'])
+//         ->get()
+//         ->map(function ($class) {
+//             return [
+//                 'id' => $class->id,
+//                 'name' => $class->name,
+//                 'max_students' => $class->max_students,
+//                 'department' => [
+//                     'id' => $class->department->id,
+//                     'name' => $class->department->name,
+//                 ],
+//                 'teachers' => $class->teachers->map(function ($teacher) {
+//                     return [
+//                         'id' => $teacher->id,
+//                         'user' => [
+//                             'first_name' => $teacher->user->first_name,
+//                             'last_name' => $teacher->user->last_name,
+//                             'email' => $teacher->user->email,
+//                         ]
+//                     ];
+//                 }),
+//                 'students' => $class->students->map(function ($student) {
+//                     return [
+//                         'id' => $student->id,
+//                         'user' => [
+//                             'first_name' => $student->user->first_name,
+//                             'last_name' => $student->user->last_name,
+//                         ]
+//                     ];
+//                 }),
+//             ];
+//         });
+
+//     $departments = Department::all();
+//     $teachers = Teacher::with('user')->get();
+
+//     return Inertia::render('dashboard/adminDashboard/CreateClassPage', [
+//         'classes' => $classes,
+//         'departments' => $departments,
+//         'teachers' => $teachers,
+//     ]);
+// }
+    
 
      /**
      * Show the admin unassigned students page (if separate).
@@ -225,7 +271,7 @@ class AdminController extends Controller
 
         $teacher = Teacher::create([
             'user_id' => $user->id,
-            'created_by' => auth()->id(),
+            'created_by' => optional(auth())->id(),
             'department_id' => $request->department_id,
         ]);
 
@@ -252,9 +298,9 @@ class AdminController extends Controller
         $class = ClassRoom::create([
             'name' => $request->name,
             'department_id' => $request->department_id,
-            'admin_id' => auth()->id(),
+            'admin_id' => Auth::id(),
             'max_students' => $request->max_students,
-            'created_by' => auth()->id(),
+            'created_by' => optional(auth())->id(),
         ]);
 
         // Redirect to the class list page after successful creation
@@ -363,45 +409,140 @@ class AdminController extends Controller
     /**
      * Show the admin dashboard home page.
      */
-    public function showHomePage()
-    {
-        $students = Student::with(['user', 'classes', 'department'])->get();
-        $teachers = Teacher::with(['user', 'classes', 'department'])->get();
-        $classes = ClassRoom::with(['department', 'students', 'teachers'])->get();
+    // public function showHomePage()
+    // {
+    //     $students = Student::with(['user', 'classes', 'department'])->get();
+    //     $teachers = Teacher::with(['user', 'classes', 'department'])->get();
+    //     $classes = ClassRoom::with(['department', 'students', 'teachers'])->get();
 
-        // Get student count per department
-        $studentPerDept = Student::with('department')
-            ->get()
-            ->groupBy('department.name')
-            ->map(function ($students) {
+    //     // Get student count per department
+    //     $studentPerDept = Student::with('department')
+    //         ->get()
+    //         ->groupBy('department.name')
+    //         ->map(function ($students) {
+    //             return [
+    //                 'name' => $students->first()->department->name,
+    //                 'value' => $students->count()
+    //             ];
+    //         })
+    //         ->values()
+    //         ->toArray();
+
+    //     // Count assigned/unassigned teachers
+    //     $assignedTeacherCount = Teacher::whereHas('classes')->count();
+    //     $unassignedTeacherCount = Teacher::whereDoesntHave('classes')->count();
+
+    //     // Count assigned/unassigned students
+    //     $assignedStudentCount = Student::whereHas('classes')->count();
+    //     $unassignedStudentCount = Student::whereDoesntHave('classes')->count();
+
+    //     return Inertia::render('Dashboard/AdminDashboard/Home', [
+    //         'authUser' => auth()->user(),
+    //         'studentPerDept' => $studentPerDept,
+    //         'students' => $students,
+    //         'teachers' => $teachers,
+    //         'classes' => $classes,
+    //         'assignedTeacherCount' => $assignedTeacherCount,
+    //         'unassignedTeacherCount' => $unassignedTeacherCount,
+    //         'assignedStudentCount' => $assignedStudentCount,
+    //         'unassignedStudentCount' => $unassignedStudentCount,
+    //     ]);
+    // }
+    public function showHomePage(): Response
+{
+    // Get student count per department
+    $studentPerDept = Student::with('department')
+        ->get()
+        ->groupBy('department.name')
+        ->map(function ($students, $deptName) {
+            return [
+                'name' => $deptName,
+                'value' => $students->count()
+            ];
+        })
+        ->values()
+        ->toArray();
+
+    // Get all data with proper relationships
+    $students = Student::with(['user', 'classes', 'department'])->get()->map(function ($student) {
+        return [
+            'id' => $student->id,
+            'user' => [
+                'first_name' => $student->user->first_name,
+                'last_name' => $student->user->last_name,
+                'email' => $student->user->email,
+            ],
+            'classes' => $student->classes->map(function ($class) {
                 return [
-                    'name' => $students->first()->department->name,
-                    'value' => $students->count()
+                    'id' => $class->id,
+                    'name' => $class->name,
                 ];
-            })
-            ->values()
-            ->toArray();
+            }),
+            'department' => [
+                'id' => $student->department->id,
+                'name' => $student->department->name,
+            ],
+        ];
+    });
 
-        // Count assigned/unassigned teachers
-        $assignedTeacherCount = Teacher::whereHas('classes')->count();
-        $unassignedTeacherCount = Teacher::whereDoesntHave('classes')->count();
+    $teachers = Teacher::with(['user', 'classes', 'department'])->get()->map(function ($teacher) {
+        return [
+            'id' => $teacher->id,
+            'user' => [
+                'first_name' => $teacher->user->first_name,
+                'last_name' => $teacher->user->last_name,
+                'email' => $teacher->user->email,
+            ],
+            'classes' => $teacher->classes->map(function ($class) {
+                return [
+                    'id' => $class->id,
+                    'name' => $class->name,
+                ];
+            }),
+            'department' => [
+                'id' => $teacher->department->id,
+                'name' => $teacher->department->name,
+            ],
+        ];
+    });
 
-        // Count assigned/unassigned students
-        $assignedStudentCount = Student::whereHas('classes')->count();
-        $unassignedStudentCount = Student::whereDoesntHave('classes')->count();
+    $classes = ClassRoom::with(['department', 'students', 'teachers'])->get()->map(function ($class) {
+        return [
+            'id' => $class->id,
+            'name' => $class->name,
+            'department' => [
+                'id' => $class->department->id,
+                'name' => $class->department->name,
+            ],
+            'students' => $class->students->map(function ($student) {
+                return ['id' => $student->id];
+            }),
+            'teachers' => $class->teachers->map(function ($teacher) {
+                return ['id' => $teacher->id];
+            }),
+        ];
+    });
 
-        return Inertia::render('Dashboard/AdminDashboard/Home', [
-            'authUser' => auth()->user(),
-            'studentPerDept' => $studentPerDept,
-            'students' => $students,
-            'teachers' => $teachers,
-            'classes' => $classes,
-            'assignedTeacherCount' => $assignedTeacherCount,
-            'unassignedTeacherCount' => $unassignedTeacherCount,
-            'assignedStudentCount' => $assignedStudentCount,
-            'unassignedStudentCount' => $unassignedStudentCount,
-        ]);
-    }
+    // Count assigned/unassigned
+    $assignedTeacherCount = Teacher::whereHas('classes')->count();
+    $unassignedTeacherCount = Teacher::whereDoesntHave('classes')->count();
+    $assignedStudentCount = Student::whereHas('classes')->count();
+    $unassignedStudentCount = Student::whereDoesntHave('classes')->count();
+
+    return Inertia::render('dashboard/adminDashboard/Home', [
+        'authUser' => [
+            'name' => Auth::user()->name, // Make sure your User model has a name attribute
+        ],
+        'studentPerDept' => $studentPerDept,
+        'students' => $students,
+        'teachers' => $teachers,
+        'classes' => $classes,
+        'assignedTeacherCount' => $assignedTeacherCount,
+        'unassignedTeacherCount' => $unassignedTeacherCount,
+        'assignedStudentCount' => $assignedStudentCount,
+        'unassignedStudentCount' => $unassignedStudentCount,
+    ]);
+}
 
     // Existing API methods are now handled by the Inertia rendering methods above
     // The data fetching logic is moved into the show*Page methods.
