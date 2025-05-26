@@ -1,19 +1,21 @@
 FROM richarvey/nginx-php-fpm:latest
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    libzip-dev \
-    zip \
-    unzip \
-    libpq-dev \
-    postgresql-client \
+RUN apk add --no-cache \
+    nginx \
     nodejs \
-    npm
+    npm \
+    git \
+    build-base \
+    autoconf \
+    libzip-dev \
+    postgresql-dev \
+    icu-dev \
+    libpng-dev \
+    jpeg-dev \
+    libwebp-dev \
+    freetype-dev \
+    libxml2-dev
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*

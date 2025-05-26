@@ -26,7 +26,7 @@ interface AiMetrics {
 interface Submission {
     id: number;
     student: Student;
-    status: 'pending' | 'reviewed' | 'graded' | 'published';
+    status: 'pending' | 'reviewed' | 'graded' | 'published' | 'ai_grading_failed';
     ai_grade?: number;
     teacher_grade?: number;
     final_grade?: number;

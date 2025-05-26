@@ -2,33 +2,16 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useSidebar } from '@/hooks/use-sidebar';
 import { Link, usePage } from '@inertiajs/react';
-import {
-    BookOpen,
-    ChevronLeft,
-    ChevronRight,
-    FileText,
-    GraduationCap,
-    Home,
-    LifeBuoy,
-    Menu,
-    Settings,
-    X,
-} from 'lucide-react';
+import { BookOpen, ChevronLeft, ChevronRight, FileText, GraduationCap, Home, Menu, X } from 'lucide-react';
 import { route } from 'ziggy-js';
 
 const TEACHER_MENU_ITEMS = [
-        { path: route('teacher.dashboard'), label: 'Home', icon: Home },
+    { path: route('teacher.dashboard'), label: 'Home', icon: Home },
 
-    { path: route('teacher.tests.create'), label: 'Exam', icon: BookOpen },
+    { path: route('teacher.tests.create'), label: 'Exams', icon: BookOpen },
     { path: route('teacher.show-grading'), label: 'Grades', icon: GraduationCap },
     { path: route('teacher.show-submissions'), label: 'Submissions', icon: GraduationCap },
 ];
-
-// // Define footer items (can be shared or specific)
-// const FOOTER_ITEMS = [
-//     { path: '/help', label: 'Help & Center', icon: LifeBuoy },
-//     { path: '/settings', label: 'Settings', icon: Settings },
-// ];
 
 // Export the component with a descriptive name
 export function Sidebar() {
@@ -57,7 +40,7 @@ export function Sidebar() {
                 }`}
             >
                 <div className="flex items-center justify-between border-b p-4">
-                    <div className="flex  gap-2">
+                    <div className="flex gap-2">
                         <div className="bg-primary text-primary-foreground flex h-8 w-8 items-center justify-center rounded">
                             <FileText className="h-4 w-4" />
                         </div>

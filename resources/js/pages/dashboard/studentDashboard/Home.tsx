@@ -2,26 +2,59 @@ import { AppLayout } from '@/layouts/dashboard/studentDashboard/studentDashboard
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
-import { HomeProps } from '@/types';
+import { Badge } from '@/components/ui/badge';
 
-const defaultStatistics = {
-    total_tests: 0,
-    completed_tests: 0,
-    pending_submissions: 0,
-    average_score: 0
-};
+interface Test {
+    id: number;
+    title: string;
+    due_date: string;
+    class_name: string;
+    department: string;
+    has_submitted?: boolean;
+}
 
-export default function Home({ user, upcomingTests, recentResults, statistics = defaultStatistics }: HomeProps) {
+interface Result {
+    id: number;
+    test: {
+        id: number;
+        title: string;
+    };
+    score: number | null;
+    status: 'pending' | 'graded' | 'published' | 'reviewed';
+    submission_date: string;
+    comment?: string;
+}
+
+interface Statistics {
+    total_tests: number;
+    completed_tests: number;
+    pending_submissions: number;
+    average_score: number;
+}
+
+interface User {
+    name: string;
+    student: {
+        id_number: string;
+    };
+}
+
+interface HomeProps {
+    user: User;
+    upcomingTests: Test[];
+    recentResults: Result[];
+    statistics: Statistics;
+}
+
+export default function Home({ user, upcomingTests, recentResults, statistics }: HomeProps) {
     return (
         <AppLayout title="Dashboard">
             <div className="space-y-6">
-                
-                <div className="bg-primary text-primary-foreground rounded-lg p-6">
-                <h1 className="text-2xl font-bold">Welcome back, {user.name}</h1>
-                                    <p className="text-muted-foreground">Student ID: {user.student.id_number}</p>
-
-                <p>Here's an overview of your academic progress and upcoming tests.</p>
-            </div>
+                {/* Welcome Section */}
+                <div>
+                    <h1 className="text-3xl font-bold">Welcome, {user.name}!</h1>
+                    <p className="text-muted-foreground">Student ID: {user.student.id_number}</p>
+                </div>
 
                 {/* Statistics Overview */}
                 <div className="grid gap-4 md:grid-cols-4">
@@ -59,67 +92,98 @@ export default function Home({ user, upcomingTests, recentResults, statistics = 
                     </Card>
                 </div>
 
-               <div className="flex flex-row gap-4">
-    {/* Upcoming Tests */}
-    <Card className="flex-1">
-        <CardHeader>
-            <CardTitle>Upcoming Tests</CardTitle>
-        </CardHeader>
-        <CardContent>
-            {upcomingTests.length > 0 ? (
-                <div className="space-y-4">
-                    {upcomingTests.map((test) => (
-                        <div key={test.id} className="flex items-center justify-between">
-                            <div>
-                                <h3 className="font-medium">{test.title}</h3>
-                                <p className="text-sm text-muted-foreground">
-                                    {test.class_name} • Due {new Date(test.due_date).toLocaleDateString()}
-                                </p>
+                {/* Upcoming Tests */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Upcoming Tests</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {upcomingTests.length > 0 ? (
+                            <div className="space-y-4">
+                                {upcomingTests.map((test) => (
+                                    <div key={test.id} className="flex items-center justify-between">
+                                        <div>
+                                            <h3 className="font-medium">{test.title}</h3>
+                                            <p className="text-sm text-muted-foreground">
+                                                {test.class_name} • {test.department} • Due {new Date(test.due_date).toLocaleDateString()}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            {test.has_submitted ? (
+                                                <Badge variant="success">Submitted</Badge>
+                                            ) : (
+                                                <Badge variant="outline">Not Submitted</Badge>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                        </div>
-                    ))}
-                </div>
-            ) : (
-                <Alert>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>No upcoming tests</AlertDescription>
-                </Alert>
-            )}
-        </CardContent>
-    </Card>
+                        ) : (
+                            <Alert>
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertDescription>No upcoming tests</AlertDescription>
+                            </Alert>
+                        )}
+                    </CardContent>
+                </Card>
 
-    {/* Recent Results */}
-    <Card className="flex-1">
-        <CardHeader>
-            <CardTitle>Recent Results</CardTitle>
-        </CardHeader>
-        <CardContent>
-            {recentResults.length > 0 ? (
-                <div className="space-y-4">
-                    {recentResults.map((result) => (
-                        <div key={result.id} className="flex items-center justify-between">
-                            <div>
-                                <h3 className="font-medium">{result.test.title}</h3>
-                                <p className="text-sm text-muted-foreground">
-                                    Submitted {new Date(result.submission_date).toLocaleDateString()}
-                                </p>
+                {/* Recent Results */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Recent Results</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {recentResults.length > 0 ? (
+                            <div className="space-y-4">
+                                {recentResults.map((result) => (
+                                    <div key={result.id} className="flex items-center justify-between">
+                                        <div>
+                                            <h3 className="font-medium">{result.test.title}</h3>
+                                            <p className="text-sm text-muted-foreground">
+                                                Submitted {new Date(result.submission_date).toLocaleDateString()}
+                                            </p>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="flex items-center gap-2">
+                                                {result.status === 'published' ? (
+                                                    <>
+                                                        <p className="font-medium">{result.score}%</p>
+                                                        <Badge variant="success">Published</Badge>
+                                                    </>
+                                                ) : result.status === 'graded' ? (
+                                                    <>
+                                                        <p className="font-medium">{result.score}%</p>
+                                                        <Badge variant="default">Graded</Badge>
+                                                    </>
+                                                ) : result.status === 'reviewed' ? (
+                                                    <>
+                                                        <p className="font-medium">Pending</p>
+                                                        <Badge variant="secondary">Under Review</Badge>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <p className="font-medium">Pending</p>
+                                                        <Badge variant="outline">Not Graded</Badge>
+                                                    </>
+                                                )}
+                                            </div>
+                                            {result.status === 'published' && result.comment && (
+                                                <p className="text-sm text-muted-foreground mt-1">
+                                                    {result.comment}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                            <div className="text-right">
-                                <p className="font-medium">{result.score ?? 'Pending'}</p>
-                                <p className="text-sm text-muted-foreground">{result.status}</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            ) : (
-                <Alert>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>No recent results</AlertDescription>
-                </Alert>
-            )}
-        </CardContent>
-    </Card>
-</div>
+                        ) : (
+                            <Alert>
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertDescription>No recent results</AlertDescription>
+                            </Alert>
+                        )}
+                    </CardContent>
+                </Card>
             </div>
         </AppLayout>
     );

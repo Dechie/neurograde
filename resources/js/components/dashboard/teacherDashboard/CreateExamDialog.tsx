@@ -4,12 +4,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { CreateExamForm } from './CreateExamForm';
 import type { ClassRoom } from '@/types/index';
 import { useToast } from '@/components/ui/use-toast';
+import { router } from '@inertiajs/react';
 
 interface CreateExamDialogProps {
-  classes: ClassRoom[];
+  classes: ClassRoom[]; 
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onExamCreated?: () => void;
+  onExamCreated: () => void;
 }
 
 export function CreateExamDialog({ 
@@ -20,14 +21,35 @@ export function CreateExamDialog({
 }: CreateExamDialogProps) {
   const { toast } = useToast();
 
-  const handleSuccess = () => {
-    onOpenChange(false);
-    toast({
-      title: "Success",
-      description: "Exam created successfully!",
-      variant: "default"
-    });
-    onExamCreated?.();
+  const handleSubmit = async (data: FormData) => {
+    try {
+      await router.post(route('teacher.tests.store'), data, {
+        onSuccess: () => {
+          onOpenChange(false);
+          toast({
+            title: "Success",
+            description: "Exam created successfully!",
+            variant: "default"
+          });
+          onExamCreated();
+        },
+        onError: (errors) => {
+          toast({
+            title: "Error",
+            description: "Failed to create exam. Please try again.",
+            variant: "destructive"
+          });
+          console.error('Error creating exam:', errors);
+        }
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create exam. Please try again.",
+        variant: "destructive"
+      });
+      console.error('Error creating exam:', error);
+    }
   };
 
   return (
@@ -39,7 +61,7 @@ export function CreateExamDialog({
         <div className="max-h-[80vh] overflow-y-auto p-1">
           <CreateExamForm 
             classes={classes} 
-            onSuccess={handleSuccess}
+            onSubmit={handleSubmit}
           />
         </div>
       </DialogContent>

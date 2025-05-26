@@ -18,7 +18,6 @@ return new class extends Migration
             $table->float("graded_value");
             $table->float("adjusted_grade");
             $table->enum('status', ['draft', 'published'])->default('draft');
-            $table->text("override_reason");
             $table->text("comments");
             $table->timestamps();
         });

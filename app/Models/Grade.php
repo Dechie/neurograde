@@ -11,7 +11,6 @@ class Grade extends Model
         "teacher_id",
         "graded_value",
         "adjusted_grade",
-        "override_reason",
         "comments",
         "status"
     ];

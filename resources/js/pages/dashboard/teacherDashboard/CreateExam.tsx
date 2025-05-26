@@ -57,11 +57,16 @@ export default function CreateExam() {
     });
 
     const handleCreateSuccess = () => {
-        setTests([...tests, ...props.tests?.filter(t => !tests.find(existing => existing.id === t.id)) || []]);
-        toast({
-            title: "Success",
-            description: "Exam created successfully!",
-            variant: "default",
+        // Refresh the page data using Inertia
+        router.reload({ 
+            only: ['tests'],
+            onSuccess: () => {
+                toast({
+                    title: "Success",
+                    description: "Exam created successfully!",
+                    variant: "default",
+                });
+            }
         });
     };
 

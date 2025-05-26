@@ -23,8 +23,8 @@ class ClassRoomSeeder extends Seeder
         $admin = \App\Models\Admin::first();
 
         foreach ($departments as $department) {
-            // Create 3 classes for each department
-            for ($i = 1; $i <= 3; $i++) {
+            // Create 2 classes for each department
+            for ($i = 1; $i <= 2; $i++) {
                 $class = ClassRoom::create([
                     'name' => "Section {$i} - {$department->name}",
                     'department_id' => $department->id,
@@ -46,12 +46,21 @@ class ClassRoomSeeder extends Seeder
                     ->get();
 
                 if ($students->isNotEmpty()) {
-                    // Calculate how many students per class
-                    $studentsPerClass = ceil($students->count() / 3);
-                    // Get the chunk of students for this class
-                    $classStudents = $students->forPage($i, $studentsPerClass);
-                    // Assign students to this class
-                    $class->students()->attach($classStudents->pluck('id'));
+                    if ($i === 1) {
+                        // For Section 1, take the first student
+                        $firstStudent = $students->first();
+                        $class->students()->attach($firstStudent->id);
+                        
+                        // Get the second student for Section 1
+                        $secondStudent = $students->skip(1)->first();
+                        if ($secondStudent) {
+                            $class->students()->attach($secondStudent->id);
+                        }
+                    } else {
+                        // For Section 2, take the next two students
+                        $section2Students = $students->skip(2)->take(2);
+                        $class->students()->attach($section2Students->pluck('id'));
+                    }
                 }
             }
         }

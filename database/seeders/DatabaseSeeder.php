@@ -25,7 +25,6 @@ class DatabaseSeeder extends Seeder
             UsersSeeder::class,
             ClassRoomSeeder::class,
             TestAndSubmissionSeeder::class,
-            DepartmentStructureSeeder::class,
         ]);
     }
 }

@@ -137,6 +137,8 @@ interface TestDetailProps {
         id: number;
         title: string;
         problemStatement: string;
+        input_spec: string;
+        output_spec: string;
         dueDate: string;
         status: string;
         questionId: number;
@@ -186,10 +188,12 @@ export default function TestDetail({ test, submission, submissionWarning }: Test
               </div>
             </CardHeader>
             <CardContent>
-              <MarkdownRenderer 
-                content={test.problemStatement}
-                variant="default"
-              />
+              <div className="h-[600px] overflow-y-auto pr-4 custom-scrollbar">
+                <MarkdownRenderer 
+                  content={`${test.problemStatement}\n\n## Input Specification\n\n${test.input_spec}\n\n## Output Specification\n\n${test.output_spec}`}
+                  variant="default"
+                />
+              </div>
             </CardContent>
           </Card>
 
@@ -213,12 +217,11 @@ export default function TestDetail({ test, submission, submissionWarning }: Test
               </Card>
             ) : (
               <>
-                
                 <CodeEditor 
                   testId={test.id} 
                   questionId={test.questionId} 
                   initialCode={test.initialCode} 
-                  className="h-[500px] border rounded-lg overflow-hidden"
+                  className="h-[600px] border rounded-lg overflow-hidden"
                   test={{
                     id: test.id,
                     class_id: test.class_id,
@@ -258,142 +261,23 @@ export default function TestDetail({ test, submission, submissionWarning }: Test
   );
 }
 
+// Add this CSS to your global styles or create a new CSS module
+const styles = `
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
 
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
 
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
 
-// import { CodeEditor } from '@/components/dashboard/studentDashboard/CodeEditor';
-// import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-// import { AppLayout } from '@/layouts/dashboard/studentDashboard/studentDashboardLayout';
-// import { Alert, AlertDescription } from '@/components/ui/alert';
-// import { AlertCircle } from 'lucide-react';
-
-// // Define the global grading criteria
-// const GRADING_CRITERIA: Record<number, { name: string; description: string }> = {
-//     0: {
-//         name: "Accepted",
-//         description: "Your solution is correct and meets all requirements"
-//     },
-//     1: {
-//         name: "Wrong Answer",
-//         description: "Your solution produces incorrect output"
-//     },
-//     2: {
-//         name: "Time Limit Exceeded",
-//         description: "Your solution takes too long to execute"
-//     },
-//     3: {
-//         name: "Memory Limit Exceeded",
-//         description: "Your solution uses too much memory"
-//     },
-//     4: {
-//         name: "Runtime Error",
-//         description: "Your solution crashes during execution"
-//     },
-//     5: {
-//         name: "Compile Error",
-//         description: "Your solution fails to compile"
-//     },
-//     6: {
-//         name: "Presentation Error",
-//         description: "Your solution output format is incorrect"
-//     }
-// };
-
-// interface TestDetailProps {
-//     test: {
-//         id: number;
-//         title: string;
-//         problemStatement: string;
-//         dueDate: string;
-//         status: string;
-//         questionId: number;
-//         initialCode: string;
-//         class?: {
-//             name: string;
-//             department: string;
-//         };
-//         teacher?: {
-//             name: string;
-//         };
-//     };
-//     submission?: {
-//         id: number;
-//         status: string;
-//         created_at: string;
-//     };
-//     submissionWarning?: string;
-// }
-
-// export default function TestDetail({ test, submission, submissionWarning }: TestDetailProps) {
-//     return (
-//         <AppLayout title="Test">
-//             <div className="grid gap-4 md:grid-cols-2">
-//                 <div className="space-y-4">
-//                     <Card>
-//                         <CardHeader>
-//                             <CardTitle>{test.title}</CardTitle>
-//                             <CardDescription>
-//                                 {test.class?.name} • {test.class?.department}
-//                                 {test.teacher && <span> • Teacher: {test.teacher.name}</span>}
-//                             </CardDescription>
-//                         </CardHeader>
-//                         <CardContent className="prose max-w-none">
-//                             <p className="text-black">{test.problemStatement}</p>
-//                         </CardContent>
-//                         <CardFooter className="mt-auto border-t p-4">
-//                             <p className="text-muted-foreground text-sm">Due Date: {test.dueDate}</p>
-//                         </CardFooter>
-//                     </Card>
-
-//                     <Card>
-//                         <CardHeader>
-//                             <CardTitle>Grading Criteria</CardTitle>
-//                             <CardDescription>Possible verdicts for your submission</CardDescription>
-//                         </CardHeader>
-//                         <CardContent>
-//                             <div className="space-y-3">
-//                                 {Object.entries(GRADING_CRITERIA).map(([id, { name, description }]) => (
-//                                     <div key={id} className="space-y-1">
-//                                         <span className="font-medium text-foreground">{name}</span>
-//                                         <p className="text-sm text-muted-foreground">{description}</p>
-//                                     </div>
-//                                 ))}
-//                             </div>
-//                         </CardContent>
-//                     </Card>
-//                 </div>
-
-//                 <div className="space-y-4">
-//                     {submissionWarning && (
-//                         <Alert variant="destructive">
-//                             <AlertCircle className="h-4 w-4" />
-//                             <AlertDescription>{submissionWarning}</AlertDescription>
-//                         </Alert>
-//                     )}
-
-//                     {submission ? (
-//                         <Card>
-//                             <CardHeader>
-//                                 <CardTitle>Your Submission</CardTitle>
-//                                 <CardDescription>
-//                                     Submitted on {new Date(submission.created_at).toLocaleString()}
-//                                 </CardDescription>
-//                             </CardHeader>
-//                             <CardContent>
-//                                 <p className="text-muted-foreground">
-//                                     You have already submitted this test. The status is: {submission.status}
-//                                 </p>
-//                             </CardContent>
-//                         </Card>
-//                     ) : (
-//                         <CodeEditor 
-//                             testId={test.id} 
-//                             questionId={test.questionId} 
-//                             initialCode={test.initialCode} 
-//                         />
-//                     )}
-//                 </div>
-//             </div>
-//         </AppLayout>
-//     );
-// }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+`;
