@@ -14,33 +14,43 @@ import { MarkdownToolbar } from '@/components/ui/markdown-toolbar';
 import { MarkdownRenderer } from '@/components/shared/MarkdownRenderer';
 import type { ClassRoom } from '@/types/index';
 
-interface CreateExamFormProps {
+interface EditExamFormProps {
     classes: ClassRoom[];
+    exam: {
+        id: number;
+        title: string;
+        problem_statement: string;
+        input_spec: string;
+        output_spec: string;
+        due_date: string;
+        class_id: number;
+        published: boolean;
+    };
     onSubmit: (data: FormData) => Promise<void>;
 }
 
-interface CreateExamFormData {
-    [key: string]: string | number | undefined;
+interface EditExamFormData {
+    [key: string]: string | number | boolean | undefined;
     title: string;
     problem_statement: string;
     input_spec: string;
     output_spec: string;
     due_date: string;
     class_id: number;
-    initial_code?: string;
+    published: boolean;
 }
 
 type MarkdownField = 'problem_statement' | 'input_spec' | 'output_spec';
 
-export function CreateExamForm({ classes, onSubmit }: CreateExamFormProps) {
-    const { data, setData, post, processing, errors, reset } = useForm<CreateExamFormData>({
-        title: '',
-        problem_statement: '',
-        input_spec: '',
-        output_spec: '',
-        due_date: '',
-        class_id: 0,
-        initial_code: '',
+export function EditExamForm({ classes, exam, onSubmit }: EditExamFormProps) {
+    const { data, setData, post, processing, errors, reset } = useForm<EditExamFormData>({
+        title: exam.title,
+        problem_statement: exam.problem_statement,
+        input_spec: exam.input_spec,
+        output_spec: exam.output_spec,
+        due_date: exam.due_date,
+        class_id: exam.class_id,
+        published: exam.published,
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -183,18 +193,47 @@ export function CreateExamForm({ classes, onSubmit }: CreateExamFormProps) {
                         <InputError message={errors.class_id} />
                     </div>
 
-                    <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground" disabled={processing}>
-                        {processing ? (
-                            <>
-                                <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
-                                Creating...
-                            </>
-                        ) : (
-                            'Create Exam'
-                        )}
-                    </Button>
+                    {/* Published Status */}
+                    <div className="space-y-2">
+                        <Label htmlFor="published" className="text-foreground">
+                            Status
+                        </Label>
+                        <Select
+                            value={data.published ? 'published' : 'draft'}
+                            onValueChange={(value) => setData('published', value === 'published')}
+                        >
+                            <SelectTrigger id="published" className="border-border focus:ring-ring">
+                                <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="published">Published</SelectItem>
+                                <SelectItem value="draft">Draft</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="flex justify-end gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => reset()}
+                            disabled={processing}
+                        >
+                            Reset
+                        </Button>
+                        <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground" disabled={processing}>
+                            {processing ? (
+                                <>
+                                    <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                                    Saving...
+                                </>
+                            ) : (
+                                'Save Changes'
+                            )}
+                        </Button>
+                    </div>
                 </form>
             </CardContent>
         </Card>
     );
-}
+} 

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { useForm } from '@inertiajs/react';
 import { useToast } from '@/components/ui/use-toast';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { router } from '@inertiajs/react';
 
 interface Props {
@@ -35,61 +35,35 @@ export default function WaitingScreen({ status, message }: Props) {
                 variant: "destructive",
             });
         }
-    }, [status, message]);
+    }, [status, message, toast]);
 
-    // Poll for status updates every 30 seconds
-    useEffect(() => {
-        console.log('Setting up polling interval');
-        const interval = setInterval(() => {
-            console.log('Polling: Checking status...');
-            checkStatus();
-        }, 30000);
-
-        return () => {
-            console.log('Cleaning up polling interval');
-            clearInterval(interval);
-        };
-    }, []);
-
-    const checkStatus = () => {
-        console.log('checkStatus called');
+    const checkStatus = useCallback(() => {
+        if (isChecking) return;
+        
         setIsChecking(true);
-        console.log('isChecking set to true');
-
         router.get(route('student.check-status'), {}, {
             preserveScroll: true,
             preserveState: true,
-            onStart: () => {
-                console.log('Request started');
-            },
-            onSuccess: (page) => {
-                console.log('Request succeeded:', page);
-                const props = page.props as Props;
-                console.log('Page props:', props);
-
-                if (props.status === 'success') {
-                    console.log('Status is success, showing success toast');
+            onSuccess: (response) => {
+                const data = response as unknown as Props;
+                if (data.status === 'success') {
                     toast({
                         title: "Success!",
-                        description: props.message,
+                        description: data.message,
                     });
-                    console.log('Setting up redirect timer');
                     const timer = setTimeout(() => {
-                        console.log('Redirecting to dashboard');
                         router.visit(route('student.dashboard'));
                     }, 2000);
                     return () => clearTimeout(timer);
                 } else {
-                    console.log('Status is info, showing info toast');
                     toast({
                         title: "Status Update",
-                        description: props.message,
+                        description: data.message,
                         variant: "destructive",
                     });
                 }
             },
-            onError: (errors) => {
-                console.log('Request failed:', errors);
+            onError: () => {
                 toast({
                     title: "Error",
                     description: "Failed to check status. Please try again.",
@@ -97,12 +71,16 @@ export default function WaitingScreen({ status, message }: Props) {
                 });
             },
             onFinish: () => {
-                console.log('Request finished');
                 setIsChecking(false);
-                console.log('isChecking set to false');
             }
         });
-    };
+    }, [isChecking, toast]);
+
+    // Poll for status updates every 30 seconds
+    useEffect(() => {
+        const interval = setInterval(checkStatus, 30000);
+        return () => clearInterval(interval);
+    }, [checkStatus]);
 
     return (
         <WaitingLayout>
@@ -125,10 +103,7 @@ export default function WaitingScreen({ status, message }: Props) {
                         <div className="flex justify-center gap-4">
                             <Button
                                 variant="outline"
-                                onClick={() => {
-                                    console.log('Button clicked');
-                                    checkStatus();
-                                }}
+                                onClick={checkStatus}
                                 disabled={isChecking}
                             >
                                 {isChecking ? 'Checking...' : 'Check Status'}

@@ -19,6 +19,7 @@ use App\Models\Teacher; // Import Teacher model
 use Illuminate\Support\Facades\Log;
 use App\Services\AiGradingService;
 use App\Traits\SanitizesMarkdown;
+use Illuminate\Support\Facades\DB;
 
 
 class TeacherController extends Controller
@@ -110,6 +111,8 @@ public function showDashboard(): Response
                 'id' => $test->id,
                 'title' => $test->title,
                 'problem_statement' => $test->problem_statement,
+                'input_spec' => $test->input_spec,
+                'output_spec' => $test->output_spec,
                 'due_date' => $test->due_date ? $test->due_date->format('Y-m-d H:i:s') : null,
                 'status' => $test->status,
                 'published' => $test->published,
@@ -132,23 +135,40 @@ public function showDashboard(): Response
 
 public function updateTest(Request $request, Test $test)
 {
+    // Log the incoming request data
+    Log::info('Attempting to update test', [
+        'test_id' => $test->id,
+        'request_data' => $request->all(),
+        'current_test_data' => $test->toArray()
+    ]);
+
     // Ensure the teacher owns this test
     if ($test->teacher_id !== auth()->user()->teacher->id) {
+        Log::warning('Unauthorized test update attempt', [
+            'test_id' => $test->id,
+            'teacher_id' => auth()->user()->teacher->id,
+            'test_teacher_id' => $test->teacher_id
+        ]);
         return redirect()->back()
             ->with('error', 'Unauthorized access to this test');
     }
 
-    $validated = $request->validate([
-        'title' => 'required|string|max:255',
-        'problem_statement' => 'required|string',
-        'input_spec' => 'required|string',
-        'output_spec' => 'required|string',
-        'due_date' => 'required|date|after:now',
-        'class_id' => 'required|exists:classes,id',
-        'published' => 'required|boolean'
-    ]);
-
     try {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'problem_statement' => 'required|string',
+            'input_spec' => 'required|string',
+            'output_spec' => 'required|string',
+            'due_date' => 'required|date|after:now',
+            'class_id' => 'required|exists:classes,id',
+            'published' => 'required|boolean'
+        ]);
+
+        Log::info('Validation passed for test update', [
+            'test_id' => $test->id,
+            'validated_data' => $validated
+        ]);
+
         // Sanitize markdown content
         $validated['problem_statement'] = $this->sanitizeMarkdown($validated['problem_statement']);
         $validated['input_spec'] = $this->sanitizeMarkdown($validated['input_spec']);
@@ -157,19 +177,37 @@ public function updateTest(Request $request, Test $test)
         // Update the test
         $test->update($validated);
 
+        Log::info('Test updated successfully', [
+            'test_id' => $test->id,
+            'updated_data' => $test->fresh()->toArray()
+        ]);
+
         return redirect()->back()
             ->with('success', 'Test updated successfully!');
 
+    } catch (ValidationException $e) {
+        Log::error('Validation failed for test update', [
+            'test_id' => $test->id,
+            'errors' => $e->errors(),
+            'request_data' => $request->all()
+        ]);
+
+        return redirect()->back()
+            ->withErrors($e->errors())
+            ->withInput();
     } catch (\Exception $e) {
         Log::error('Failed to update test', [
             'error' => $e->getMessage(),
             'test_id' => $test->id,
-            'trace' => $e->getTraceAsString()
+            'request_data' => $request->all(),
+            'trace' => $e->getTraceAsString(),
+            'line' => $e->getLine(),
+            'file' => $e->getFile()
         ]);
 
         return redirect()->back()
             ->withInput()
-            ->with('error', 'Failed to update test. Please try again.');
+            ->with('error', 'Failed to update test: ' . $e->getMessage());
     }
 }
 
@@ -282,7 +320,7 @@ public function updateTest(Request $request, Test $test)
         
         // Get all tests for this teacher with their relationships
         $tests = Test::where('teacher_id', $teacher->id)
-            ->with(['class.department', 'submissions' => function($query) {
+            ->with(['class.department', 'department', 'submissions' => function($query) {
                 $query->with(['student.user', 'aiGradingResults' => function($query) {
                     $query->latest();
                 }]);
@@ -294,6 +332,8 @@ public function updateTest(Request $request, Test $test)
                     'id' => $test->id,
                     'title' => $test->title,
                     'problem_statement' => $test->problem_statement,
+                    'input_spec' => $test->input_spec,
+                    'output_spec' => $test->output_spec,
                     'due_date' => $test->due_date ? $test->due_date->format('Y-m-d H:i:s') : null,
                     'status' => $test->status,
                     'published' => $test->published,
@@ -302,15 +342,17 @@ public function updateTest(Request $request, Test $test)
                         'name' => $test->class->name,
                         'department' => $test->class->department->name,
                     ] : null,
+                    'department' => $test->department ? [
+                        'id' => $test->department->id,
+                        'name' => $test->department->name,
+                    ] : null,
                     'submissions_count' => $test->submissions->count(),
                     'graded_count' => $test->submissions->where('status', 'graded')->count(),
                     'published_count' => $test->submissions->where('status', 'published')->count(),
                 ];
             });
 
-        // return Inertia::render('dashboard/teacherDashboard/CreateExam', [
-                   return Inertia::render('dashboard/teacherDashboard/Tests/Index', [
-
+        return Inertia::render('dashboard/teacherDashboard/Tests/Index', [
             'tests' => $tests
         ]);
     }
@@ -324,6 +366,9 @@ public function updateTest(Request $request, Test $test)
             ->with(['submissions' => function($query) {
                 $query->with([
                     'student.user',
+                    'grades' => function($query) {
+                        $query->latest();
+                    },
                     'aiGradingResults' => function($query) {
                         $query->latest();
                     }
@@ -336,6 +381,7 @@ public function updateTest(Request $request, Test $test)
                     'title' => $test->title,
                     'submissions' => $test->submissions->map(function($submission) {
                         $latestAiResult = $submission->aiGradingResults->first();
+                        $latestGrade = $submission->grades->first();
                         return [
                             'id' => $submission->id,
                             'student' => [
@@ -346,15 +392,25 @@ public function updateTest(Request $request, Test $test)
                                 ],
                             ],
                             'status' => $submission->status,
-                            'ai_grade' => $submission->ai_grade,
-                            'teacher_grade' => $submission->teacher_grade,
-                            'final_grade' => $submission->final_grade,
-                            'ai_feedback' => $latestAiResult?->comments,
-                            'teacher_feedback' => $submission->teacher_feedback,
+                            'grades' => $submission->grades->map(function($grade) {
+                                return [
+                                    'id' => $grade->id,
+                                    'graded_value' => $grade->graded_value,
+                                    'adjusted_grade' => $grade->adjusted_grade,
+                                    'comments' => $grade->comments,
+                                    'status' => $grade->status,
+                                    'created_at' => $grade->created_at->format('Y-m-d H:i:s'),
+                                ];
+                            }),
+                            'latest_ai_result' => $latestAiResult ? [
+                                'predicted_verdict_string' => $latestAiResult->predicted_verdict_string,
+                                'verdict_probabilities' => json_decode($latestAiResult->verdict_probabilities, true),
+                                'llm_review' => $latestAiResult->llm_review,
+                                'metrics' => json_decode($latestAiResult->metrics, true),
+                            ] : null,
                             'code_editor_text' => $submission->code_editor_text,
                             'code_file_path' => $submission->code_file_path,
                             'submission_date' => $submission->submission_date,
-                            'ai_metrics' => $latestAiResult?->metrics ? json_decode($latestAiResult->metrics, true) : null,
                         ];
                     }),
                 ];
@@ -569,7 +625,7 @@ public function updateTest(Request $request, Test $test)
                 'teacher_feedback' => $submission->teacher_feedback,
                 'ai_metrics' => $latestAiResult?->metrics ? json_decode($latestAiResult->metrics, true) : null,
                 'latest_ai_result' => $latestAiResult ? [
-                    'predicted_verdict_id' => $latestAiResult->predicted_verdict_id,
+                    'predicted_id' => $latestAiResult->predicted_id,
                     'predicted_verdict_string' => $latestAiResult->predicted_verdict_string,
                     'verdict_probabilities' => json_decode($latestAiResult->verdict_probabilities, true),
                     'metrics' => json_decode($latestAiResult->metrics, true),
@@ -593,33 +649,47 @@ public function updateTest(Request $request, Test $test)
         }
 
         $teacher = Auth::user()->teacher;
-        $submission = Submission::findOrFail($submissionId);
+        $submission = Submission::with(['test', 'grades', 'aiGradingResults' => function($query) {
+            $query->latest();
+        }])->findOrFail($submissionId);
 
         if ($submission->test->teacher_id != $teacher->id) {
             return back()->with('error', 'Unauthorized access to this submission');
         }
 
         try {
-            // Calculate final grade using AI grading service
-            $aiGradingService = app(AiGradingService::class);
-            $finalGrade = $aiGradingService->calculateFinalGrade($submission);
+            // Get the latest AI grade if available
+            $latestAiResult = $submission->aiGradingResults->first();
             
-            // Update the submission with all grades and feedback
+            // Calculate final grade
+            $finalGrade = app(AiGradingService::class)->calculateFinalGrade($submission);
+            
+            // Create a new grade record
+            $grade = Grade::create([
+                'submission_id' => $submission->id,
+                'teacher_id' => $teacher->id,
+                'graded_value' => $request->teacher_grade,
+                'adjusted_grade' => $finalGrade,
+                'comments' => $request->teacher_feedback,
+                'status' => 'draft'
+            ]);
+
+            // Update the submission status
             $submission->update([
-                'teacher_grade' => $request->teacher_grade,
-                'teacher_feedback' => $request->teacher_feedback,
-                'final_grade' => $finalGrade,
-                'status' => 'graded' // Set status to graded after teacher's input
+                'status' => 'graded'
             ]);
 
             Log::info('Submission graded successfully', [
                 'submission_id' => $submission->id,
+                'grade_id' => $grade->id,
                 'teacher_grade' => $request->teacher_grade,
                 'final_grade' => $finalGrade,
                 'status' => 'graded'
             ]);
 
-            return back()->with('success', 'Submission graded successfully');
+            // Redirect to the grades page
+            return redirect()->route('teacher.show-grading')
+                ->with('success', 'Submission graded successfully');
 
         } catch (\Exception $e) {
             Log::error('Failed to grade submission', [
@@ -634,9 +704,11 @@ public function updateTest(Request $request, Test $test)
 
     public function publishGrade($submissionId)
     {
-        $submission = Submission::with(['student.user', 'test'])
+        $submission = Submission::with(['student.user', 'test', 'grades' => function($query) {
+            $query->latest();
+        }])
             ->whereHas('test', function ($query) {
-                $query->where('teacher_id', auth()->id());
+                $query->where('teacher_id', auth()->user()->teacher->id);
             })
             ->findOrFail($submissionId);
 
@@ -645,13 +717,23 @@ public function updateTest(Request $request, Test $test)
         }
 
         try {
+            // Update the submission status
             $submission->update([
                 'status' => 'published',
             ]);
 
+            // Update the latest grade status
+            if ($submission->grades->isNotEmpty()) {
+                $latestGrade = $submission->grades->first();
+                $latestGrade->update([
+                    'status' => 'published'
+                ]);
+            }
+
             Log::info('Grade published for submission', [
                 'submission_id' => $submission->id,
-                'final_grade' => $submission->final_grade,
+                'grade_id' => $latestGrade->id ?? null,
+                'status' => 'published'
             ]);
 
             return redirect()->back()->with('success', 'Grade published successfully');
@@ -662,6 +744,49 @@ public function updateTest(Request $request, Test $test)
             ]);
 
             return redirect()->back()->with('error', 'Error publishing grade: ' . $e->getMessage());
+        }
+    }
+
+    public function destroyTest(Test $test): RedirectResponse
+    {
+        // Ensure the teacher owns this test
+        if ($test->teacher_id !== auth()->user()->teacher->id) {
+            return redirect()->back()->with('error', 'Unauthorized access to this test');
+        }
+
+        try {
+            // Start a database transaction
+            DB::beginTransaction();
+
+            // Delete related records in the correct order
+            // First delete all grades for this test's submissions
+            Grade::whereHas('submission', function($query) use ($test) {
+                $query->where('test_id', $test->id);
+            })->delete();
+
+            // Then delete all submissions
+            $test->submissions()->delete();
+
+            // Finally delete the test
+            $test->delete();
+
+            // Commit the transaction
+            DB::commit();
+
+            return redirect()->route('teacher.tests.index')
+                ->with('success', 'Test deleted successfully');
+        } catch (\Exception $e) {
+            // Rollback the transaction on error
+            DB::rollBack();
+
+            Log::error('Failed to delete test', [
+                'error' => $e->getMessage(),
+                'test_id' => $test->id,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Failed to delete test: ' . $e->getMessage());
         }
     }
 }

@@ -45,6 +45,11 @@ class Test extends Model
     {
         return $this->hasMany(Submission::class);
     }
+
+    public function grades()
+    {
+        return $this->hasManyThrough(Grade::class, Submission::class);
+    }
     
     public function teacher()
     {

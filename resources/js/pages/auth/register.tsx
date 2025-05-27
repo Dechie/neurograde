@@ -181,15 +181,6 @@ export default function SignupForm() {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center space-x-2 pt-1">
-                                    <Checkbox id="terms" required />
-                                    <label htmlFor="terms" className="text-muted-foreground text-sm leading-none">
-                                        I agree to the{' '}
-                                        <Link href="/terms" className="text-primary underline">Terms of Service</Link>{' '}
-                                        and{' '}
-                                        <Link href="/privacy" className="text-primary underline">Privacy Policy</Link>
-                                    </label>
-                                </div>
                             </CardContent>
 
                             <CardFooter className="mt-4 flex flex-col space-y-4">

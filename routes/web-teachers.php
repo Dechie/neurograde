@@ -25,6 +25,7 @@ Route::delete('/tests/{test}', [TeacherController::class, 'destroyTest'])->name(
     Route::get('/tests/{test}/submissions', [TeacherController::class, 'showTestSubmissions'])->name('teacher.tests.submissions');
     Route::get('/submissions/{submissionId}', [TeacherController::class, 'showSubmission'])->name('teacher.submissions.show');
     Route::post('/submissions/{submissionId}/grade', [TeacherController::class, 'gradeSubmission'])->name('teacher.submissions.grade');
+    Route::post('/submissions/{submissionId}/publish', [TeacherController::class, 'publishGrade'])->name('teacher.submissions.publish');
 
     // Routes for Submissions and Grading (will need conversion later)
     Route::get('/show-grading', [TeacherController::class, 'showGradingPage'])->name('teacher.show-grading'); // Renders grading page (needs data fetch)

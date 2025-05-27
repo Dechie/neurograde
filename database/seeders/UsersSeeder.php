@@ -60,15 +60,15 @@ class UsersSeeder extends Seeder
 
         // Create students (4 per department)
         $studentNames = [
-            // Electrical Engineering Students
+            // Software Engineering Students
             ['first' => 'Hana', 'last' => 'Daniel'],
             ['first' => 'Blen', 'last' => 'Dejene'],
             ['first' => 'Sifen', 'last' => 'Feyissa'],
             ['first' => 'Ribka', 'last' => 'Abraham'],
             
-            // Software Engineering Students
-            ['first' => 'Etsubdink', 'last' => 'Tewodros'],
+            // Electrical Engineering Students
             ['first' => 'Helen', 'last' => 'Girma'],
+            ['first' => 'Etsubdink', 'last' => 'Tewodros'],
             ['first' => 'Hawi', 'last' => 'Tolossa'],
             ['first' => 'Hayat', 'last' => 'Mohammed'],
             

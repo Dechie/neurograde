@@ -19,6 +19,7 @@ interface TestResult {
     };
     submission_date: string;
     status: 'pending' | 'reviewed' | 'graded' | 'published';
+    ai_review?: string;
 }
 
 interface Props {
@@ -105,7 +106,13 @@ export default function Results({ results }: Props) {
                                                         </>
                                                     )}
                                                 </div>
-
+                                                {/* AI Review for published results */}
+                                                {result.ai_review && (
+                                                    <div className="mt-4">
+                                                        <h4 className="text-sm font-medium text-foreground mb-2">AI Analysis</h4>
+                                                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{result.ai_review}</p>
+                                                    </div>
+                                                )}
                                                 {result.comment && (
                                                     <div className="mt-4">
                                                         <h4 className="text-sm font-medium text-foreground mb-2">Feedback</h4>

@@ -1,6 +1,9 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
+import { Link, router } from "@inertiajs/react";
+import { Menu, Settings, User, LogOut } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -8,63 +11,83 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { router, usePage } from '@inertiajs/react';
-import { Bell, LogOut, Settings, User } from 'lucide-react';
+} from "@/components/ui/dropdown-menu";
+import { usePage } from "@inertiajs/react";
+import type { SharedData } from "@/types";
 
-export function DashboardHeader({ title }: { title?: string }) {
-    const { url, auth } = usePage().props as any;
+interface DashboardHeaderProps {
+    toggleSidebar: () => void;
+}
 
-    const getPageTitle = () => {
-        if (url === '/') return 'Overview';
-        if (url === '/tests') return 'Test';
-        if (url === '/results') return 'Result';
-        return title || 'Overview';
-    };
+export function DashboardHeader({ toggleSidebar }: DashboardHeaderProps) {
+    const { auth } = usePage<SharedData>().props;
 
-    const handleLogout = () => {
-        router.post(route('logout'));
-    };
-
-    const navigateToProfile = () => {
-        router.get(route('profile.edit'));
+    const handleLogout = (e: React.MouseEvent) => {
+        e.preventDefault();
+        router.post(route('logout'), {}, {
+            onSuccess: () => {
+                // Force a full page reload and redirect to landing page
+                window.location.href = '/';
+            }
+        });
     };
 
     return (
-        <header className="sticky top-0 z-20 flex h-18 w-full items-center justify-between bg-white px-4 md:px-6">
-            <h1 className="ml-8 text-xl font-semibold md:ml-0">{getPageTitle()}</h1>
-            <div className="flex items-center gap-2 md:gap-4">
-                {/* <div className="relative hidden md:block">
-                    <Search className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
-                    <Input type="search" placeholder="Search" className="bg-muted w-full rounded-full pl-8 lg:w-[250px]" />
-                </div> */}
-                <div className="flex gap-1 md:gap-2">
-                    <Button variant="ghost" size="icon" className="rounded-full">
-                        <Settings className="h-5 w-5" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="rounded-full">
-                        <Bell className="h-5 w-5" />
-                    </Button>
+        <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="container flex h-14 items-center">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="mr-2 md:hidden"
+                    onClick={toggleSidebar}
+                >
+                    <Menu className="h-5 w-5" />
+                    <span className="sr-only">Toggle menu</span>
+                </Button>
 
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="overflow-hidden rounded-full">
-                                <img src="/1.jpg" alt="Avatar" width={32} height={32} className="rounded-full" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56">
-                            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={navigateToProfile} className="cursor-pointer">
-                                <User className="mr-2 h-4 w-4" />
-                                <span>Profile</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive cursor-pointer">
-                                <LogOut className="mr-2 h-4 w-4" />
-                                <span>Log out</span>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+                    <div className="w-full flex-1 md:w-auto md:flex-none">
+                        {/* Add search or other header content here if needed */}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    className="relative h-8 w-8 rounded-full"
+                                >
+                                    <User className="h-5 w-5" />
+                                    <span className="sr-only">Open user menu</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-56" align="end" forceMount>
+                                <DropdownMenuLabel className="font-normal">
+                                    <div className="flex flex-col space-y-1">
+                                        <p className="text-sm font-medium leading-none">
+                                            {`${auth.user.first_name} ${auth.user.last_name}`}
+                                        </p>
+                                        <p className="text-xs leading-none text-muted-foreground">
+                                            {auth.user.email}
+                                        </p>
+                                    </div>
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem asChild>
+                                    <Link href="/settings/profile">
+                                        <Settings className="mr-2 h-4 w-4" />
+                                        <span>Settings</span>
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link method="post" href={route('logout')} as="button">
+                                        <LogOut className="mr-2 h-4 w-4" />
+                                        <span>Log out</span>
+                                    </Link>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
             </div>
         </header>

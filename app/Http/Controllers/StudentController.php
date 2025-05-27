@@ -490,7 +490,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use Inertia\Response; 
+use Inertia\Response as InertiaResponse;
 use App\Models\Test;
 use App\Models\AiGradingResult;
 use Illuminate\Auth\Events\Registered;
@@ -580,6 +580,8 @@ class StudentController extends Controller
                     'id' => $test->id,
                     'title' => $test->title,
                     'problemStatement' => $test->problem_statement,
+                    'input_spec' => $test->input_spec,
+                    'output_spec' => $test->output_spec,
                     'dueDate' => $test->due_date ? $test->due_date->format('Y-m-d H:i:s') : null,
                     'status' => $test->status,
                     'class' => $test->class ? [
@@ -809,10 +811,19 @@ class StudentController extends Controller
     {
         $student = auth()->user()->student;
         
-        if ($student->status === 'assigned') {
+        // Get the assigned class from the pivot table where assigned is true
+        // Because of unique('student_id') on class_students, first() should work correctly for the single assigned class.
+        $assignedClass = $student->classes()->wherePivot('assigned', true)->first();
+        
+        // A student is considered assigned if their status is 'assigned' AND there's an assigned class entry in the pivot table
+        $isAssigned = $student->status === 'assigned' && $assignedClass;
+        
+        if ($isAssigned) {
             return Inertia::render('WaitingScreen', [
                 'status' => 'success',
-                'message' => 'You have been assigned to a class! Redirecting to dashboard...'
+                'message' => 'You have been assigned to a class! Redirecting to dashboard...',
+                'assignedClassId' => $assignedClass->id,   // Pass the class ID to the frontend
+                'assignedClassName' => $assignedClass->name, // Pass the class name to the frontend
             ]);
         }
         
@@ -821,19 +832,53 @@ class StudentController extends Controller
             'message' => 'Your account is still pending assignment. Please wait while an administrator assigns you to a class.'
         ]);
     }
+    // public function checkStatus()
+    // {
+    //     $student = auth()->user()->student;
+        
+    //     // Get the assigned class from the pivot table
+    //     $assignedClass = $student->classes()->wherePivot('assigned', true)->first();
+    //     $isAssigned = $student->status === 'assigned' && $assignedClass;
+        
+    //     if ($isAssigned) {
+    //         return Inertia::render('WaitingScreen', [
+    //             'status' => 'success',
+    //             'message' => 'You have been assigned to a class! Redirecting to dashboard...'
+    //         ]);
+    //     }
+        
+    //     return Inertia::render('WaitingScreen', [
+    //         'status' => 'info',
+    //         'message' => 'Your account is still pending assignment. Please wait while an administrator assigns you to a class.'
+    //     ]);
+    // }
 
-    public function dashboard(): Response
+    public function dashboard(): InertiaResponse|RedirectResponse
     {
         $student = auth()->user()->student;
         
+        // Get the assigned class from the pivot table
+        $assignedClass = $student->classes()->wherePivot('assigned', true)->first();
+        $isAssigned = $student->status === 'assigned' && $assignedClass;
+
+        if (!$isAssigned) {
+            \Log::warning('Unauthorized dashboard access attempt', [
+                'student_id' => $student->id,
+                'status' => $student->status,
+                'has_assigned_class' => (bool)$assignedClass,
+                'reason' => $student->status !== 'assigned' ? 'Status not assigned' : 'No assigned class in pivot',
+            ]);
+            return redirect()->route('student.waiting');
+        }
+        
         \Log::info('Student data', [
             'student_id' => $student->id,
-            'class_id' => $student->class_id,
+            'assigned_class_id' => $assignedClass ? $assignedClass->id : null,
             'department_id' => $student->department_id
         ]);
 
-        // Get tests for student's class that are not past due date
-        $tests = Test::where('class_id', $student->class_id)
+        // Get tests for student's assigned class that are not past due date
+        $tests = $assignedClass ? Test::where('class_id', $assignedClass->id)
             ->where('published', true)
             ->where('due_date', '>', now())
             ->with([
@@ -843,7 +888,7 @@ class StudentController extends Controller
                     $query->where('student_id', $student->id);
                 }
             ])
-            ->get();
+            ->get() : collect();
 
         \Log::info('Initial tests query', [
             'count' => $tests->count(),
@@ -934,9 +979,9 @@ class StudentController extends Controller
                     'id_number' => $student->id_number,
                     'academic_year' => $student->academic_year,
                     'department' => $student->department->name,
-                    'class' => $student->class ? [
-                        'name' => $student->class->name,
-                        'department' => $student->class->department->name,
+                    'class' => $assignedClass ? [
+                        'name' => $assignedClass->name,
+                        'department' => $assignedClass->department->name,
                     ] : null,
                 ],
             ],
@@ -950,7 +995,37 @@ class StudentController extends Controller
     {
         $student = auth()->user()->student;
         
-        if ($student->status === 'assigned') {
+        // Log comprehensive waiting screen access information
+        Log::info('Student waiting screen access', [
+            'student_id' => $student->id,
+            'user_id' => auth()->id(),
+            'status' => $student->status,
+            'class_id' => $student->class_id,
+            'has_class' => $student->class_id !== null,
+            'session_id' => session()->getId(),
+            'csrf_token' => request()->session()->token(),
+            'is_authenticated' => auth()->check(),
+            'roles' => auth()->user()->roles->pluck('name'),
+            'request_method' => request()->method(),
+            'request_path' => request()->path(),
+            'request_ip' => request()->ip(),
+            'user_agent' => request()->userAgent()
+        ]);
+        
+        // Check both status and pivot table assigned flag
+        $isAssigned = $student->status === 'assigned' && 
+                     $student->class_id && 
+                     $student->classes()
+                            ->where('class_id', $student->class_id)
+                            ->wherePivot('assigned', true)
+                            ->exists();
+
+        if ($isAssigned) {
+            Log::info('Student is assigned, redirecting to dashboard', [
+                'student_id' => $student->id,
+                'class_id' => $student->class_id,
+                'has_assigned_pivot' => true
+            ]);
             return redirect()->route('student.dashboard');
         }
 

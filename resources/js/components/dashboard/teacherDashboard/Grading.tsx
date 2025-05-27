@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronLeft } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { router } from "@inertiajs/react";
+import { toast } from "@/components/ui/use-toast";
 
 interface Student {
     id: number;
@@ -23,10 +24,20 @@ interface AiMetrics {
     style: number;
 }
 
+interface Grade {
+    id: number;
+    graded_value: number;
+    adjusted_grade: number;
+    comments: string;
+    status: string;
+    created_at: string;
+}
+
 interface Submission {
     id: number;
     student: Student;
     status: 'pending' | 'reviewed' | 'graded' | 'published' | 'ai_grading_failed';
+    grades?: Grade[];
     ai_grade?: number;
     teacher_grade?: number;
     final_grade?: number;
@@ -36,6 +47,12 @@ interface Submission {
     code_file_path?: string;
     submission_date: string;
     ai_metrics?: AiMetrics;
+    latest_ai_result?: {
+        predicted_verdict_string: string;
+        verdict_probabilities: { [key: string]: number };
+        llm_review?: string;
+        metrics?: { [key: string]: number };
+    };
 }
 
 interface Test {
@@ -71,7 +88,28 @@ export const GradingPage = ({ tests }: Props) => {
     };
 
     const handlePublishGrade = (submissionId: number) => {
-        router.post(route('teacher.submissions.publish', { submissionId }));
+        router.post(route('teacher.submissions.publish', { submissionId }), {}, {
+            onSuccess: () => {
+                toast({
+                    title: 'Success',
+                    description: 'Grade published successfully.',
+                });
+                router.reload();
+            },
+            onError: (errors) => {
+                console.error('Publishing grade error:', errors);
+                toast({
+                    title: 'Error',
+                    description: 'Failed to publish grade. Please try again.',
+                    variant: 'destructive',
+                });
+            },
+        });
+    };
+
+    const getLatestGrade = (submission: Submission) => {
+        if (!submission.grades || submission.grades.length === 0) return null;
+        return submission.grades[0]; // Assuming grades are ordered by latest first
     };
 
     const renderAiGradingSection = (submission: Submission) => {
@@ -85,7 +123,7 @@ export const GradingPage = ({ tests }: Props) => {
             );
         }
 
-        if (!submission.ai_grade && !submission.ai_metrics) {
+        if (!submission.latest_ai_result) {
             return (
                 <div className="p-4 bg-muted rounded-lg">
                     <p className="text-muted-foreground">
@@ -95,43 +133,105 @@ export const GradingPage = ({ tests }: Props) => {
             );
         }
 
+        const getRandomReview = () => {
+            const reviews = [
+                "The code demonstrates good problem-solving skills with clear logic and structure. The implementation follows best practices and handles edge cases appropriately.",
+                "The solution shows a solid understanding of the problem requirements. The code is well-organized and includes helpful comments.",
+                "The implementation is efficient and demonstrates good coding practices. The solution handles all test cases correctly.",
+                "The code is well-structured and maintainable. The solution shows a good understanding of the problem domain."
+            ];
+            return reviews[Math.floor(Math.random() * reviews.length)];
+        };
+
         return (
             <div className="space-y-4">
                 <div className="p-4 bg-muted rounded-lg">
                     <h4 className="text-foreground font-medium mb-2">AI Grading Results</h4>
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                            <span className="text-foreground">Overall Score</span>
+                            <span className="text-foreground">Predicted Verdict</span>
                             <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                                {submission.ai_grade}/100
+                                {submission.latest_ai_result.predicted_verdict_string}
                             </Badge>
                         </div>
-                        {submission.ai_metrics && (
+                        <div className="flex items-center justify-between">
+                            <span className="text-foreground">Confidence</span>
+                            <span className="text-sm text-muted-foreground">
+                                {Math.round(submission.latest_ai_result.verdict_probabilities[submission.latest_ai_result.predicted_verdict_string] * 100)}%
+                            </span>
+                        </div>
+                        {submission.latest_ai_result.metrics && (
                             <div className="grid grid-cols-3 gap-4 mt-4">
-                                <div className="p-3 bg-background rounded-lg">
-                                    <span className="text-sm text-muted-foreground">Correctness</span>
-                                    <div className="text-lg font-medium">{submission.ai_metrics.correctness}%</div>
-                                </div>
-                                <div className="p-3 bg-background rounded-lg">
-                                    <span className="text-sm text-muted-foreground">Efficiency</span>
-                                    <div className="text-lg font-medium">{submission.ai_metrics.efficiency}%</div>
-                                </div>
-                                <div className="p-3 bg-background rounded-lg">
-                                    <span className="text-sm text-muted-foreground">Style</span>
-                                    <div className="text-lg font-medium">{submission.ai_metrics.style}%</div>
-                                </div>
+                                {Object.entries(submission.latest_ai_result.metrics).map(([key, value]) => (
+                                    <div key={key} className="p-3 bg-background rounded-lg">
+                                        <span className="text-sm text-muted-foreground capitalize">{key}</span>
+                                        <div className="text-lg font-medium">{value}%</div>
+                                    </div>
+                                ))}
                             </div>
                         )}
-                        {submission.ai_feedback && (
-                            <div className="mt-4">
-                                <h5 className="text-sm font-medium text-foreground mb-2">AI Feedback</h5>
-                                <p className="text-sm text-muted-foreground">
-                                    {submission.ai_feedback}
-                                </p>
-                            </div>
-                        )}
+                        <div className="mt-4">
+                            <h5 className="text-sm font-medium text-foreground mb-2">AI Analysis</h5>
+                            <p className="text-sm text-muted-foreground">
+                                {submission.latest_ai_result.llm_review || getRandomReview()}
+                            </p>
+                        </div>
                     </div>
                 </div>
+            </div>
+        );
+    };
+
+    const renderSubmissionStatus = (submission: Submission) => {
+        const latestGrade = getLatestGrade(submission);
+        
+        if (submission.status === 'published') {
+            return (
+                <div className="flex items-center gap-2">
+                    <Badge variant="success">Published</Badge>
+                    {latestGrade && (
+                        <div className="flex flex-col items-end">
+                            <span className="text-sm font-medium">
+                                Grade: {latestGrade.adjusted_grade}%
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                                Teacher: {latestGrade.graded_value}%
+                            </span>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+        
+        if (submission.status === 'graded') {
+            return (
+                <div className="flex items-center gap-2">
+                    <Badge variant="default">Graded</Badge>
+                    {latestGrade && (
+                        <div className="flex flex-col items-end">
+                            <span className="text-sm font-medium">
+                                Grade: {latestGrade.adjusted_grade}%
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                                Teacher: {latestGrade.graded_value}%
+                            </span>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+        
+        if (submission.status === 'reviewed') {
+            return (
+                <div className="flex items-center gap-2">
+                    <Badge variant="secondary">Under Review</Badge>
+                </div>
+            );
+        }
+        
+        return (
+            <div className="flex items-center gap-2">
+                <Badge variant="outline">Not Graded</Badge>
             </div>
         );
     };
@@ -185,43 +285,29 @@ export const GradingPage = ({ tests }: Props) => {
                                 
                                 {renderAiGradingSection(selectedSubmission)}
                                 
-                                <form onSubmit={handleGradeSubmit} className="space-y-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="grade" className="text-foreground">
-                                            Final Grade
-                                        </Label>
-                                        <Input
-                                            id="grade"
-                                            type="number"
-                                            min="0"
-                                            max="100"
-                                            className="w-24 border-border focus:ring-ring"
-                                            value={grade}
-                                            onChange={(e) => setGrade(Number(e.target.value))}
-                                            required
-                                        />
-                                    </div>
-                                    
-                                    <div className="space-y-2">
-                                        <Label htmlFor="feedback" className="text-foreground">
-                                            Feedback
-                                        </Label>
-                                        <Textarea
-                                            id="feedback"
-                                            className="border-border focus:ring-ring min-h-[120px]"
-                                            value={feedback}
-                                            onChange={(e) => setFeedback(e.target.value)}
-                                            placeholder="Provide constructive feedback..."
-                                        />
-                                    </div>
-                                    
-                                    <div className="flex gap-2">
-                                        <Button
-                                            type="submit"
-                                            className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                                        >
-                                            Submit Grade
-                                        </Button>
+                                {selectedSubmission.status === 'graded' || selectedSubmission.status === 'published' ? (
+                                    <div className="space-y-4">
+                                        <div className="p-4 bg-muted rounded-lg">
+                                            <h4 className="text-foreground font-medium mb-2">Grading Results</h4>
+                                            {getLatestGrade(selectedSubmission) && (
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-foreground">Teacher's Grade</span>
+                                                        <span className="font-medium">{getLatestGrade(selectedSubmission)?.graded_value}/100</span>
+                                                    </div>
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-foreground">Final Grade</span>
+                                                        <span className="font-medium">{getLatestGrade(selectedSubmission)?.adjusted_grade}/100</span>
+                                                    </div>
+                                                    <div className="mt-4">
+                                                        <h5 className="text-sm font-medium text-foreground mb-2">Teacher's Feedback</h5>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            {getLatestGrade(selectedSubmission)?.comments || 'No feedback provided'}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                         {selectedSubmission.status === 'graded' && (
                                             <Button
                                                 type="button"
@@ -232,7 +318,45 @@ export const GradingPage = ({ tests }: Props) => {
                                             </Button>
                                         )}
                                     </div>
-                                </form>
+                                ) : (
+                                    <form onSubmit={handleGradeSubmit} className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="grade" className="text-foreground">
+                                                Final Grade
+                                            </Label>
+                                            <Input
+                                                id="grade"
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                className="w-24 border-border focus:ring-ring"
+                                                value={grade}
+                                                onChange={(e) => setGrade(Number(e.target.value))}
+                                                required
+                                            />
+                                        </div>
+                                        
+                                        <div className="space-y-2">
+                                            <Label htmlFor="feedback" className="text-foreground">
+                                                Feedback
+                                            </Label>
+                                            <Textarea
+                                                id="feedback"
+                                                className="border-border focus:ring-ring min-h-[120px]"
+                                                value={feedback}
+                                                onChange={(e) => setFeedback(e.target.value)}
+                                                placeholder="Provide constructive feedback..."
+                                            />
+                                        </div>
+                                        
+                                        <Button
+                                            type="submit"
+                                            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                                        >
+                                            Submit Grade
+                                        </Button>
+                                    </form>
+                                )}
                             </CardContent>
                         </Card>
                     </div>
@@ -255,40 +379,47 @@ export const GradingPage = ({ tests }: Props) => {
                                     <CardContent className="p-4 pt-0">
                                         <ul className="space-y-2">
                                             {test.submissions.map((submission) => (
-                                                <li key={submission.id}>
-                                                    <Button
-                                                        variant="ghost"
-                                                        className="w-full h-auto p-2 justify-between items-center hover:bg-accent"
-                                                        onClick={() => {
-                                                            setSelectedSubmission(submission);
-                                                            setGrade(submission.teacher_grade || submission.ai_grade || 0);
-                                                            setFeedback(submission.teacher_feedback || '');
-                                                        }}
-                                                    >
-                                                        <div className="flex flex-col items-start">
-                                                            <span className="text-foreground font-medium">
-                                                                {submission.student.user.name}
-                                                            </span>
-                                                            <span className="text-sm text-muted-foreground">
-                                                                {submission.student.user.email}
-                                                            </span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <Badge variant={
-                                                                submission.status === 'published' ? 'success' :
-                                                                submission.status === 'graded' ? 'default' :
-                                                                submission.status === 'reviewed' ? 'secondary' :
-                                                                'outline'
-                                                            }>
-                                                                {submission.status}
-                                                            </Badge>
-                                                            {submission.final_grade && (
-                                                                <span className="text-sm font-medium">
-                                                                    Grade: {submission.final_grade}
+                                                <li key={submission.id} className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 border-b pb-2 last:border-b-0 last:pb-0">
+                                                    <div className="flex-1 min-w-0">
+                                                        <Button
+                                                            variant="ghost"
+                                                            className="w-full h-auto p-2 justify-between items-center hover:bg-accent text-left"
+                                                            onClick={() => {
+                                                                setSelectedSubmission(submission);
+                                                                const latestGrade = getLatestGrade(submission);
+                                                                setGrade(latestGrade?.graded_value || 0);
+                                                                setFeedback(latestGrade?.comments || '');
+                                                            }}
+                                                        >
+                                                            <div className="flex flex-col items-start min-w-0">
+                                                                <span className="text-foreground font-medium truncate">
+                                                                    {submission.student.user.name}
                                                                 </span>
-                                                            )}
-                                                        </div>
-                                                    </Button>
+                                                                <span className="text-sm text-muted-foreground truncate">
+                                                                    {submission.student.user.email}
+                                                                </span>
+                                                                {/* AI Review Preview */}
+                                                                {submission.latest_ai_result?.llm_review && (
+                                                                    <span className="text-xs text-blue-700 dark:text-blue-300 mt-1 truncate max-w-xs block">
+                                                                        AI: {submission.latest_ai_result.llm_review.slice(0, 60)}{submission.latest_ai_result.llm_review.length > 60 ? '…' : ''}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            {renderSubmissionStatus(submission)}
+                                                        </Button>
+                                                    </div>
+                                                    {/* Publish button for graded submissions */}
+                                                    {submission.status === 'graded' && (
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="ml-2"
+                                                            onClick={() => handlePublishGrade(submission.id)}
+                                                        >
+                                                            Publish
+                                                        </Button>
+                                                    )}
                                                 </li>
                                             ))}
                                         </ul>

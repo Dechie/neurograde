@@ -1,16 +1,11 @@
 // components/dashboard/teacherDashboard/EditExamDialog.tsx
 'use client';
 
-import { useState } from 'react';
-import { useForm } from '@inertiajs/react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ClassRoom, Test } from '@/types';
-import { toast } from '@/components/ui/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { EditExamForm } from './EditExamForm';
+import type { ClassRoom, Test } from '@/types';
+import { useToast } from '@/components/ui/use-toast';
+import { router } from '@inertiajs/react';
 
 interface EditExamDialogProps {
     open: boolean;
@@ -21,153 +16,81 @@ interface EditExamDialogProps {
 }
 
 export function EditExamDialog({ open, onOpenChange, classes, exam, onExamUpdated }: EditExamDialogProps) {
-    const { data, setData, put, processing, errors } = useForm({
-        title: exam.title,
-        problem_statement: exam.problem_statement,
-        input_spec: exam.input_spec,
-        output_spec: exam.output_spec,
-        due_date: exam.due_date ? exam.due_date.split('T')[0] : '',
-        class_id: exam.class?.id || '',
-        published: exam.published,
-    });
+    const { toast } = useToast();
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        
-        put(route('teacher.tests.update', exam.id), {
-            onSuccess: () => {
-                onOpenChange(false);
-                onExamUpdated();
-            },
-            onError: (errors) => {
-                toast({
-                    title: "Error",
-                    description: Object.values(errors).join('\n'),
-                    variant: "destructive",
-                });
-            },
-        });
+    const handleSubmit = async (data: FormData) => {
+        try {
+            // Convert FormData to a plain object with proper types
+            const formData = {
+                title: data.get('title') as string,
+                problem_statement: data.get('problem_statement') as string,
+                input_spec: data.get('input_spec') as string,
+                output_spec: data.get('output_spec') as string,
+                due_date: data.get('due_date') as string,
+                class_id: Number(data.get('class_id')),
+                published: data.get('published') === 'true'
+            };
+
+            await router.put(route('teacher.tests.update', exam.id), formData, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    onOpenChange(false);
+                    toast({
+                        title: "Success",
+                        description: "Exam updated successfully!",
+                        variant: "default"
+                    });
+                    onExamUpdated();
+                },
+                onError: (errors) => {
+                    // Show validation errors in the toast
+                    const errorMessage = Object.values(errors).flat().join('\n');
+                    toast({
+                        title: "Validation Error",
+                        description: errorMessage || "Failed to update exam. Please check your input.",
+                        variant: "destructive"
+                    });
+                    console.error('Error updating exam:', errors);
+                }
+            });
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: error instanceof Error ? error.message : "Failed to update exam. Please try again.",
+                variant: "destructive"
+            });
+            console.error('Error updating exam:', error);
+        }
     };
+
+    // Transform the exam data to match the expected format
+    const formattedExam = {
+        id: exam.id,
+        title: exam.title,
+        problem_statement: exam.problem_statement || '',
+        input_spec: exam.input_spec || '',
+        output_spec: exam.output_spec || '',
+        due_date: exam.due_date ? new Date(exam.due_date).toISOString().slice(0, 16) : '',
+        class_id: exam.class?.id || 0,
+        published: exam.published || false,
+    };
+
+    console.log('Original exam data:', exam);
+    console.log('Formatted exam data:', formattedExam);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent>
+            <DialogContent className="sm:max-w-[1000px]">
                 <DialogHeader>
-                    <DialogTitle>Edit Exam</DialogTitle>
-                    <DialogDescription>
-                        Update the details of your exam.
-                    </DialogDescription>
+                    <DialogTitle className="text-xl">Edit Exam</DialogTitle>
                 </DialogHeader>
-                
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="title">Title</Label>
-                        <Input
-                            id="title"
-                            value={data.title}
-                            onChange={(e) => setData('title', e.target.value)}
-                            placeholder="Enter exam title"
-                        />
-                        {errors.title && <p className="text-sm text-red-500">{errors.title}</p>}
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="problem_statement">Problem Statement</Label>
-                        <Textarea
-                            id="problem_statement"
-                            value={data.problem_statement}
-                            onChange={(e) => setData('problem_statement', e.target.value)}
-                            placeholder="Enter the problem statement"
-                            rows={5}
-                        />
-                        {errors.problem_statement && <p className="text-sm text-red-500">{errors.problem_statement}</p>}
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="input_spec">Input Specification</Label>
-                        <Textarea
-                            id="input_spec"
-                            value={data.input_spec ?? ''}
-                            onChange={(e) => setData('input_spec', e.target.value)}
-                            placeholder="Describe the input requirements"
-                            rows={3}
-                        />
-                        {errors.input_spec && <p className="text-sm text-red-500">{errors.input_spec}</p>}
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="output_spec">Output Specification</Label>
-                        <Textarea
-                            id="output_spec"
-                            value={data.output_spec ?? ''}
-                            onChange={(e) => setData('output_spec', e.target.value)}
-                            placeholder="Describe the expected output"
-                            rows={3}
-                        />
-                        {errors.output_spec && <p className="text-sm text-red-500">{errors.output_spec}</p>}
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="due_date">Due Date</Label>
-                        <Input
-                            id="due_date"
-                            type="date"
-                            value={data.due_date}
-                            onChange={(e) => setData('due_date', e.target.value)}
-                        />
-                        {errors.due_date && <p className="text-sm text-red-500">{errors.due_date}</p>}
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="class_id">Class</Label>
-                        <Select
-                            value={data.class_id.toString()}
-                            onValueChange={(value) => setData('class_id', parseInt(value))}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select a class" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {classes.map((classRoom) => (
-                                    <SelectItem key={classRoom.id} value={classRoom.id.toString()}>
-                                        {classRoom.name} ({String(classRoom.department ?? '')})
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        {errors.class_id && <p className="text-sm text-red-500">{errors.class_id}</p>}
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="published">Status</Label>
-                        <Select
-                            value={data.published ? 'published' : 'draft'}
-                            onValueChange={(value) => setData('published', value === 'published')}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="published">Published</SelectItem>
-                                <SelectItem value="draft">Draft</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className="flex justify-end gap-2">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => onOpenChange(false)}
-                            disabled={processing}
-                        >
-                            Cancel
-                        </Button>
-                        <Button type="submit" disabled={processing}>
-                            {processing ? 'Saving...' : 'Save Changes'}
-                        </Button>
-                    </div>
-                </form>
+                <div className="max-h-[80vh] overflow-y-auto p-1">
+                    <EditExamForm 
+                        classes={classes} 
+                        exam={formattedExam}
+                        onSubmit={handleSubmit}
+                    />
+                </div>
             </DialogContent>
         </Dialog>
     );

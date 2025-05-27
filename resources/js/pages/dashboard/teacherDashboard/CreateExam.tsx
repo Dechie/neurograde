@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { AppLayout } from '@/layouts/dashboard/teacherDashboard/teacherDashboardLayout';
 import { Link, router, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
@@ -44,11 +44,12 @@ export default function CreateExam() {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [currentTest, setCurrentTest] = useState<Test | null>(null);
 
-    // Debug props.tests
+    // Update tests when props change
     useEffect(() => {
-        console.log('Initial tests data:', props.tests);
-        console.log('Tests state:', tests);
-    }, [props.tests, tests]);
+        if (props.tests) {
+            setTests(props.tests);
+        }
+    }, [props.tests]);
 
     const filteredTests = tests.filter(test => {
         const matchesSearch = test.title?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false;
@@ -57,6 +58,7 @@ export default function CreateExam() {
     });
 
     const handleCreateSuccess = () => {
+        setIsCreateDialogOpen(false);
         // Refresh the page data using Inertia
         router.reload({ 
             only: ['tests'],
@@ -71,11 +73,17 @@ export default function CreateExam() {
     };
 
     const handleEditSuccess = () => {
-        setTests([...tests, ...props.tests?.filter(t => !tests.find(existing => existing.id === t.id)) || []]);
-        toast({
-            title: "Success",
-            description: "Exam updated successfully!",
-            variant: "default",
+        setIsEditDialogOpen(false);
+        // Refresh the page data using Inertia
+        router.reload({ 
+            only: ['tests'],
+            onSuccess: () => {
+                toast({
+                    title: "Success",
+                    description: "Exam updated successfully!",
+                    variant: "default",
+                });
+            }
         });
     };
 
@@ -84,18 +92,26 @@ export default function CreateExam() {
         
         try {
             await router.delete(route('teacher.tests.destroy', currentTest.id), {
+                preserveScroll: true,
                 onSuccess: () => {
-                    setTests(tests.filter(test => test.id !== currentTest.id));
-                    toast({
-                        title: "Success",
-                        description: "Exam deleted successfully!",
-                        variant: "default",
+                    setIsDeleteDialogOpen(false);
+                    setCurrentTest(null);
+                    // Refresh the page data using Inertia
+                    router.reload({ 
+                        only: ['tests'],
+                        onSuccess: () => {
+                            toast({
+                                title: "Success",
+                                description: "Exam deleted successfully!",
+                                variant: "default",
+                            });
+                        }
                     });
                 },
                 onError: (errors) => {
                     toast({
                         title: "Error",
-                        description: 'Failed to delete exam',
+                        description: errors?.message || 'Failed to delete exam',
                         variant: "destructive",
                     });
                     console.error('Delete failed:', errors);
@@ -108,9 +124,6 @@ export default function CreateExam() {
                 variant: "destructive",
             });
             console.error('Error deleting exam:', err);
-        } finally {
-            setIsDeleteDialogOpen(false);
-            setCurrentTest(null);
         }
     };
 
@@ -199,13 +212,13 @@ export default function CreateExam() {
                                         <CardContent>
                                             <div className="space-y-2">
                                                 <p className="text-sm text-muted-foreground">
-                                                    Class: {test.class?.name || test.class_name || 'N/A'}
+                                                    Class: {test.class?.name || 'N/A'}
                                                 </p>
                                                 <p className="text-sm text-muted-foreground">
-                                                    Department: {test.department?.name || 'N/A'}
+                                                    Department: {test.department?.name || test.class?.department?.name || 'N/A'}
                                                 </p>
                                                 <p className="text-sm text-muted-foreground">
-                                                    Due: {test.due_date ? new Date(test.due_date).toLocaleDateString() : 'No due date'}
+                                                    Due: {test.due_date ? new Date(test.due_date).toLocaleString() : 'No due date'}
                                                 </p>
                                                 <div className="flex justify-between text-sm">
                                                     <span className="text-muted-foreground">
@@ -311,9 +324,15 @@ export default function CreateExam() {
                 <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                     <AlertDialogContent>
                         <AlertDialogHeader>
-                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete the exam "{currentTest?.title}" and all its submissions.
+                            <AlertDialogTitle>Are you sure you want to delete this exam?</AlertDialogTitle>
+                            <AlertDialogDescription className="space-y-4">
+                                <p>This action cannot be undone. The following will be permanently deleted:</p>
+                                <ul className="list-disc pl-6 space-y-2">
+                                    <li>The exam "{currentTest?.title}"</li>
+                                    <li>All student submissions for this exam</li>
+                                    <li>All grades and feedback associated with these submissions</li>
+                                </ul>
+                                <p className="text-destructive font-medium">This will affect all students who have taken or submitted this exam.</p>
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -322,7 +341,7 @@ export default function CreateExam() {
                                 onClick={handleDelete}
                                 className="bg-red-600 hover:bg-red-700"
                             >
-                                Delete
+                                Yes, Delete Everything
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>

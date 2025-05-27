@@ -1,0 +1,10 @@
+- show test issue (partially works)
+it goes to student page when showtest is touched
+- llm review not seen in submission
+- remove probabilities from grading page
+- grade is not saved to data
+- codepart of submissoin should be scroller
+- on top instead of "laravel" title, it should 
+show dynamic stuff like the role it's on.
+- input fields don't properly show
+- 

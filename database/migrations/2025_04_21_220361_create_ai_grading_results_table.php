@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('ai_grading_results', function (Blueprint $table) {
             $table->id();
             $table->foreignId('submission_id')->constrained()->onDelete('cascade');
-            $table->integer('predicted_verdict_id');
+            $table->integer('predicted_id');
             $table->string('predicted_verdict_string');
             $table->json('verdict_probabilities');
             $table->string('requested_language');

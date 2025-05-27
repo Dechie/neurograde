@@ -54,7 +54,7 @@ export function CreateExamDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[625px]">
+      <DialogContent className="sm:max-w-[1000px]">
         <DialogHeader>
           <DialogTitle className="text-xl">Create New Exam</DialogTitle>
         </DialogHeader>

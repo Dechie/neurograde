@@ -1,8 +1,9 @@
-import { AppLayout } from '@/layouts/dashboard/studentDashboard/studentDashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AppLayout } from '@/layouts/dashboard/studentDashboard/studentDashboardLayout';
+import { AlertCircle } from 'lucide-react';
 
 interface Test {
     id: number;
@@ -15,14 +16,17 @@ interface Test {
 
 interface Result {
     id: number;
-    test: {
-        id: number;
-        title: string;
-    };
-    score: number | null;
-    status: 'pending' | 'graded' | 'published' | 'reviewed';
-    submission_date: string;
+    test: Test;
+    status: 'pending' | 'reviewed' | 'graded' | 'published';
+    score: number;
     comment?: string;
+    submission_date: string;
+    metrics?: {
+        correctness: number;
+        efficiency: number;
+        style: number;
+    };
+    ai_review?: string;
 }
 
 interface Statistics {
@@ -93,7 +97,7 @@ export default function Home({ user, upcomingTests, recentResults, statistics }:
                 </div>
 
                 {/* Upcoming Tests */}
-                <Card>
+                {/* <Card>
                     <CardHeader>
                         <CardTitle>Upcoming Tests</CardTitle>
                     </CardHeader>
@@ -125,7 +129,7 @@ export default function Home({ user, upcomingTests, recentResults, statistics }:
                             </Alert>
                         )}
                     </CardContent>
-                </Card>
+                </Card> */}
 
                 {/* Recent Results */}
                 <Card>
@@ -136,44 +140,127 @@ export default function Home({ user, upcomingTests, recentResults, statistics }:
                         {recentResults.length > 0 ? (
                             <div className="space-y-4">
                                 {recentResults.map((result) => (
-                                    <div key={result.id} className="flex items-center justify-between">
-                                        <div>
-                                            <h3 className="font-medium">{result.test.title}</h3>
-                                            <p className="text-sm text-muted-foreground">
-                                                Submitted {new Date(result.submission_date).toLocaleDateString()}
-                                            </p>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="flex items-center gap-2">
-                                                {result.status === 'published' ? (
+                                    <Dialog key={result.id}>
+                                        <DialogTrigger asChild>
+                                            <div className="hover:bg-muted/50 flex cursor-pointer items-center justify-between rounded-lg p-2 transition-colors">
+                                                <div>
+                                                    <h3 className="font-medium">{result.test.title}</h3>
+                                                    <p className="text-muted-foreground text-sm">
+                                                        Submitted {new Date(result.submission_date).toLocaleDateString()}
+                                                    </p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="flex items-center gap-2">
+                                                        {result.status === 'published' ? (
+                                                            <>
+                                                                <p className="font-medium">{result.score}%</p>
+                                                                <Badge variant="success">Published</Badge>
+                                                            </>
+                                                        ) : result.status === 'graded' ? (
+                                                            <>
+                                                                <p className="font-medium">{result.score}%</p>
+                                                                <Badge variant="default">Graded</Badge>
+                                                            </>
+                                                        ) : result.status === 'reviewed' ? (
+                                                            <>
+                                                                <p className="font-medium">Pending</p>
+                                                                <Badge variant="secondary">Under Review</Badge>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <p className="font-medium">Pending</p>
+                                                                <Badge variant="outline">Not Graded</Badge>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </DialogTrigger>
+                                        <DialogContent className="max-w-2xl">
+                                            <DialogHeader>
+                                                <DialogTitle>{result.test.title}</DialogTitle>
+                                            </DialogHeader>
+                                            <div className="space-y-4">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-muted-foreground text-sm">
+                                                        Submitted on {new Date(result.submission_date).toLocaleString()}
+                                                    </span>
+                                                    {result.status === 'published' && <Badge variant="success">Published</Badge>}
+                                                </div>
+
+                                                {result.status === 'published' && (
                                                     <>
-                                                        <p className="font-medium">{result.score}%</p>
-                                                        <Badge variant="success">Published</Badge>
-                                                    </>
-                                                ) : result.status === 'graded' ? (
-                                                    <>
-                                                        <p className="font-medium">{result.score}%</p>
-                                                        <Badge variant="default">Graded</Badge>
-                                                    </>
-                                                ) : result.status === 'reviewed' ? (
-                                                    <>
-                                                        <p className="font-medium">Pending</p>
-                                                        <Badge variant="secondary">Under Review</Badge>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <p className="font-medium">Pending</p>
-                                                        <Badge variant="outline">Not Graded</Badge>
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <div className="bg-muted rounded-lg p-4">
+                                                                <h4 className="mb-2 text-sm font-medium">Final Grade</h4>
+                                                                <p className="text-2xl font-bold">{result.score}%</p>
+                                                            </div>
+                                                            {result.metrics && (
+                                                                <>
+                                                                    <div className="bg-muted rounded-lg p-4">
+                                                                        <h4 className="mb-2 text-sm font-medium">Correctness</h4>
+                                                                        <p className="text-2xl font-bold">{result.metrics.correctness}%</p>
+                                                                    </div>
+                                                                    <div className="bg-muted rounded-lg p-4">
+                                                                        <h4 className="mb-2 text-sm font-medium">Efficiency</h4>
+                                                                        <p className="text-2xl font-bold">{result.metrics.efficiency}%</p>
+                                                                    </div>
+                                                                    <div className="bg-muted rounded-lg p-4">
+                                                                        <h4 className="mb-2 text-sm font-medium">Style</h4>
+                                                                        <p className="text-2xl font-bold">{result.metrics.style}%</p>
+                                                                    </div>
+                                                                </>
+                                                            )}
+                                                        </div>
+
+                                                        <div className="space-y-4">
+                                                            <div>
+                                                                <h4 className="mb-2 text-sm font-medium">AI Analysis</h4>
+                                                                <div className="bg-muted rounded-lg p-4">
+                                                                    <p className="text-muted-foreground text-sm">
+                                                                        {result.ai_review || 'No AI review available'}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+
+                                                            <div>
+                                                                <h4 className="mb-2 text-sm font-medium">Teacher's Feedback</h4>
+                                                                <div className="bg-muted rounded-lg p-4">
+                                                                    <p className="text-muted-foreground text-sm">
+                                                                        {result.comment || 'No feedback provided'}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </>
                                                 )}
+
+                                                {result.status === 'pending' && (
+                                                    <div className="bg-muted rounded-lg p-4">
+                                                        <p className="text-muted-foreground">
+                                                            Your submission is being processed. Please check back later.
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                {result.status === 'reviewed' && (
+                                                    <div className="bg-muted rounded-lg p-4">
+                                                        <p className="text-muted-foreground">
+                                                            Your submission has been reviewed by AI. Waiting for teacher's final grade.
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                {result.status === 'graded' && (
+                                                    <div className="bg-muted rounded-lg p-4">
+                                                        <p className="text-muted-foreground">
+                                                            Your submission has been graded. Waiting for the grade to be published.
+                                                        </p>
+                                                    </div>
+                                                )}
                                             </div>
-                                            {result.status === 'published' && result.comment && (
-                                                <p className="text-sm text-muted-foreground mt-1">
-                                                    {result.comment}
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
+                                        </DialogContent>
+                                    </Dialog>
                                 ))}
                             </div>
                         ) : (

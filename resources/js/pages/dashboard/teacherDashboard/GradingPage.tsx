@@ -1,11 +1,10 @@
-import { GradingPage } from '@/components/dashboard/teacherDashboard/Grading';
 import { AppLayout } from '@/layouts/dashboard/teacherDashboard/teacherDashboardLayout';
-import { PageProps } from '@/types';
+import { GradingPage as GradingComponent } from '@/components/dashboard/teacherDashboard/Grading';
 
 interface Test {
     id: number;
     title: string;
-    submissions: Array<{
+    submissions: {
         id: number;
         student: {
             id: number;
@@ -15,25 +14,34 @@ interface Test {
             };
         };
         status: 'pending' | 'reviewed' | 'graded' | 'published';
-        ai_grade?: number;
-        teacher_grade?: number;
-        final_grade?: number;
-        ai_feedback?: string;
-        teacher_feedback?: string;
+        grades: {
+            id: number;
+            graded_value: number;
+            adjusted_grade: number;
+            comments: string;
+            status: string;
+            created_at: string;
+        }[];
+        latest_ai_result?: {
+            predicted_verdict_string: string;
+            verdict_probabilities: { [key: string]: number };
+            llm_review?: string;
+            metrics?: { [key: string]: number };
+        };
         code_editor_text?: string;
         code_file_path?: string;
         submission_date: string;
-    }>;
+    }[];
 }
 
-interface Props extends PageProps {
+interface Props {
     tests: Test[];
 }
 
-export default function TeacherGradingPage({ tests }: Props) {
+export default function GradingPage({ tests }: Props) {
     return (
-        <AppLayout title="Grade Submissions">
-            <GradingPage tests={tests} />
+        <AppLayout title="Grading">
+            <GradingComponent tests={tests} />
         </AppLayout>
     );
 }

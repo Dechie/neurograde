@@ -224,6 +224,39 @@ class AdminController extends Controller
         ]);
     }
 
+    // public function assignStudent(Request $request)
+    // {
+    //     $validated = $request->validate([
+    //         'student_id' => 'required|exists:students,id',
+    //         'class_id' => 'required|exists:classes,id'
+    //     ]);
+
+    //     $student = Student::findOrFail($validated['student_id']);
+    //     $class = ClassRoom::findOrFail($validated['class_id']);
+
+    //     // Verify student belongs to the same department as the class
+    //     if ($student->department_id !== $class->department_id) {
+    //         throw \Illuminate\Validation\ValidationException::withMessages([
+    //             'class_id' => 'Student does not belong to the same department as the class.',
+    //         ]);
+    //     }
+
+    //     // Assign student to class with assigned flag
+    //     $class->students()->syncWithoutDetaching([
+    //         $student->id => ['assigned' => true]
+    //     ]);
+        
+    //     // Update student status and class_id
+    //     $student->update(['status' => 'assigned', 'class_id' => $class->id]);
+
+    //     \Log::info('Student assigned to class', [
+    //         'student_id' => $student->id,
+    //         'class_id' => $class->id,
+    //         'status' => 'assigned'
+    //     ]);
+
+    //     return response()->json(['message' => 'Student assigned successfully']);
+    // }
     public function assignStudent(Request $request)
     {
         $validated = $request->validate([
@@ -232,15 +265,84 @@ class AdminController extends Controller
         ]);
 
         $student = Student::findOrFail($validated['student_id']);
-        $class = ClassRoom::findOrFail($validated['class_id']);
+        $class = ClassRoom::findOrFail($validated['class_id']); // Assuming ClassRoom is the model name
 
-        // Assign student to class
-        $student->classes()->attach($class->id);
+        // Verify student belongs to the same department as the class
+        if ($student->department_id !== $class->department_id) {
+            throw ValidationException::withMessages([
+                'class_id' => 'Student does not belong to the same department as the class.',
+            ]);
+        }
+
+        // Assign student to class via pivot table with assigned flag
+        // The `unique('student_id')` on class_students table handles ensuring a student is only in one 'assigned' class via this table.
+        $class->students()->syncWithoutDetaching([
+            $student->id => ['assigned' => true]
+        ]);
         
-        // Update student status
+        // --- FIX STARTS HERE ---
+        // Only update the 'status' on the students table.
+        // The specific class_id is found through the pivot table relationship.
         $student->update(['status' => 'assigned']);
+        // --- FIX ENDS HERE ---
+
+        Log::info('Student assigned to class', [
+            'student_id' => $student->id,
+            'class_id' => $class->id, // Logged for context, but not stored on students table
+            'status' => 'assigned'
+        ]);
 
         return response()->json(['message' => 'Student assigned successfully']);
+    }
+
+    /**
+     * Assigns multiple students to a class in a batch.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    public function batchAssignStudents(Request $request) // Assuming this is the method for the batch update snippet
+    {
+        $request->validate([
+            'student_ids' => 'required|array',
+            'student_ids.*' => 'exists:students,id',
+            'class_id' => 'required|exists:classes,id',
+        ]);
+
+        $class = ClassRoom::findOrFail($request->class_id); // Assuming ClassRoom model
+
+        $attachments = [];
+        $studentsToUpdateStatus = []; // Collect IDs of students whose status needs updating
+        foreach ($request->student_ids as $studentId) {
+            $student = Student::findOrFail($studentId);
+            if ($student->department_id !== $class->department_id) {
+                 // Decide how to handle this: skip, log, or throw an exception for the batch
+                Log::warning('Skipping student for batch assignment due to department mismatch', [
+                    'student_id' => $studentId,
+                    'class_id' => $class->id,
+                    'student_department_id' => $student->department_id,
+                    'class_department_id' => $class->department_id
+                ]);
+                continue; // Skip this student
+            }
+            $attachments[$studentId] = ['assigned' => true];
+            $studentsToUpdateStatus[] = $studentId; // Add to list for status update
+        }
+
+        // Use syncWithoutDetaching for efficient relationship management
+        // This will create/update entries in class_students pivot table
+        $class->students()->syncWithoutDetaching($attachments);
+ 
+        // --- FIX STARTS HERE ---
+        // Update ONLY student statuses on the students table.
+        // The specific class_id is found through the pivot table.
+        Student::whereIn('id', $studentsToUpdateStatus)
+            ->update(['status' => 'assigned']);
+        // --- FIX ENDS HERE ---
+ 
+        return redirect()->route('admin.students.index')
+            ->with('success', 'Students assigned successfully!');
     }
 
     // --- Action Methods (POST/PATCH requests) ---
@@ -371,7 +473,7 @@ class AdminController extends Controller
      /**
      * Handle assigning students to a class.
      */
-     public function assignStudentsToClass(Request $request, ClassRoom $class): RedirectResponse
+       public function assignStudentsToClass(Request $request, ClassRoom $class): RedirectResponse
     {
         $request->validate([
             'student_ids' => 'required|array',
@@ -384,27 +486,73 @@ class AdminController extends Controller
             ->count();
 
         if ($invalidStudentsCount > 0) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+            throw ValidationException::withMessages([ // Ensure ValidationException is imported
                 'student_ids' => 'Some students do not belong to the same department as the class.',
             ]);
         }
 
         // Prepare attachments with assigned flag
         $attachments = [];
-        foreach ($request->student_ids as $student_id) {
+        // It's good practice to filter student IDs to only include those that passed the department check
+        $validStudentIds = Student::whereIn('id', $request->student_ids)
+                                    ->where('department_id', $class->department_id)
+                                    ->pluck('id')
+                                    ->toArray();
+
+        foreach ($validStudentIds as $student_id) {
             $attachments[$student_id] = ['assigned' => true];
         }
 
+
         // Use syncWithoutDetaching for efficient relationship management
+        // This will insert/update entries in the class_students pivot table
         $class->students()->syncWithoutDetaching($attachments);
 
-        // Update student statuses in a single query
-        Student::whereIn('id', $request->student_ids)
-            ->update(['status' => 'assigned']);
+        // --- FIX STARTS HERE ---
+        // Update ONLY student statuses on the students table.
+        // The specific class_id is found through the pivot table relationship.
+        Student::whereIn('id', $validStudentIds) // Use validStudentIds to only update those actually assigned
+            ->update(['status' => 'assigned']); // Removed 'class_id' from this update
+        // --- FIX ENDS HERE ---
 
         return redirect()->route('admin.students.index')
             ->with('success', 'Students assigned successfully!');
-    } 
+    }
+
+    //  public function assignStudentsToClass(Request $request, ClassRoom $class): RedirectResponse
+    // {
+    //     $request->validate([
+    //         'student_ids' => 'required|array',
+    //         'student_ids.*' => 'exists:students,id',
+    //     ]);
+
+    //     // Verify all students belong to the same department as the class
+    //     $invalidStudentsCount = Student::whereIn('id', $request->student_ids)
+    //         ->where('department_id', '!=', $class->department_id)
+    //         ->count();
+
+    //     if ($invalidStudentsCount > 0) {
+    //         throw \Illuminate\Validation\ValidationException::withMessages([
+    //             'student_ids' => 'Some students do not belong to the same department as the class.',
+    //         ]);
+    //     }
+
+    //     // Prepare attachments with assigned flag
+    //     $attachments = [];
+    //     foreach ($request->student_ids as $student_id) {
+    //         $attachments[$student_id] = ['assigned' => true];
+    //     }
+
+    //     // Use syncWithoutDetaching for efficient relationship management
+    //     $class->students()->syncWithoutDetaching($attachments);
+
+    //     // Update student statuses and class_id in a single query
+    //     Student::whereIn('id', $request->student_ids)
+    //         ->update(['status' => 'assigned', 'class_id' => $class->id]);
+
+    //     return redirect()->route('admin.students.index')
+    //         ->with('success', 'Students assigned successfully!');
+    // } 
 
     /**
      * Show the admin dashboard home page.

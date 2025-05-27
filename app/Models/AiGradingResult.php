@@ -11,7 +11,7 @@ class AiGradingResult extends Model
 
     protected $fillable = [
         'submission_id',
-        'predicted_verdict_id',
+        'predicted_id',
         'predicted_verdict_string',
         'verdict_probabilities',
         'requested_language',

@@ -1,6 +1,5 @@
 // Import necessary types from Inertia
-import { Page, PageProps as InertiaPageProps } from '@inertiajs/core';
-import { LucideIcon } from 'lucide-react';
+import { PageProps as InertiaPageProps } from '@inertiajs/core';
 import type { Config } from 'ziggy-js';
 
 // --- Core Model Interfaces ---
@@ -24,8 +23,12 @@ export interface SharedData {
 // Assuming your User model has first_name and last_name
 export interface User {
     id: number;
-    name: string;
+    first_name: string;
+    last_name: string;
     email: string;
+    email_verified_at: string | null;
+    created_at: string;
+    updated_at: string;
     student: {
         id_number: string;
         academic_year: string;
@@ -150,6 +153,10 @@ export interface Test {
   class?: {
     id: number;
     name: string;
+    department?: {
+      id: number;
+      name: string;
+    };
   };
   submissions?: Submission[];
   class_name: string;
@@ -289,7 +296,7 @@ export interface Submission {
   };
   aiGradingResults?: Array<{
     id: number;
-    predicted_verdict_id: number;
+    predicted_id: number;
     predicted_verdict_string: string;
     verdict_probabilities: {
       Accepted: number;
