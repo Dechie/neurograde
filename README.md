@@ -1,6 +1,6 @@
 # SmartGrade: Automated Code Review E-Learning System
 
-The SmartGrade system is an **Automated Code Review E-Learning System** designed to enhance coding assessments at universities. It provides **real-time feedback** on C++, Java, and Python code submissions through an **AI-driven approach**. This system aims to reduce grading time, ensure fair and consistent evaluations, and empower students with actionable insights via an intuitive analytics dashboard, ultimately elevating programming education.
+The SmartGrade system is an **Automated Code Review E-Learning System** designed to enhance coding assessments at universities. It provides **real-time feedback** on C++ and Python code submissions through an **AI-driven approach**. This system aims to reduce grading time, ensure fair and consistent evaluations, and empower students with actionable insights via an intuitive analytics dashboard, ultimately elevating programming education.
 
 ## Project Description
 
@@ -33,6 +33,8 @@ The ML module comprises several components:
 * It then feeds this embedding to the **trained Graph Neural Network** (with its saved weights), which produces predictions for the 7 verdict values.
 
 This entire process is powered by the **PyTorch framework**, leveraging libraries such as `pytorch-geometric`.
+
+> the user facing module is found in the main branch, while the ml module is found in the 'ml-facing-module' branch
 
 ## Installation
 
