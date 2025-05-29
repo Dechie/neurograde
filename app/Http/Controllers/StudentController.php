@@ -517,7 +517,49 @@ class StudentController extends Controller
     /**
      * Show the student results page.
      */
-    public function getResults(): Response
+    // public function getResults(): Response
+    // {
+    //     $user = auth()->user()->load('student');
+    //     $student = $user->student;
+
+    //     // Fetch submissions with their related data
+    //     $submissions = Submission::where('student_id', $student->id)
+    //         ->with([
+    //             'test',
+    //             'grades' => function($query) {
+    //                 $query->latest();
+    //             },
+    //             'aiGradingResults' => function($query) {
+    //                 $query->latest();
+    //             }
+    //         ])
+    //         ->orderBy('created_at', 'desc')
+    //         ->get();
+
+    //     // Format the results for the frontend
+    //     $formattedResults = $submissions->map(function($submission) {
+    //         $latestAiResult = $submission->aiGradingResults->first();
+    //         $latestGrade = $submission->grades->first();
+            
+    //         return [
+    //             'id' => $submission->id,
+    //             'test' => [
+    //                 'id' => $submission->test->id,
+    //                 'title' => $submission->test->title,
+    //             ],
+    //             'score' => $submission->status === 'published' ? $submission->final_grade : null,
+    //             'comment' => $latestGrade ? $latestGrade->comments : null,
+    //             'metrics' => $latestAiResult ? json_decode($latestAiResult->metrics, true) : null,
+    //             'submission_date' => $submission->created_at->format('Y-m-d H:i:s'),
+    //             'status' => $submission->status,
+    //         ];
+    //     })->toArray();
+
+    //     return Inertia::render('dashboard/studentDashboard/Results', [
+    //         'results' => $formattedResults
+    //     ]);
+    // }
+    public function getResults(): InertiaResponse // Change the type hint here
     {
         $user = auth()->user()->load('student');
         $student = $user->student;

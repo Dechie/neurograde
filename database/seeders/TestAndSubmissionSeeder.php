@@ -144,37 +144,37 @@ class TestAndSubmissionSeeder extends Seeder
         }
 
         // Create tests for SE classes
-        foreach ($seClasses as $class) {
-            $test1 = Test::create([
-                'title' => "Greatest Common Divisor - {$class->name}",
-                "problem_statement" => "## Greatest Common Divisor\nWrite a program which finds the greatest common divisor of two natural numbers a and b\n\n## Input\na and b are given in a line sparated by a single space.\n\n## Output\nOutput the greatest common divisor of a and b.\n\n## Constrants\n1 ≤ a, b ≤ 109\n\n## Hint\nYou can use the following observation:\n\nFor integers x and y, if x ≥ y, then gcd(x, y) = gcd(y, x%y)\n\n## Sample Input 1\n```\n54 20\n```\n\n## Sample Output 1\n```\n2\n```\n\n## Sample Input 2\n```\n147 105\n```\n\n## Sample Output 2\n```\n21\n```",
-                'due_date' => Carbon::now()->addDays(7),
-                'status' => 'Upcoming',
-                'input_spec' => 'example input spec',
-                'output_spec' => 'example output spec',
-                'teacher_id' => $seTeacher->id,
-                'department_id' => $seDepartment->id,
-                'class_id' => $class->id,
-                'published' => true
-            ]);
+        // foreach ($seClasses as $class) {
+        //     $test1 = Test::create([
+        //         'title' => "Greatest Common Divisor - {$class->name}",
+        //         "problem_statement" => "## Greatest Common Divisor\nWrite a program which finds the greatest common divisor of two natural numbers a and b\n\n## Input\na and b are given in a line sparated by a single space.\n\n## Output\nOutput the greatest common divisor of a and b.\n\n## Constrants\n1 ≤ a, b ≤ 109\n\n## Hint\nYou can use the following observation:\n\nFor integers x and y, if x ≥ y, then gcd(x, y) = gcd(y, x%y)\n\n## Sample Input 1\n```\n54 20\n```\n\n## Sample Output 1\n```\n2\n```\n\n## Sample Input 2\n```\n147 105\n```\n\n## Sample Output 2\n```\n21\n```",
+        //         'due_date' => Carbon::now()->addDays(7),
+        //         'status' => 'Upcoming',
+        //         'input_spec' => 'example input spec',
+        //         'output_spec' => 'example output spec',
+        //         'teacher_id' => $seTeacher->id,
+        //         'department_id' => $seDepartment->id,
+        //         'class_id' => $class->id,
+        //         'published' => true
+        //     ]);
 
-            $test2 = Test::create([
-                'title' => "Largest Square - {$class->name}",
-                "problem_statement" => "# Largest Square\nGiven a matrix (H × W) which contains only 1 and 0, find the area of the largest square matrix which only contains 0s.\n\n## Input\n```\nH W\nc1,1 c1,2 ... c1,W\nc2,1 c2,2 ... c2,W\n:\ncH,1 cH,2 ... cH,W\n```\n\nIn the first line, two integers H and W separated by a space character are given. In the following H lines, ci,j, elements of the H × W matrix, are given.\n\n## Output\nPrint the area (the number of 0s) of the largest square.\n\n## Constraints\n- 1 ≤ H, W ≤ 1,400\n## Sample Input\n```\n4 5\n0 0 1 0 0\n1 0 0 0 0\n0 0 0 1 0\n0 0 0 1 0\n```\n\n## Sample Output\n```\n4\n```", 
-                'due_date' => Carbon::now()->addDays(14),
-                'status' => 'Upcoming',
-                'input_spec' => 'example input spec',
-                'output_spec' => 'example output spec',
-                'teacher_id' => $seTeacher->id,
-                'department_id' => $seDepartment->id,
-                'class_id' => $class->id,
-                'published' => true
-            ]);
+        //     $test2 = Test::create([
+        //         'title' => "Largest Square - {$class->name}",
+        //         "problem_statement" => "# Largest Square\nGiven a matrix (H × W) which contains only 1 and 0, find the area of the largest square matrix which only contains 0s.\n\n## Input\n```\nH W\nc1,1 c1,2 ... c1,W\nc2,1 c2,2 ... c2,W\n:\ncH,1 cH,2 ... cH,W\n```\n\nIn the first line, two integers H and W separated by a space character are given. In the following H lines, ci,j, elements of the H × W matrix, are given.\n\n## Output\nPrint the area (the number of 0s) of the largest square.\n\n## Constraints\n- 1 ≤ H, W ≤ 1,400\n## Sample Input\n```\n4 5\n0 0 1 0 0\n1 0 0 0 0\n0 0 0 1 0\n0 0 0 1 0\n```\n\n## Sample Output\n```\n4\n```", 
+        //         'due_date' => Carbon::now()->addDays(14),
+        //         'status' => 'Upcoming',
+        //         'input_spec' => 'example input spec',
+        //         'output_spec' => 'example output spec',
+        //         'teacher_id' => $seTeacher->id,
+        //         'department_id' => $seDepartment->id,
+        //         'class_id' => $class->id,
+        //         'published' => true
+        //     ]);
 
-            // Get all students in this class and assign them to both tests
-            $students = $class->students;
-            $test1->students()->sync($students->pluck('id'));
-            $test2->students()->sync($students->pluck('id'));
-        }
+        //     // Get all students in this class and assign them to both tests
+        //     $students = $class->students;
+        //     $test1->students()->sync($students->pluck('id'));
+        //     $test2->students()->sync($students->pluck('id'));
+        // }
     }
 }

@@ -1,0 +1,26 @@
+{
+"one": {
+    "statement": "Debt Hell Your friend who lives in undisclosed country is involved in debt. He is borrowing 100,000-yen from a loan shark. The loan shark adds 5% interest of the debt and rounds it to the nearest 1,000 above week by week. Write a program which computes the amount of the debt in n weeks.",
+    "input_spec": "An integer n (0 ≤ n ≤ 100) is given in a line.",
+    "output_spec": "Print the amout of the debt in a line.",
+    "code_submission": "import sys def main(): n = int(input().rstrip()) r = 1.05 digit = -4 a = 100000 print(int(round(a*(r**n), digit))) if __name__ == '__main__': main()",
+    "language": "python"
+},
+"two": {
+
+    "statement": "Read two integers and print their sum.",
+    "input_spec": "Two integers, a and b (-1000 <= a, b <= 1000), separated by a space on a single line.",
+    "output_spec": "Print a single integer, which is the sum of a and b.",
+    "code_submission": "a, b = map(int, input().split())\nprint(a + b)",
+    "language": "python"
+
+},
+
+"three": {
+    "statement": "Read two integers and print their sum.",
+    "input_spec": "Two integers, a and b (-1000 <= a, b <= 1000), separated by a space on a single line.",
+    "output_spec": "Print a single integer, which is the sum of a and b.",
+    "code_submission": "a, b = map(int, input().split())\nprint(a - b)",
+    "language": "python"
+}
+}
