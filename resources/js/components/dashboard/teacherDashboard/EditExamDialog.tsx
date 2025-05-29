@@ -1,4 +1,3 @@
-// components/dashboard/teacherDashboard/EditExamDialog.tsx
 'use client';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';

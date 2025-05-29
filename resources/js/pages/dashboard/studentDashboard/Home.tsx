@@ -96,41 +96,6 @@ export default function Home({ user, upcomingTests, recentResults, statistics }:
                     </Card>
                 </div>
 
-                {/* Upcoming Tests */}
-                {/* <Card>
-                    <CardHeader>
-                        <CardTitle>Upcoming Tests</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {upcomingTests.length > 0 ? (
-                            <div className="space-y-4">
-                                {upcomingTests.map((test) => (
-                                    <div key={test.id} className="flex items-center justify-between">
-                                        <div>
-                                            <h3 className="font-medium">{test.title}</h3>
-                                            <p className="text-sm text-muted-foreground">
-                                                {test.class_name} • {test.department} • Due {new Date(test.due_date).toLocaleDateString()}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            {test.has_submitted ? (
-                                                <Badge variant="success">Submitted</Badge>
-                                            ) : (
-                                                <Badge variant="outline">Not Submitted</Badge>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <Alert>
-                                <AlertCircle className="h-4 w-4" />
-                                <AlertDescription>No upcoming tests</AlertDescription>
-                            </Alert>
-                        )}
-                    </CardContent>
-                </Card> */}
-
                 {/* Recent Results */}
                 <Card>
                     <CardHeader>

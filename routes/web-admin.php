@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Route;
 // Admin dashboard routes protected by 'auth' and 'role:admin' middleware
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
  
-    // --- Inertia Page Routes (GET requests render components) ---
 
     // Route for the Admin Dashboard home page
     // Route::get('/', [AdminController::class, 'showAdminHome'])->name('admin.home');
@@ -47,9 +46,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::patch('/classes/{class}/students', [AdminController::class, 'assignStudentsToClass'])->name('admin.classes.assign-students');
     Route::patch('/classes/{class}/assign-teacher', [AdminController::class, 'assignTeacherToClass'])->name('admin.classes.assign-teacher');
 
-    // Add routes for updating/deleting teachers, classes, students if needed
-    // Route::patch('/teachers/{teacher}', [AdminController::class, 'updateTeacher'])->name('admin.teachers.update');
-    // Route::delete('/teachers/{teacher}', [AdminController::class, 'destroyTeacher'])->name('admin.teachers.destroy');
 });
 
 

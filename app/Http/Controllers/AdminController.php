@@ -22,7 +22,6 @@ use App\Models\ClassModel;
 
 class AdminController extends Controller
 {
-    // --- Admin Login/Logout (Remain as is, handled separately) ---
     public function showAdminHome(): Response
     {
         return Inertia::render('dashboard/adminDashboard/Home');
@@ -37,7 +36,6 @@ class AdminController extends Controller
     {
         $request->authenticate();
 
-        // --- Add these lines temporarily for debugging ---
         if (Auth::check()) {
             \Log::info('User authenticated successfully', ['user_id' => Auth::id(), 'roles' => Auth::user()->getRoleNames()]);
         } else {
@@ -53,7 +51,6 @@ class AdminController extends Controller
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
-    // --- Inertia Page Rendering Methods (GET requests) ---
     /**
      * Show the admin student list page.
      */
@@ -146,52 +143,6 @@ class AdminController extends Controller
             'departments' => $departments->toArray(),
         ]);
     } 
-//     public function showCreateClassPage(): Response
-// {
-//     // Fetch all classes with their relationships
-//     $classes = ClassRoom::with(['department', 'teachers.user', 'students.user'])
-//         ->get()
-//         ->map(function ($class) {
-//             return [
-//                 'id' => $class->id,
-//                 'name' => $class->name,
-//                 'max_students' => $class->max_students,
-//                 'department' => [
-//                     'id' => $class->department->id,
-//                     'name' => $class->department->name,
-//                 ],
-//                 'teachers' => $class->teachers->map(function ($teacher) {
-//                     return [
-//                         'id' => $teacher->id,
-//                         'user' => [
-//                             'first_name' => $teacher->user->first_name,
-//                             'last_name' => $teacher->user->last_name,
-//                             'email' => $teacher->user->email,
-//                         ]
-//                     ];
-//                 }),
-//                 'students' => $class->students->map(function ($student) {
-//                     return [
-//                         'id' => $student->id,
-//                         'user' => [
-//                             'first_name' => $student->user->first_name,
-//                             'last_name' => $student->user->last_name,
-//                         ]
-//                     ];
-//                 }),
-//             ];
-//         });
-
-//     $departments = Department::all();
-//     $teachers = Teacher::with('user')->get();
-
-//     return Inertia::render('dashboard/adminDashboard/CreateClassPage', [
-//         'classes' => $classes,
-//         'departments' => $departments,
-//         'teachers' => $teachers,
-//     ]);
-// }
-    
 
      /**
      * Show the admin unassigned students page (if separate).
@@ -224,39 +175,6 @@ class AdminController extends Controller
         ]);
     }
 
-    // public function assignStudent(Request $request)
-    // {
-    //     $validated = $request->validate([
-    //         'student_id' => 'required|exists:students,id',
-    //         'class_id' => 'required|exists:classes,id'
-    //     ]);
-
-    //     $student = Student::findOrFail($validated['student_id']);
-    //     $class = ClassRoom::findOrFail($validated['class_id']);
-
-    //     // Verify student belongs to the same department as the class
-    //     if ($student->department_id !== $class->department_id) {
-    //         throw \Illuminate\Validation\ValidationException::withMessages([
-    //             'class_id' => 'Student does not belong to the same department as the class.',
-    //         ]);
-    //     }
-
-    //     // Assign student to class with assigned flag
-    //     $class->students()->syncWithoutDetaching([
-    //         $student->id => ['assigned' => true]
-    //     ]);
-        
-    //     // Update student status and class_id
-    //     $student->update(['status' => 'assigned', 'class_id' => $class->id]);
-
-    //     \Log::info('Student assigned to class', [
-    //         'student_id' => $student->id,
-    //         'class_id' => $class->id,
-    //         'status' => 'assigned'
-    //     ]);
-
-    //     return response()->json(['message' => 'Student assigned successfully']);
-    // }
     public function assignStudent(Request $request)
     {
         $validated = $request->validate([
@@ -280,11 +198,9 @@ class AdminController extends Controller
             $student->id => ['assigned' => true]
         ]);
         
-        // --- FIX STARTS HERE ---
         // Only update the 'status' on the students table.
         // The specific class_id is found through the pivot table relationship.
         $student->update(['status' => 'assigned']);
-        // --- FIX ENDS HERE ---
 
         Log::info('Student assigned to class', [
             'student_id' => $student->id,
@@ -331,21 +247,15 @@ class AdminController extends Controller
         }
 
         // Use syncWithoutDetaching for efficient relationship management
-        // This will create/update entries in class_students pivot table
         $class->students()->syncWithoutDetaching($attachments);
  
-        // --- FIX STARTS HERE ---
-        // Update ONLY student statuses on the students table.
-        // The specific class_id is found through the pivot table.
         Student::whereIn('id', $studentsToUpdateStatus)
             ->update(['status' => 'assigned']);
-        // --- FIX ENDS HERE ---
  
         return redirect()->route('admin.students.index')
             ->with('success', 'Students assigned successfully!');
     }
 
-    // --- Action Methods (POST/PATCH requests) ---
 
     /**
      * Handle creating a new teacher.
@@ -446,15 +356,6 @@ class AdminController extends Controller
             // and does nothing if it already exists. It does NOT detach others.
             $class->teachers()->syncWithoutDetaching([$teacher->id]);
 
-            // If you wanted to use 'attach' and handle duplicates manually:
-            // try {
-            //     $class->teachers()->attach($teacher->id);
-            // } catch (\Illuminate\Database\QueryException $e) {
-            //     // Handle duplicate entry error if needed, or just let syncWithoutDetaching handle it
-            // }
-            // --- End Core Logic ---
-
-
             // Redirect back to the teacher list page
             return redirect()->route('admin.teachers.index')
                              ->with('success', "Teacher {$teacher->user->first_name} {$teacher->user->last_name} assigned to class {$class->name} successfully!"); // Add a success flash message
@@ -508,195 +409,111 @@ class AdminController extends Controller
         // This will insert/update entries in the class_students pivot table
         $class->students()->syncWithoutDetaching($attachments);
 
-        // --- FIX STARTS HERE ---
         // Update ONLY student statuses on the students table.
         // The specific class_id is found through the pivot table relationship.
         Student::whereIn('id', $validStudentIds) // Use validStudentIds to only update those actually assigned
             ->update(['status' => 'assigned']); // Removed 'class_id' from this update
-        // --- FIX ENDS HERE ---
 
         return redirect()->route('admin.students.index')
             ->with('success', 'Students assigned successfully!');
     }
 
-    //  public function assignStudentsToClass(Request $request, ClassRoom $class): RedirectResponse
-    // {
-    //     $request->validate([
-    //         'student_ids' => 'required|array',
-    //         'student_ids.*' => 'exists:students,id',
-    //     ]);
-
-    //     // Verify all students belong to the same department as the class
-    //     $invalidStudentsCount = Student::whereIn('id', $request->student_ids)
-    //         ->where('department_id', '!=', $class->department_id)
-    //         ->count();
-
-    //     if ($invalidStudentsCount > 0) {
-    //         throw \Illuminate\Validation\ValidationException::withMessages([
-    //             'student_ids' => 'Some students do not belong to the same department as the class.',
-    //         ]);
-    //     }
-
-    //     // Prepare attachments with assigned flag
-    //     $attachments = [];
-    //     foreach ($request->student_ids as $student_id) {
-    //         $attachments[$student_id] = ['assigned' => true];
-    //     }
-
-    //     // Use syncWithoutDetaching for efficient relationship management
-    //     $class->students()->syncWithoutDetaching($attachments);
-
-    //     // Update student statuses and class_id in a single query
-    //     Student::whereIn('id', $request->student_ids)
-    //         ->update(['status' => 'assigned', 'class_id' => $class->id]);
-
-    //     return redirect()->route('admin.students.index')
-    //         ->with('success', 'Students assigned successfully!');
-    // } 
-
-    /**
-     * Show the admin dashboard home page.
-     */
-    // public function showHomePage()
-    // {
-    //     $students = Student::with(['user', 'classes', 'department'])->get();
-    //     $teachers = Teacher::with(['user', 'classes', 'department'])->get();
-    //     $classes = ClassRoom::with(['department', 'students', 'teachers'])->get();
-
-    //     // Get student count per department
-    //     $studentPerDept = Student::with('department')
-    //         ->get()
-    //         ->groupBy('department.name')
-    //         ->map(function ($students) {
-    //             return [
-    //                 'name' => $students->first()->department->name,
-    //                 'value' => $students->count()
-    //             ];
-    //         })
-    //         ->values()
-    //         ->toArray();
-
-    //     // Count assigned/unassigned teachers
-    //     $assignedTeacherCount = Teacher::whereHas('classes')->count();
-    //     $unassignedTeacherCount = Teacher::whereDoesntHave('classes')->count();
-
-    //     // Count assigned/unassigned students
-    //     $assignedStudentCount = Student::whereHas('classes')->count();
-    //     $unassignedStudentCount = Student::whereDoesntHave('classes')->count();
-
-    //     return Inertia::render('Dashboard/AdminDashboard/Home', [
-    //         'authUser' => auth()->user(),
-    //         'studentPerDept' => $studentPerDept,
-    //         'students' => $students,
-    //         'teachers' => $teachers,
-    //         'classes' => $classes,
-    //         'assignedTeacherCount' => $assignedTeacherCount,
-    //         'unassignedTeacherCount' => $unassignedTeacherCount,
-    //         'assignedStudentCount' => $assignedStudentCount,
-    //         'unassignedStudentCount' => $unassignedStudentCount,
-    //     ]);
-    // }
+    
     public function showHomePage(): Response
-{
-    // Get student count per department
-    $studentPerDept = Student::with('department')
-        ->get()
-        ->groupBy('department.name')
-        ->map(function ($students, $deptName) {
+    {
+        // Get student count per department
+        $studentPerDept = Student::with('department')
+            ->get()
+            ->groupBy('department.name')
+            ->map(function ($students, $deptName) {
+                return [
+                    'name' => $deptName,
+                    'value' => $students->count()
+                ];
+            })
+            ->values()
+            ->toArray();
+
+        // Get all data with proper relationships
+        $students = Student::with(['user', 'classes', 'department'])->get()->map(function ($student) {
             return [
-                'name' => $deptName,
-                'value' => $students->count()
+                'id' => $student->id,
+                'user' => [
+                    'first_name' => $student->user->first_name,
+                    'last_name' => $student->user->last_name,
+                    'email' => $student->user->email,
+                ],
+                'classes' => $student->classes->map(function ($class) {
+                    return [
+                        'id' => $class->id,
+                        'name' => $class->name,
+                    ];
+                }),
+                'department' => [
+                    'id' => $student->department->id,
+                    'name' => $student->department->name,
+                ],
             ];
-        })
-        ->values()
-        ->toArray();
+        });
 
-    // Get all data with proper relationships
-    $students = Student::with(['user', 'classes', 'department'])->get()->map(function ($student) {
-        return [
-            'id' => $student->id,
-            'user' => [
-                'first_name' => $student->user->first_name,
-                'last_name' => $student->user->last_name,
-                'email' => $student->user->email,
+        $teachers = Teacher::with(['user', 'classes', 'department'])->get()->map(function ($teacher) {
+            return [
+                'id' => $teacher->id,
+                'user' => [
+                    'first_name' => $teacher->user->first_name,
+                    'last_name' => $teacher->user->last_name,
+                    'email' => $teacher->user->email,
+                ],
+                'classes' => $teacher->classes->map(function ($class) {
+                    return [
+                        'id' => $class->id,
+                        'name' => $class->name,
+                    ];
+                }),
+                'department' => [
+                    'id' => $teacher->department->id,
+                    'name' => $teacher->department->name,
+                ],
+            ];
+        });
+
+        $classes = ClassRoom::with(['department', 'students', 'teachers'])->get()->map(function ($class) {
+            return [
+                'id' => $class->id,
+                'name' => $class->name,
+                'department' => [
+                    'id' => $class->department->id,
+                    'name' => $class->department->name,
+                ],
+                'students' => $class->students->map(function ($student) {
+                    return ['id' => $student->id];
+                }),
+                'teachers' => $class->teachers->map(function ($teacher) {
+                    return ['id' => $teacher->id];
+                }),
+            ];
+        });
+
+        // Count assigned/unassigned
+        $assignedTeacherCount = Teacher::whereHas('classes')->count();
+        $unassignedTeacherCount = Teacher::whereDoesntHave('classes')->count();
+        $assignedStudentCount = Student::whereHas('classes')->count();
+        $unassignedStudentCount = Student::whereDoesntHave('classes')->count();
+
+        return Inertia::render('dashboard/adminDashboard/Home', [
+            'authUser' => [
+                'name' => Auth::user()->name, // Make sure your User model has a name attribute
             ],
-            'classes' => $student->classes->map(function ($class) {
-                return [
-                    'id' => $class->id,
-                    'name' => $class->name,
-                ];
-            }),
-            'department' => [
-                'id' => $student->department->id,
-                'name' => $student->department->name,
-            ],
-        ];
-    });
+            'studentPerDept' => $studentPerDept,
+            'students' => $students,
+            'teachers' => $teachers,
+            'classes' => $classes,
+            'assignedTeacherCount' => $assignedTeacherCount,
+            'unassignedTeacherCount' => $unassignedTeacherCount,
+            'assignedStudentCount' => $assignedStudentCount,
+            'unassignedStudentCount' => $unassignedStudentCount,
+        ]);
+    }
 
-    $teachers = Teacher::with(['user', 'classes', 'department'])->get()->map(function ($teacher) {
-        return [
-            'id' => $teacher->id,
-            'user' => [
-                'first_name' => $teacher->user->first_name,
-                'last_name' => $teacher->user->last_name,
-                'email' => $teacher->user->email,
-            ],
-            'classes' => $teacher->classes->map(function ($class) {
-                return [
-                    'id' => $class->id,
-                    'name' => $class->name,
-                ];
-            }),
-            'department' => [
-                'id' => $teacher->department->id,
-                'name' => $teacher->department->name,
-            ],
-        ];
-    });
-
-    $classes = ClassRoom::with(['department', 'students', 'teachers'])->get()->map(function ($class) {
-        return [
-            'id' => $class->id,
-            'name' => $class->name,
-            'department' => [
-                'id' => $class->department->id,
-                'name' => $class->department->name,
-            ],
-            'students' => $class->students->map(function ($student) {
-                return ['id' => $student->id];
-            }),
-            'teachers' => $class->teachers->map(function ($teacher) {
-                return ['id' => $teacher->id];
-            }),
-        ];
-    });
-
-    // Count assigned/unassigned
-    $assignedTeacherCount = Teacher::whereHas('classes')->count();
-    $unassignedTeacherCount = Teacher::whereDoesntHave('classes')->count();
-    $assignedStudentCount = Student::whereHas('classes')->count();
-    $unassignedStudentCount = Student::whereDoesntHave('classes')->count();
-
-    return Inertia::render('dashboard/adminDashboard/Home', [
-        'authUser' => [
-            'name' => Auth::user()->name, // Make sure your User model has a name attribute
-        ],
-        'studentPerDept' => $studentPerDept,
-        'students' => $students,
-        'teachers' => $teachers,
-        'classes' => $classes,
-        'assignedTeacherCount' => $assignedTeacherCount,
-        'unassignedTeacherCount' => $unassignedTeacherCount,
-        'assignedStudentCount' => $assignedStudentCount,
-        'unassignedStudentCount' => $unassignedStudentCount,
-    ]);
-}
-
-    // Existing API methods are now handled by the Inertia rendering methods above
-    // The data fetching logic is moved into the show*Page methods.
-    // public function getTeachers() { ... }
-    // public function getClasses() { ... }
-    // public function getStudents() { ... }
-    // public function getUnassignedStudents() { ... }
 }
 

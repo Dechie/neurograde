@@ -93,26 +93,6 @@ export function Sidebar() {
             </div>
           </nav>
 
-          {/* Footer items at bottom */}
-          {/* <div className="p-2 mt-auto space-y-1">
-            {FOOTER_ITEMS.map((item) => (
-              <Tooltip key={item.path} delayDuration={300}>
-                <TooltipTrigger asChild>
-                  <Link
-                    href={item.path}
-                    onClick={() => isMobile && closeMobile()}
-                    className={`flex items-center gap-3 px-3 py-2 rounded
-                    ${isActive(item.path) ? 'bg-primary text-muted' : 'hover:bg-primary hover:text-muted'}
-                    ${isCollapsed && !isMobile ? 'justify-center' : 'w-full'}`}
-                  >
-                    <item.icon className="h-5 w-5" />
-                    {(!isCollapsed || isMobile) && <span className="text-sm">{item.label}</span>}
-                  </Link>
-                </TooltipTrigger>
-                {isCollapsed && !isMobile && <TooltipContent side="right">{item.label}</TooltipContent>}
-              </Tooltip>
-            ))}
-          </div> */}
         </TooltipProvider>
       </aside>
     </>

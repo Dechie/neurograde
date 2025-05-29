@@ -17,7 +17,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Insert the default grading criteria
         DB::table('grading_criteria')->insert([
             ['name' => 'Accepted', 'description' => 'The solution is correct and meets all requirements', 'verdict_id' => 0],
             ['name' => 'Wrong Answer', 'description' => 'The solution produces incorrect output', 'verdict_id' => 1],

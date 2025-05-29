@@ -63,6 +63,4 @@ class TestController extends Controller
             ], 500);
         }
     }
-
-    // ... rest of the controller methods ...
 } 
