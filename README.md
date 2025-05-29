@@ -87,7 +87,6 @@ Once these are installed, follow these steps:
 ## Relevant Files
 
 * The **thesis paper/document** and its **PowerPoint presentation** can be found in the `project_docs/` directory.
-* A **short video demo** is available in the `demos/` directory.
 
 **Authors:**
 Agumas Desalew, Dechasa Teshome, Elsabet Zeleke, Eshetu Tesema, Eyouel Melkamu. \
